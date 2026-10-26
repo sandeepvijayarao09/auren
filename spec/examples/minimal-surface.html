@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><title>Minimal Auren surface</title>
+<!-- A complete Auren surface in ~20 lines: joins the session, stays online, speaks replies, takes typed commands. -->
+<input id="q" placeholder="Say it once…" style="font-size:18px;width:90%"><pre id="log"></pre>
+<script>
+const ws = new WebSocket(location.origin.replace(/^http/, "ws") + "/v1/surface" + location.search);
+const surface = { id: "minimal-" + Date.now(), kind: "other", name: "Minimal", inputs: ["text", "touch"], outputs: ["voice", "screen"] };
+ws.onopen = () => {
+  ws.send(JSON.stringify({ type: "hello", surface }));
+  setInterval(() => ws.send(JSON.stringify({ type: "heartbeat", active: true })), 1000);
+};
+ws.onmessage = ({ data }) => {
+  const m = JSON.parse(data);
+  if (m.type === "speak") speechSynthesis.speak(new SpeechSynthesisUtterance(m.text));
+  if (m.type === "event") document.getElementById("log").prepend(`${m.event.kind}: ${JSON.stringify(m.event.data)}\n`);
+  if (m.type === "approval_request") ws.send(JSON.stringify({ type: "approval_response", request_id: m.request_id, approved: confirm(m.summary) }));
+};
+q.onkeydown = (e) => { if (e.key === "Enter" && q.value) { ws.send(JSON.stringify({ type: "utterance", text: q.value })); q.value = ""; } };
+</script>
