@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auren Console</title>
+<style>
+  :root { --bg:#0b0b0c; --panel:#141416; --line:#26262a; --text:#f4f1ea; --dim:#8d8a83; --gold:#d4af37; --ok:#6fcf97; --bad:#eb5757; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif; }
+  header { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .brand { font-weight:600; letter-spacing:.18em; color:var(--gold); }
+  .me { color:var(--dim); font-size:13px; }
+  .chips { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { font-size:12px; padding:3px 9px; border:1px solid var(--line); border-radius:999px; color:var(--dim); }
+  .chip.on { border-color:var(--gold); color:var(--text); }
+  main { max-width:760px; margin:0 auto; padding:16px 16px 140px; }
+  .ev { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .ev .k { width:84px; flex:none; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); padding-top:2px; }
+  .ev.receipt .k, .ev.reply .k { color:var(--gold); }
+  .ev.error .k { color:var(--bad); }
+  .ev .b { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .ev .t { color:var(--dim); font-size:12px; margin-left:8px; }
+  .ev button { margin-left:8px; }
+  .approval, .card { margin:12px 0; padding:14px 16px; border:1px solid var(--gold); border-radius:14px; background:var(--panel); }
+  .approval .row { margin-top:10px; display:flex; gap:8px; }
+  button { font:inherit; font-size:13px; padding:6px 12px; border-radius:10px; border:1px solid var(--line); background:#1c1c1f; color:var(--text); cursor:pointer; }
+  button.gold { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
+  form { position:fixed; left:0; right:0; bottom:0; padding:12px 16px 20px; background:linear-gradient(transparent, var(--bg) 30%); }
+  .bar { max-width:760px; margin:0 auto; display:flex; gap:8px; }
+  input[type=text] { flex:1; font:inherit; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); }
+  input[type=text]:focus { outline:none; border-color:var(--gold); }
+  .tools { max-width:760px; margin:8px auto 0; display:flex; gap:14px; color:var(--dim); font-size:12px; }
+  @media (max-width:520px) { .ev .k { width:64px; } .chips { display:none; } }
+</style>
+</head>
+<body>
+<header>
+  <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
+  <span class="brand">AUREN</span><span class="me" id="me"></span>
+  <div class="chips" id="chips"></div>
+</header>
+<main><div id="pending"></div><div id="cards"></div><div id="timeline"></div></main>
+<form id="f">
+  <div class="bar"><input type="text" id="q" placeholder="Say it once…" autocomplete="off"><button class="gold">Send</button></div>
+  <div class="tools">
+    <label><input type="checkbox" id="voice" checked> speak replies</label>
+    <label><input type="checkbox" id="offline"> go offline (test handoff)</label>
+  </div>
+</form>
+<script>
+const qs = new URLSearchParams(location.search);
+const kind = qs.get("kind") || "web";
+const token = qs.get("token") || "";
+const PRESETS = {
+  web:     { inputs: ["text", "touch"], outputs: ["screen", "voice"] },
+  phone:   { inputs: ["voice", "text", "touch", "camera"], outputs: ["voice", "screen"] },
+  watch:   { inputs: ["voice", "text", "touch"], outputs: ["voice", "haptic", "screen"] },
+  glasses: { inputs: ["voice", "camera"], outputs: ["voice"] },
+};
+const surface = { id: qs.get("id") || `${kind}-${Math.random().toString(36).slice(2, 6)}`, kind, name: qs.get("name") || kind, ...(PRESETS[kind] || PRESETS.web) };
+const $ = (id) => document.getElementById(id);
+const auth = token ? { Authorization: `Bearer ${token}` } : {};
+const online = new Map();
+$("me").textContent = `this tab = ${surface.name} (${surface.id})`;
+
+function chips() {
+  $("chips").innerHTML = [...online.values()].map((s) => `<span class="chip ${s.id === surface.id ? "on" : ""}">${s.kind}</span>`).join("");
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+function line(e) {
+  const d = e.data, time = new Date(e.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const body = {
+    utterance: () => `“${esc(d.text)}”`,
+    ack: () => esc(d.text),
+    tool_call: () => `${esc(d.app)} · ${esc(d.tool)} <span class="t">${esc(d.tier)}</span>`,
+    receipt: () => `${esc(d.summary)}${d.undo ? ` <button data-undo="${e.id}">Undo</button>` : ""}`,
+    approval: () => `${esc(d.status)}${d.summary ? `: ${esc(d.summary)}` : ""}${d.surface_id ? ` <span class="t">on ${esc(d.surface_id)}</span>` : ""}`,
+    handoff: () => `approval moved ${esc(d.from)} → ${esc(d.to ?? "nowhere yet")}`,
+    reply: () => esc(d.text),
+    error: () => esc(d.message),
+    surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
+  }[e.kind] || (() => esc(JSON.stringify(d)));
+  if (e.kind === "surface") { d.status === "online" ? online.set(d.surface_id, { id: d.surface_id, kind: d.kind }) : online.delete(d.surface_id); chips(); }
+  const el = document.createElement("div");
+  el.className = `ev ${e.kind}`;
+  el.innerHTML = `<div class="k">${e.kind.replace("_", " ")}</div><div class="b">${body()}<span class="t">${time}</span></div>`;
+  $("timeline").prepend(el);
+}
+
+let ws, beat;
+function connect() {
+  ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/v1/surface${token ? `?token=${encodeURIComponent(token)}` : ""}`);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: "hello", surface }));
+    beat = setInterval(() => !$("offline").checked && ws.send(JSON.stringify({ type: "heartbeat", active: document.hasFocus() })), 1000);
+  };
+  ws.onclose = () => { clearInterval(beat); setTimeout(connect, 1000); };
+  ws.onmessage = ({ data }) => {
+    const m = JSON.parse(data);
+    if (m.type === "welcome") { m.surfaces.forEach((s) => online.set(s.id, s)); chips(); }
+    if (m.type === "event") line(m.event);
+    if (m.type === "speak" && $("voice").checked && surface.outputs.includes("voice")) speechSynthesis.speak(new SpeechSynthesisUtterance(m.text));
+    if (m.type === "show_card") $("cards").insertAdjacentHTML("afterbegin", `<div class="card"><b>${esc(m.title)}</b><div>${esc(m.body)}</div></div>`);
+    if (m.type === "approval_request") {
+      if (navigator.vibrate) navigator.vibrate(60);
+      $("pending").insertAdjacentHTML("afterbegin", `<div class="approval" id="a-${m.request_id}"><div>${esc(m.summary)}</div>
+        <div class="row"><button class="gold" data-a="${m.request_id}" data-v="1">Approve</button><button data-a="${m.request_id}" data-v="0">Decline</button></div></div>`);
+    }
+    if (m.type === "approval_cancel") $(`a-${m.request_id}`)?.remove();
+  };
+}
+
+document.addEventListener("click", async (ev) => {
+  const a = ev.target.dataset?.a, undo = ev.target.dataset?.undo;
+  if (a) { ws.send(JSON.stringify({ type: "approval_response", request_id: a, approved: ev.target.dataset.v === "1" })); $(`a-${a}`)?.remove(); }
+  if (undo) { ev.target.disabled = true; await fetch(`/v1/receipts/${undo}/undo`, { method: "POST", headers: auth }); }
+});
+$("f").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const text = $("q").value.trim();
+  if (text) ws.send(JSON.stringify({ type: "utterance", text }));
+  $("q").value = "";
+});
+
+fetch(`/v1/events`, { headers: auth }).then((r) => r.json()).then(({ events }) => { events.forEach(line); connect(); }).catch(connect);
+</script>
+</body>
+</html>

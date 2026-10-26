@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+.DS_Store
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+# Python (router/, driver/)
+__pycache__/
+.venv/
+.claude/
