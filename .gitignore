@@ -5,11 +5,18 @@ node_modules/
 *.db
 *.db-*
 .DS_Store
-# Xcode
+# Xcode (the .xcodeproj is generated from apps/apple/project.yml)
 DerivedData/
 *.xcuserstate
 xcuserdata/
-# Python (router/, driver/)
+apps/apple/*.xcodeproj/
+.build/
+.swiftpm/
+# Python (router/)
 __pycache__/
 .venv/
+router/data/
+# Eval output
+eval/out/
 .claude/
+apps/apple/*/Info.plist

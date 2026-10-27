@@ -1,0 +1,26 @@
+{
+  "id": "gp5-recap-then-undo",
+  "title": "Recap the day from receipts, then undo by voice",
+  "golden_path": "GP5",
+  "category": "undo",
+  "surface": "web",
+  "online": [
+    "web",
+    "phone"
+  ],
+  "commands": [
+    "What did I get done today?",
+    "Undo the calendar move."
+  ],
+  "fixtures": {
+    "after": "gp1-watch-fan-out"
+  },
+  "expect": {
+    "tools": [
+      "memory.recap",
+      "receipts.undo"
+    ],
+    "receipts": 1
+  },
+  "script": []
+}

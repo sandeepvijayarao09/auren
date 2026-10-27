@@ -1,0 +1,23 @@
+{
+  "id": "undo-a-draft",
+  "title": "Undo removes what the last write created",
+  "golden_path": null,
+  "category": "undo",
+  "surface": "phone",
+  "online": [
+    "phone"
+  ],
+  "commands": [
+    "Draft a reply to Prof. Lee saying grades are in by 5.",
+    "Undo that."
+  ],
+  "expect": {
+    "tools": [
+      "gmail.create_draft",
+      "receipts.undo"
+    ],
+    "receipts": 2
+  },
+  "fixtures": {},
+  "script": []
+}

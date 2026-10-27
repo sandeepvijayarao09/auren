@@ -1,0 +1,30 @@
+{
+  "id": "gp3-glasses-off-mid-reply",
+  "title": "Take the glasses off mid-reply and the task follows you",
+  "golden_path": "GP3",
+  "category": "handoff",
+  "surface": "glasses",
+  "online": [
+    "glasses",
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "What's on my calendar this afternoon?"
+  ],
+  "script": [
+    {
+      "at_ms": 800,
+      "action": "drop",
+      "surface": "glasses"
+    }
+  ],
+  "expect": {
+    "tools": [
+      "calendar.list_events"
+    ],
+    "speak_on": "watch",
+    "max_handoff_ms": 2000
+  },
+  "fixtures": {}
+}

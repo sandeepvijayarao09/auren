@@ -1,0 +1,10 @@
+[project]
+name = "auren-router"
+version = "0.1.0"
+description = "Auren Router: a Muse Glimmer LoRA that sorts each command into apps, risk tier, reply surface and vision need in one fast call."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+# Not an installable package; Day 6 adds `modal` for training and serving.
+package = false

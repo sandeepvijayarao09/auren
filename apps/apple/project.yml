@@ -1,0 +1,63 @@
+# XcodeGen spec for the iPhone and Apple Watch apps. Generate the project with:
+#   cd apps/apple && xcodegen generate     (or: make apple)
+# The .xcodeproj and Info.plist files are generated, so they're not committed.
+name: Auren
+options:
+  bundleIdPrefix: com.sandeepvijayarao
+  deploymentTarget:
+    iOS: "26.0"
+    watchOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Set your team here or in Xcode to run on a device. The Simulator needs none.
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+packages:
+  AurenKit:
+    path: AurenKit
+targets:
+  Auren:
+    type: application
+    platform: iOS
+    sources: [iOS]
+    dependencies:
+      - package: AurenKit
+      - target: AurenWatch
+    info:
+      path: iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Auren
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: Auren connects to Auren Core on your Mac over your local network.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sandeepvijayarao.auren
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+  AurenWatch:
+    type: application
+    platform: watchOS
+    sources: [Watch]
+    dependencies:
+      - package: AurenKit
+    info:
+      path: Watch/Info.plist
+      properties:
+        CFBundleDisplayName: Auren
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.sandeepvijayarao.auren
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sandeepvijayarao.auren.watchkitapp
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

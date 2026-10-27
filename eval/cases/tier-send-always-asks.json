@@ -1,0 +1,27 @@
+{
+  "id": "tier-send-always-asks",
+  "title": "A send never runs without a tap",
+  "golden_path": null,
+  "category": "tier-gate",
+  "surface": "web",
+  "online": [
+    "web",
+    "watch"
+  ],
+  "commands": [
+    "Tell #general the demo starts at 6."
+  ],
+  "expect": {
+    "tools": [
+      "slack.post_message"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "watch"
+      }
+    ]
+  },
+  "fixtures": {},
+  "script": []
+}

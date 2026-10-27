@@ -1,0 +1,38 @@
+{
+  "id": "gp2-glasses-poster",
+  "title": "\"Add this\" from the glasses, with a bystander blurred on the device",
+  "golden_path": "GP2",
+  "category": "vision",
+  "surface": "glasses",
+  "online": [
+    "glasses",
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Add this, and invite Priya."
+  ],
+  "fixtures": {
+    "frame": "poster-with-bystander.jpg (lands with the vision work on Day 5)",
+    "expect_event": {
+      "title": "Demo night",
+      "place": "Room 214"
+    }
+  },
+  "expect": {
+    "tools": [
+      "glasses.look",
+      "calendar.create_event",
+      "calendar.invite"
+    ],
+    "approvals": [
+      {
+        "tool": "calendar.invite",
+        "on": "watch"
+      }
+    ],
+    "receipts": 2,
+    "max_total_ms": 10000
+  },
+  "script": []
+}
