@@ -1,0 +1,18 @@
+{
+  "name": "auren-driver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Auren's computer-use driver: runs Muse Wonder's computer actions in a headed browser on your Mac, and stops before any commit.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2"
+  }
+}

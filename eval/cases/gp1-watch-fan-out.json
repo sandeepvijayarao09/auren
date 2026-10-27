@@ -1,0 +1,33 @@
+{
+  "id": "gp1-watch-fan-out",
+  "title": "One sentence on the wrist does three apps' work",
+  "golden_path": "GP1",
+  "category": "fan-out",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone",
+    "web"
+  ],
+  "commands": [
+    "I'm running 15 late. Tell office hours on Slack, push my 3 PM block, and draft a reply to Prof. Lee saying grades are in by 5."
+  ],
+  "expect": {
+    "tools": [
+      "slack.post_message",
+      "calendar.move_event",
+      "gmail.create_draft"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "watch"
+      }
+    ],
+    "receipts": 3,
+    "max_ack_ms": 1200,
+    "max_total_ms": 15000
+  },
+  "fixtures": {},
+  "script": []
+}

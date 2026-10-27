@@ -1,0 +1,34 @@
+{
+  "id": "gp3-approval-moves",
+  "title": "A pending approval moves when the watch drops",
+  "golden_path": "GP3",
+  "category": "handoff",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Tell #cs5800-tas I'm running 15 late."
+  ],
+  "script": [
+    {
+      "at_ms": 3000,
+      "action": "drop",
+      "surface": "watch"
+    }
+  ],
+  "expect": {
+    "tools": [
+      "slack.post_message"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "phone"
+      }
+    ],
+    "max_handoff_ms": 2000
+  },
+  "fixtures": {}
+}

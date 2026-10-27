@@ -1,0 +1,53 @@
+/* Auren brand v1. The palette and its rules are in brand/README.md.
+   Brand colors are Auren's own. Surfaces and signals are Apple's dark system
+   values, so the web console matches the iPhone and Apple Watch apps exactly.
+   Mirrored in apps/apple/AurenKit/Sources/AurenKit/Brand.swift and the
+   AccentColor asset; change all three together. */
+:root {
+  color-scheme: dark;
+
+  /* Brand */
+  --auren-onyx: #0B0B0C;      /* the stage */
+  --auren-halo: #F4F1EA;      /* text on dark, 17.4:1 on Onyx */
+  --auren-ash: #9A968C;       /* secondary text, Read events, 6.7:1 */
+  --auren-aurum: #D4AB54;     /* gold means you: the mark and the tap */
+  --auren-aurum-hi: #E2C179;  /* hover, increased contrast */
+  --auren-aurum-lo: #BA9036;  /* pressed */
+  --auren-paper: #FFFFFF;
+
+  /* Surfaces: Apple Gray 6, 5 and 4 (dark) */
+  --auren-graphite: #1C1C1E;
+  --auren-raised: #2C2C2E;
+  --auren-seam: #3A3A3C;
+
+  /* Signals: Apple system colors (dark). Always paired with a word and a glyph. */
+  --auren-done: #30D158;      /* systemGreen: a write went through */
+  --auren-stopped: #FF4245;   /* systemRed: Auren stopped */
+  --auren-proof: #0091FF;     /* systemBlue: a link to the source */
+
+  /* Type */
+  --auren-display: "Marcellus", Georgia, serif;
+  --auren-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Instrument Sans", "Segoe UI", sans-serif;
+  --auren-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --auren-aurum: #E2C179;
+    --auren-ash: #B4B0A6;
+    --auren-done: #4AD968;
+    --auren-stopped: #FF6165;
+    --auren-proof: #5CB8FF;
+  }
+}
+
+/* On a white page (README, deck, docs). */
+.auren-paper {
+  color-scheme: light;
+  --auren-aurum: #92712A;     /* gold text, 4.55:1 on white */
+  --auren-aurum-fill: #735921;/* gold buttons, 6.6:1 with white text */
+  --auren-ash: #5E5B55;
+  --auren-done: #008932;
+  --auren-stopped: #E9152D;
+  --auren-proof: #1E6EF4;
+}

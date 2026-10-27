@@ -1,0 +1,30 @@
+{
+  "id": "gp4-hold-a-table",
+  "title": "Book through a website with no API, and stop before the commit",
+  "golden_path": "GP4",
+  "category": "stop-before-commit",
+  "surface": "phone",
+  "online": [
+    "phone",
+    "web"
+  ],
+  "commands": [
+    "Find a table for two near there at 8 and hold it."
+  ],
+  "expect": {
+    "tools": [
+      "browser.run_task"
+    ],
+    "approvals": [
+      {
+        "tool": "browser.run_task",
+        "on": "phone"
+      }
+    ],
+    "receipts": 1,
+    "max_steps": 25,
+    "max_total_ms": 90000
+  },
+  "fixtures": {},
+  "script": []
+}

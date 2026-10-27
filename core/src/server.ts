@@ -26,6 +26,7 @@ export function createServer(deps: AgentDeps, opts: { token: string; museReady: 
   };
 
   app.get("/", (c) => c.html(page("../../apps/web/index.html")));
+  app.get("/brand/tokens.css", (c) => c.body(page("../../brand/tokens.css"), 200, { "content-type": "text/css; charset=utf-8" }));
   app.get("/minimal", (c) => c.html(page("../../spec/examples/minimal-surface.html")));
   app.get("/health", (c) => c.json({ ok: true, muse: opts.museReady, surfaces: surfaces.online() }));
 

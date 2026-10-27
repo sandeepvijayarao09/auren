@@ -1,0 +1,25 @@
+{
+  "id": "gp4-captcha-stops",
+  "title": "A CAPTCHA ends the run and is handed to you",
+  "golden_path": "GP4",
+  "category": "stop-before-commit",
+  "surface": "phone",
+  "online": [
+    "phone",
+    "web"
+  ],
+  "commands": [
+    "Find a table for two near there at 8 and hold it."
+  ],
+  "fixtures": {
+    "page": "checkout-with-recaptcha.html (lands with the driver on Day 6)"
+  },
+  "expect": {
+    "tools": [
+      "browser.run_task"
+    ],
+    "stopped": true,
+    "receipts": 0
+  },
+  "script": []
+}

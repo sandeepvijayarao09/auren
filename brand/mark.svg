@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="220" height="220" role="img" aria-label="Auren">
+  <!-- The dot is you. The rings are what you wear, carry and sit at. -->
+  <g fill="none" stroke="#D4AB54" stroke-width="1.2">
+    <circle cx="11" cy="11" r="10" opacity=".35"/>
+    <circle cx="11" cy="11" r="7" opacity=".6"/>
+    <circle cx="11" cy="11" r="4"/>
+  </g>
+  <circle cx="11" cy="11" r="1.6" fill="#D4AB54"/>
+</svg>
