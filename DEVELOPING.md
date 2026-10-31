@@ -25,7 +25,10 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_TOKEN` | For devices | Lets phones, watches and the driver connect over the network. Without it, Core binds to 127.0.0.1 only. |
 | `AUREN_AGENT_MODEL`, `AUREN_FAST_MODEL` | No | Override `muse-wonder-1.0` and `muse-spark-1.3` |
 | `AUREN_DB` | No | SQLite path for the event log (default `auren.db`) |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SLACK_BOT_TOKEN` | Day 2 | Live connectors, demo workspace only |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | For real Google | A Desktop OAuth client; swaps the demo calendar for the real one. Setup: [docs/google-setup.md](docs/google-setup.md) |
+| `SLACK_BOT_TOKEN` | Day 2 | Slack demo workspace |
+| `AUREN_SECRET` | No | 64 hex characters that encrypt connector tokens. Without it, Core keeps a key in `auren.db.key`. |
+| `AUREN_TZ` | No | Your time zone, if this Mac's is wrong |
 | `BASETEN_API_KEY` | Day 7 | Auren Memory on Muse Spark Open |
 
 Keys live only in `.env` on the machine running Core. Surfaces never hold a model key.
@@ -33,7 +36,7 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases) | `cd core && npm test` | 17 |
+| Core (scripted Muse, surfaces, eval cases, Google connector) | `cd core && npm test` | 35 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
 | AurenKit (protocol, client state) | `cd apps/apple/AurenKit && swift test` | 10 |

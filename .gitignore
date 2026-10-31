@@ -20,3 +20,4 @@ router/data/
 eval/out/
 .claude/
 apps/apple/*/Info.plist
+*.key

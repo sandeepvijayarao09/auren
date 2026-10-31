@@ -27,6 +27,8 @@ export interface ToolSpec<A = any, R = any> {
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;
+  /** A link to the change in the app itself (the event, the message), shown as Proof on the receipt. */
+  proof?: (args: A, result: R) => string | undefined;
 }
 
 export interface Namespace {

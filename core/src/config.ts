@@ -11,6 +11,13 @@ export const config = {
   agentModel: process.env.AUREN_AGENT_MODEL ?? "muse-wonder-1.0",
   fastModel: process.env.AUREN_FAST_MODEL ?? "muse-spark-1.3",
   dbPath: process.env.AUREN_DB ?? "auren.db",
+  // Encrypts connector tokens. Without it, Core generates a key next to the database.
+  secret: process.env.AUREN_SECRET ?? "",
+  // The user's time zone, for dates in the prompt and on the calendar.
+  timeZone: process.env.AUREN_TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
+  // A Google "Desktop app" OAuth client. Setting both swaps the demo calendar for the real one.
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,
