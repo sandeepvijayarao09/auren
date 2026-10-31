@@ -65,11 +65,12 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | iPhone and Apple Watch apps: timeline, approvals, speech | ✅ build for the Simulator; on devices from Day 4 |
 | Commit guard and CAPTCHA stop for computer use | ✅ tested |
 | Router output schema and labelling rubric · 10 eval cases, checked in CI | ✅ |
-| Live Google and Slack connectors | ⏳ Day 2 |
+| Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
+| Gmail and Slack connectors | ⏳ Day 2 |
 | Voice (Muse Voice Transcribe) · glasses (Wearables toolkit) | ⏳ Days 3–5 |
 | Computer-use runner and driver · Auren Memory (Spark Open) · Auren Router (Glimmer) | ⏳ Days 6–7 |
 
-**Tests:** 38 across four suites (Core 17, AurenKit 10, driver 6, router 5). No API key or device needed.
+**Tests:** 56 across four suites (Core 35, AurenKit 10, driver 6, router 5). No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

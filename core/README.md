@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 17 tests, no API key needed (scripted Muse)
+npm test          # 35 tests, no API key needed (scripted Muse, fake Google)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -23,7 +23,9 @@ npm run typecheck
 | `src/agent/loop.ts` | The Muse Wonder loop: tool inventory, tier gate, receipts, undo, fast ack | ✅ |
 | `src/tools/` | Apps and devices as Muse tool namespaces, plus the in-memory demo world | ✅ |
 | `src/eval/cases.test.ts` | Checks every case in `eval/cases` against the real tools | ✅ |
-| `src/connectors/` | Google Calendar, Gmail and Slack, with an encrypted token store | ⏳ Days 1–2 |
+| `src/connectors/secrets.ts` | Encrypted token store (AES-256-GCM in SQLite) | ✅ |
+| `src/connectors/google/` | Google sign-in (Desktop client, PKCE, refresh) and the live `calendar` namespace | ✅ Calendar · ⏳ Gmail Day 2 |
+| `src/connectors/slack/` | Slack, demo workspace | ⏳ Day 2 |
 | `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe | ⏳ Day 3 |
 | `src/vision/` | `glasses.look`: frames → Muse Spark → SAM 3.1 outline | ⏳ Day 5 |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/` | ⏳ Day 6 |
@@ -35,7 +37,10 @@ npm run typecheck
 | `GET /` | — | The web console (`apps/web/index.html`) |
 | `GET /minimal` | — | The 20-line example surface |
 | `GET /brand/tokens.css` | — | Brand tokens for the console |
-| `GET /health` | — | `{ ok, muse, surfaces }` |
+| `GET /health` | — | `{ ok, muse, google, surfaces }` |
+| `GET /connect/google` | this Mac, or token | Starts the Google sign-in ([setup](../docs/google-setup.md)) |
+| `GET /connect/google/callback` | — | Where Google sends the browser back |
+| `GET /v1/connections` | token | Which accounts are connected |
 | `GET /v1/events?since=` | token | The event log |
 | `POST /v1/command` | token | `{ text, surface_id? }` → runs a command |
 | `POST /v1/approvals/:id` | token | `{ approved, surface_id? }` |

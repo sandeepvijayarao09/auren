@@ -108,3 +108,11 @@ test("tool inventory: devices appear only when online, and tool_search is added 
     .map((t) => t.name ?? t.type);
   assert.deepEqual(names, ["calendar", "slack", "gmail", "tool_search"], "no screen online, so no surfaces namespace");
 });
+
+test("the prompt carries the user's date and time", async () => {
+  const { instructions } = await import("./loop.ts");
+  const text = instructions(new Date("2026-10-31T18:05:00Z"), "America/Los_Angeles");
+  assert.match(text, /Saturday, October 31, 2026 at 11:05 AM \(America\/Los_Angeles\)/);
+  assert.match(text, /Today's date is 2026-10-31\./);
+  assert.doesNotMatch(text, /powered by/i);
+});

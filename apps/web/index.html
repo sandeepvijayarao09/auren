@@ -24,6 +24,7 @@
   .ev.error .k { color:var(--bad); }
   .ev .b { flex:1; min-width:0; overflow-wrap:anywhere; }
   .ev .t { color:var(--dim); font-size:12px; margin-left:8px; }
+  .ev .proof { color:var(--proof); margin-left:8px; font-size:13px; }
   .ev button { margin-left:8px; }
   .approval, .card { margin:12px 0; padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
   .approval { border-color:var(--gold); }
@@ -78,7 +79,7 @@ function line(e) {
     utterance: () => `“${esc(d.text)}”`,
     ack: () => esc(d.text),
     tool_call: () => `${esc(d.app)} · ${esc(d.tool)} <span class="t">${esc(d.tier)}</span>`,
-    receipt: () => `${esc(d.summary)}${d.undo ? ` <button data-undo="${e.id}">Undo</button>` : ""}`,
+    receipt: () => `${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a class="proof" href="${esc(d.link)}" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? ` <button data-undo="${e.id}">Undo</button>` : ""}`,
     approval: () => `${esc(d.status)}${d.summary ? `: ${esc(d.summary)}` : ""}${d.surface_id ? ` <span class="t">on ${esc(d.surface_id)}</span>` : ""}`,
     handoff: () => `approval moved ${esc(d.from)} → ${esc(d.to ?? "nowhere yet")}`,
     reply: () => esc(d.text),
