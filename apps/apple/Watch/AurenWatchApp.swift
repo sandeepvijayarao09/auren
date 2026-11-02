@@ -4,7 +4,14 @@ import WatchKit
 
 @main
 struct AurenWatchApp: App {
-    @State private var watch = SurfaceClient(manifest: .watch(id: DeviceID.stable(prefix: "watch")))
+    @State private var watch: SurfaceClient
+
+    init() {
+        let id = DeviceID.stable(prefix: "watch")
+        // The approval you tap is signed by this key, held in the watch's Secure Enclave.
+        let identity = try? DeviceIdentity.loadOrCreate(deviceID: id)
+        _watch = State(initialValue: SurfaceClient(manifest: .watch(id: id), identity: identity))
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -19,6 +26,8 @@ struct WatchHomeView: View {
     // Day 4: the iPhone app hands these over through WatchConnectivity.
     @AppStorage("coreURL") private var coreURL = "http://127.0.0.1:8787"
     @AppStorage("token") private var token = ""
+    @AppStorage("paired") private var paired = false
+    @State private var showPairing = false
     @State private var draft = ""
     @State private var speaker = Speaker()
     @Environment(\.scenePhase) private var scenePhase
@@ -39,6 +48,8 @@ struct WatchHomeView: View {
             if let url = URL(string: coreURL) { client.connect(to: url, token: token) }
         }
         .onChange(of: scenePhase) { _, phase in client.isActive = phase == .active }
+        .onChange(of: paired) { if let url = URL(string: coreURL) { client.connect(to: url, token: token) } }
+        .sheet(isPresented: $showPairing) { WatchPairView(client: client, paired: $paired) }
     }
 
     private var idle: some View {
@@ -49,6 +60,9 @@ struct WatchHomeView: View {
                     .font(.footnote)
                     .multilineTextAlignment(.center)
                     .lineLimit(4)
+                if client.identity != nil && !paired {
+                    Button("Pair with your Mac") { showPairing = true }
+                }
                 TextField("Say it…", text: $draft)
                     .onSubmit {
                         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -85,5 +99,40 @@ struct ApprovalView: View {
                            startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
+    }
+}
+
+/// Pairing on the wrist: type the six digits the Mac shows.
+struct WatchPairView: View {
+    let client: SurfaceClient
+    @Binding var paired: Bool
+    @AppStorage("coreURL") private var coreURL = "http://127.0.0.1:8787"
+    @State private var code = ""
+    @State private var message: String?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                Text("Enter the code on your Mac").font(.footnote).multilineTextAlignment(.center)
+                TextField("Code", text: $code)
+                Button("Pair") {
+                    Task {
+                        guard let identity = client.identity, let url = URL(string: coreURL) else { return }
+                        do {
+                            try await identity.pair(core: url, code: code.filter(\.isNumber), manifest: client.manifest)
+                            paired = true
+                            dismiss()
+                        } catch {
+                            message = error.localizedDescription
+                        }
+                    }
+                }
+                .disabled(code.filter(\.isNumber).count != 6)
+                if let message {
+                    Text(message).font(.caption2).foregroundStyle(Color.aurenStopped)
+                }
+            }
+        }
     }
 }

@@ -18,6 +18,8 @@ public final class SurfaceClient {
     }
 
     public let manifest: Manifest
+    /// This device's key. Without one, only a connection from the Mac itself is accepted.
+    public let identity: DeviceIdentity?
     public private(set) var state: State = .idle
     public private(set) var sessionID: String?
     /// Oldest first, in log order.
@@ -36,8 +38,9 @@ public final class SurfaceClient {
     private var socket: URLSessionWebSocketTask?
     private var run: Task<Void, Never>?
 
-    public init(manifest: Manifest) {
+    public init(manifest: Manifest, identity: DeviceIdentity? = nil) {
         self.manifest = manifest
+        self.identity = identity
     }
 
     /// `core` is the address Core prints at start-up, such as http://192.168.1.20:8787.
@@ -81,14 +84,18 @@ public final class SurfaceClient {
         try await send(.utterance(text))
     }
 
+    /// Signed with this device's key when it has one, over the decision and the summary it showed.
     public func answer(_ request: ApprovalRequest, approved: Bool) async throws {
+        let signature = try identity?.signApproval(request, approved: approved)
         approvals.removeAll { $0.id == request.id }
-        try await send(.approvalResponse(requestID: request.id, approved: approved))
+        try await send(.approvalResponse(requestID: request.id, approved: approved, signature: signature))
     }
 
     /// Applies one message from Core. Internal so tests can drive it without a socket.
     func apply(_ message: ServerMessage) {
         switch message {
+        case .challenge:
+            break
         case .welcome(let session, let surfaces):
             sessionID = session
             online = surfaces.map { Presence(id: $0.id, kind: $0.kind) }
@@ -128,7 +135,20 @@ public final class SurfaceClient {
         state = .connecting
         socket.resume()
         do {
-            try await send(.hello(manifest))
+            // Core opens with a challenge; a paired device signs it. An older Core sends nothing first.
+            var early: ServerMessage?
+            if case .string(let text) = try await socket.receive(),
+               let first = try? JSONDecoder().decode(ServerMessage.self, from: Data(text.utf8)) {
+                if case .challenge(let nonce) = first {
+                    try await send(.hello(manifest, auth: try identity?.helloAuth(nonce: nonce)))
+                } else {
+                    try await send(.hello(manifest))
+                    early = first
+                }
+            } else {
+                try await send(.hello(manifest))
+            }
+            if let early { apply(early) }
             let beat = Task { [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(1))

@@ -43,37 +43,52 @@ public struct Manifest: Codable, Sendable, Equatable, Identifiable {
     }
 }
 
+/// A paired device's answer to Core's challenge: the nonce, signed by its Secure Enclave key.
+public struct HelloAuth: Codable, Sendable, Equatable {
+    public let deviceID: String
+    public let signature: String
+
+    public init(deviceID: String, signature: String) {
+        self.deviceID = deviceID
+        self.signature = signature
+    }
+
+    private enum CodingKeys: String, CodingKey { case deviceID = "device_id", signature }
+}
+
 /// Surface → Core.
 public enum ClientMessage: Encodable, Sendable, Equatable {
-    case hello(Manifest)
+    case hello(Manifest, auth: HelloAuth? = nil)
     case heartbeat(active: Bool)
     case utterance(String)
-    case approvalResponse(requestID: String, approved: Bool)
+    case approvalResponse(requestID: String, approved: Bool, signature: String? = nil)
 
-    private enum Keys: String, CodingKey { case type, surface, active, text, request_id, approved }
+    private enum Keys: String, CodingKey { case type, surface, auth, active, text, request_id, approved, signature }
 
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: Keys.self)
         switch self {
-        case .hello(let manifest):
+        case .hello(let manifest, let auth):
             try c.encode("hello", forKey: .type)
             try c.encode(manifest, forKey: .surface)
+            try c.encodeIfPresent(auth, forKey: .auth)
         case .heartbeat(let active):
             try c.encode("heartbeat", forKey: .type)
             try c.encode(active, forKey: .active)
         case .utterance(let text):
             try c.encode("utterance", forKey: .type)
             try c.encode(text, forKey: .text)
-        case .approvalResponse(let requestID, let approved):
+        case .approvalResponse(let requestID, let approved, let signature):
             try c.encode("approval_response", forKey: .type)
             try c.encode(requestID, forKey: .request_id)
             try c.encode(approved, forKey: .approved)
+            try c.encodeIfPresent(signature, forKey: .signature)
         }
     }
 }
 
 public enum EventKind: String, Decodable, Sendable {
-    case utterance, ack, toolCall = "tool_call", receipt, approval, handoff, reply, error, surface, unknown
+    case utterance, ack, toolCall = "tool_call", receipt, approval, handoff, reply, error, surface, device, unknown
 
     public init(from decoder: Decoder) throws {
         self = EventKind(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .unknown
@@ -106,6 +121,8 @@ public struct Card: Sendable, Equatable {
 
 /// Core → surface.
 public enum ServerMessage: Decodable, Sendable, Equatable {
+    /// Sent first on every connection; a paired device signs it in its hello.
+    case challenge(nonce: String)
     case welcome(sessionID: String, surfaces: [Manifest])
     case event(AurenEvent)
     case speak(text: String)
@@ -115,12 +132,14 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
     /// A message this build doesn't know yet. Newer Cores add messages; old surfaces ignore them.
     case unknown(type: String)
 
-    private enum Keys: String, CodingKey { case type, session_id, surfaces, event, text, title, body, request_id, summary, tier, reason }
+    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, event, text, title, body, request_id, summary, tier, reason }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: Keys.self)
         let type = try c.decode(String.self, forKey: .type)
         switch type {
+        case "challenge":
+            self = .challenge(nonce: try c.decode(String.self, forKey: .nonce))
         case "welcome":
             self = .welcome(sessionID: try c.decode(String.self, forKey: .session_id), surfaces: try c.decode([Manifest].self, forKey: .surfaces))
         case "event":

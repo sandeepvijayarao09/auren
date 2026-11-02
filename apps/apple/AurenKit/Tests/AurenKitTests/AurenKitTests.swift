@@ -101,4 +101,13 @@ private func object(_ message: ClientMessage) throws -> [String: Any] {
         client.apply(try event(5, "approval", #"{"status":"approved","summary":"Post in #office-hours"}"#))
         #expect(client.events.map(\.style.signal) == [.you, .neutral])
     }
+
+    @Test func aSignedApprovalSaysSo() throws {
+        let client = SurfaceClient(manifest: .phone(id: "phone-1"))
+        client.apply(try event(6, "approval", #"{"status":"approved","signed_by":"watch-7f3a"}"#))
+        client.apply(try event(7, "device", #"{"device_id":"watch-7f3a","status":"paired","hardware":true}"#))
+        #expect(client.events.map(\.style.word) == ["Signed", "Trust"])
+        #expect(client.events[0].line == "approved · signed by watch-7f3a")
+        #expect(client.events[1].line == "watch-7f3a paired · Secure Enclave")
+    }
 }

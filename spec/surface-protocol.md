@@ -48,6 +48,24 @@ Sent once, in `hello`.
 | `approval_request` | `request_id`, `summary`, `tier` | Ask for a yes/no tap |
 | `approval_cancel` | `request_id`, `reason` | The request moved to another surface, or expired |
 
+## Trusted devices (v0.1)
+A surface on the Mac that runs Core is trusted as it is. **Any other device must pair once, and then prove its key every time it connects.** A connection relayed by a tunnel or proxy (one with `X-Forwarded-For`, `Forwarded`, `CF-Connecting-IP` or `X-Real-IP`) counts as another device.
+
+1. **Pairing code.** On the Mac, `POST /v1/pair/start` returns a six-digit code, valid for five minutes and one use. Five wrong tries cancel it.
+2. **Pair.** The device sends `POST /pair/finish` `{ code, device_id, name, kind, public_key, hardware }`. `public_key` is a P-256 public key (SPKI DER, base64) whose private half lives in the device's Secure Enclave. `hardware` is false for a software key, as in the Simulator.
+3. **Connect.** Core's first message on every socket is `challenge { nonce }`. A paired device's `hello` adds `auth { device_id, signature }`, where `device_id` must equal `surface.id` and `signature` is ECDSA P-256 / SHA-256 (DER, base64) over:
+   ```
+   auren-hello\n<nonce>\n<device_id>
+   ```
+4. **Approve.** A paired device's `approval_response` adds `signature` over the request, the decision and a hash of the summary it showed. A relay that changes what the device displayed can't produce a valid signature:
+   ```
+   auren-approve\n<request_id>\n<1|0>\n<sha256 hex of summary>
+   ```
+   An approval without a valid signature is ignored and logged. The resulting `approval` event carries `signed_by`.
+5. **Revoke.** On the Mac, `DELETE /v1/devices/:id` revokes a device and closes its socket at once (close code 4001).
+
+The exact bytes are defined in `core/src/security/devices.ts` and `apps/apple/AurenKit/Sources/AurenKit/DeviceIdentity.swift`, and a CryptoKit-made signature is pinned in Core's tests.
+
 ## Presence and routing
 A surface is **online** while its heartbeats arrive. It goes offline after 3 s of silence. Core routes each output to the best online surface:
 

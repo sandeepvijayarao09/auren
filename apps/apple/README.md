@@ -31,6 +31,9 @@ On a real Apple Watch, watchOS allows `URLSessionWebSocketTask` only in specific
 
 This is the first thing to test when the watch arrives (gate G0).
 
+## Pairing and signed approvals
+Each app creates a P-256 key in its device's **Secure Enclave** on first launch (a software key in the Simulator) and keeps it in the Keychain, never synced. To pair, choose **Pair a device** in the Mac console and type the code: on iPhone in **Settings → Pair with your Mac**, on the watch with **Pair with your Mac**. After that the app signs Core's challenge on every connection and signs every approval over the decision and the summary it showed. In the Simulator, connections from `127.0.0.1` count as the Mac, so pairing is optional there.
+
 ## Design rules in the code
 - Gold means you: only the mark and pending approvals use gold (`Color.accentColor` or `Color.aurenAurum`).
 - Signals are system colors (`.green`, `.red`, `.blue`), so light, dark and Increase Contrast work for free.

@@ -12,8 +12,8 @@ How to bring up every device for a live run or a shoot. Use the demo workspace o
 ## Bring-up, in order
 1. **Core.** Run `make dev`. Note the address it prints, such as `http://192.168.1.20:8787`. Check `/health`: `muse` should be `true`.
 2. **Console.** Open `http://<address>/?token=<AUREN_TOKEN>` on the Mac. This is the Mac surface and the debugger.
-3. **iPhone.** In Auren's settings, enter the address and token. The status dot turns green.
-4. **Watch.** Open Auren on the watch. From Day 4, the phone hands it the address and token. Until then the watch app only reaches Core from the Simulator, at `127.0.0.1`.
+3. **iPhone.** In Auren's settings, enter the address. On the Mac console choose **Pair a device**, then type the six-digit code under **Pair with your Mac**. The status dot turns green, and the timeline shows the phone paired with its key in the Secure Enclave.
+4. **Watch.** Open Auren on the watch and choose **Pair with your Mac** with a fresh code. From Day 4, the phone hands it the address and token. Until then the watch app only reaches Core from the Simulator, at `127.0.0.1`.
 5. **Glasses (Day 5).** Open the glasses screen in the iPhone app. A second device appears in the console's device list.
 6. **Driver (Day 6).** Run `cd driver && npm start`. The console logs `driver online`.
 

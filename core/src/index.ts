@@ -8,6 +8,7 @@ import { GoogleAuth } from "./connectors/google/auth.ts";
 import { createGoogleCalendar } from "./connectors/google/calendar.ts";
 import { SecretStore } from "./connectors/secrets.ts";
 import { OpsLog } from "./obs/opslog.ts";
+import { DeviceRegistry } from "./security/devices.ts";
 import { derive, masterKey } from "./security/keys.ts";
 import { Ledger, ledgerMuse, pathTemplate } from "./security/ledger.ts";
 import { createDemoWorld } from "./tools/demo-world.ts";
@@ -19,6 +20,7 @@ const master = masterKey({ secret: config.secret || undefined, dbPath: config.db
 const log = new EventLog(config.dbPath, derive(master.key, "events"));
 const store = new SecretStore(config.dbPath, derive(master.key, "tokens"));
 const ledger = new Ledger(config.dbPath);
+const devices = new DeviceRegistry(config.dbPath);
 const ops = new OpsLog({ file: config.logFile || undefined });
 
 const surfaces = new SurfaceRegistry({
@@ -56,7 +58,7 @@ const core = createServer(
     approvalTimeoutMs: config.approvalTimeoutMs,
     ops,
   },
-  { token: config.token, museReady: Boolean(config.museApiKey), google, ledger, keys: { source: master.source, note: master.note } },
+  { token: config.token, museReady: Boolean(config.museApiKey), google, ledger, devices, keys: { source: master.source, note: master.note } },
 );
 
 const server = serve({ fetch: core.app.fetch, port: config.port, hostname: config.host }, (info) => {
@@ -71,6 +73,8 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   console.log(`  ${keyLine}`);
   const v = log.verify();
   console.log(v.ok ? `  log: ${v.count} events, chain intact (head ${v.head})` : `  ⚠ log: ${v.reason}. Check /v1/audit/verify.`);
+  const paired = devices.list().filter((d) => !d.revoked);
+  console.log(`  devices: ${paired.length ? paired.map((d) => `${d.name} (${d.hardware ? "Secure Enclave" : "software key"})`).join(", ") : "none paired yet. Pair one from the console."}`);
   const g = google?.status();
   console.log(
     !google ? "  calendar: demo world (set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET for the real one)"

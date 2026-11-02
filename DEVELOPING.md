@@ -38,11 +38,11 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases, Google, encrypted log, keys, ledger, redaction) | `cd core && npm test` | 51 |
+| Core (scripted Muse, surfaces, eval cases, Google, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 69 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
-| AurenKit (protocol, client state) | `cd apps/apple/AurenKit && swift test` | 10 |
+| AurenKit (protocol, client state, device identity) | `cd apps/apple/AurenKit && swift test` | 16 |
 
 `make check` runs all of them, both type checks and the secret scan, which is the same as CI minus the Swift suite.
 

@@ -114,10 +114,17 @@ export class SurfaceRegistry {
     });
   }
 
-  answer(requestId: string, approved: boolean, fromSurfaceId?: string): boolean {
+  /** The pending approval's summary and where it was sent, so its signature can be checked. */
+  approvalFor(requestId: string): { summary: string; surfaceId: string | null } | undefined {
+    const p = this.#pending.get(requestId);
+    return p && { summary: p.summary, surfaceId: p.surfaceId };
+  }
+
+  /** `signedBy` is the paired device whose Secure Enclave signed this answer, if one did. */
+  answer(requestId: string, approved: boolean, fromSurfaceId?: string, signedBy?: string): boolean {
     if (!this.#pending.has(requestId)) return false;
     this.touch(fromSurfaceId);
-    this.#settle(requestId, approved, "answered", fromSurfaceId);
+    this.#settle(requestId, approved, "answered", fromSurfaceId, signedBy);
     return true;
   }
 
@@ -147,7 +154,7 @@ export class SurfaceRegistry {
     }
   }
 
-  #settle(requestId: string, approved: boolean, reason: "answered" | "expired", by?: string): void {
+  #settle(requestId: string, approved: boolean, reason: "answered" | "expired", by?: string, signedBy?: string): void {
     const p = this.#pending.get(requestId);
     if (!p) return;
     this.#pending.delete(requestId);
@@ -155,7 +162,12 @@ export class SurfaceRegistry {
     if (p.surfaceId && p.surfaceId !== by) {
       this.#surfaces.get(p.surfaceId)?.send({ type: "approval_cancel", request_id: requestId, reason });
     }
-    this.#onEvent("approval", { request_id: requestId, status: reason === "expired" ? "expired" : approved ? "approved" : "declined", surface_id: by ?? null });
+    this.#onEvent("approval", {
+      request_id: requestId,
+      status: reason === "expired" ? "expired" : approved ? "approved" : "declined",
+      surface_id: by ?? null,
+      signed_by: signedBy ?? null,
+    });
     p.resolve(approved);
   }
 

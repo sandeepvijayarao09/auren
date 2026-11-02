@@ -14,11 +14,14 @@ export const Manifest = z.object({
 });
 export type Manifest = z.infer<typeof Manifest>;
 
+/** A paired device's proof: the server's challenge nonce, signed by its Secure Enclave key. */
+export const HelloAuth = z.object({ device_id: z.string().min(1).max(64), signature: z.string().min(1).max(512) });
+
 export const ClientMessage = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("hello"), surface: Manifest }),
+  z.object({ type: z.literal("hello"), surface: Manifest, auth: HelloAuth.optional() }),
   z.object({ type: z.literal("heartbeat"), active: z.boolean().default(false) }),
   z.object({ type: z.literal("utterance"), text: z.string().min(1).max(2000) }),
-  z.object({ type: z.literal("approval_response"), request_id: z.string(), approved: z.boolean() }),
+  z.object({ type: z.literal("approval_response"), request_id: z.string(), approved: z.boolean(), signature: z.string().max(512).optional() }),
 ]);
 export type ClientMessage = z.infer<typeof ClientMessage>;
 
@@ -26,7 +29,7 @@ export type Tier = "read" | "write" | "send";
 
 export type EventKind =
   | "utterance" | "ack" | "tool_call" | "receipt" | "approval"
-  | "handoff" | "reply" | "error" | "surface";
+  | "handoff" | "reply" | "error" | "surface" | "device";
 
 export interface AurenEvent {
   id: number;
@@ -37,6 +40,7 @@ export interface AurenEvent {
 }
 
 export type ServerMessage =
+  | { type: "challenge"; nonce: string }
   | { type: "welcome"; session_id: string; surfaces: Manifest[] }
   | { type: "event"; event: AurenEvent }
   | { type: "speak"; text: string }

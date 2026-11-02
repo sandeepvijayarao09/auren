@@ -19,15 +19,21 @@ public extension AurenEvent {
         switch kind {
         case .receipt: EventStyle(signal: .done, word: "Done", symbol: "checkmark.circle.fill")
         case .approval:
-            string("status") == "requested"
-                ? EventStyle(signal: .you, word: "Your move", symbol: "hand.tap.fill")
-                : EventStyle(signal: .neutral, word: "Approval", symbol: "hand.tap")
+            if string("status") == "requested" {
+                EventStyle(signal: .you, word: "Your move", symbol: "hand.tap.fill")
+            } else if string("signed_by") != nil {
+                // Verified against the key the device registered at pairing.
+                EventStyle(signal: .done, word: "Signed", symbol: "checkmark.seal.fill")
+            } else {
+                EventStyle(signal: .neutral, word: "Approval", symbol: "hand.tap")
+            }
         case .error: EventStyle(signal: .stopped, word: "Stopped", symbol: "stop.fill")
         case .toolCall: EventStyle(signal: .read, word: string("tier") == "read" ? "Read" : "Working", symbol: "circle.dotted")
         case .utterance: EventStyle(signal: .neutral, word: "You", symbol: "waveform")
         case .ack, .reply: EventStyle(signal: .neutral, word: "Muse", symbol: "text.bubble")
         case .handoff: EventStyle(signal: .read, word: "Moved", symbol: "arrow.left.arrow.right")
         case .surface: EventStyle(signal: .read, word: "Device", symbol: "dot.radiowaves.left.and.right")
+        case .device: EventStyle(signal: .read, word: "Trust", symbol: "lock.shield")
         case .unknown: EventStyle(signal: .read, word: "Event", symbol: "circle")
         }
     }
@@ -39,10 +45,13 @@ public extension AurenEvent {
         case .ack, .reply: string("text") ?? ""
         case .toolCall: "\(string("app") ?? "") · \(string("tool") ?? "")"
         case .receipt: string("summary") ?? ""
-        case .approval: [string("status"), string("summary")].compactMap { $0 }.joined(separator: ": ")
+        case .approval:
+            [string("status"), string("summary")].compactMap { $0 }.joined(separator: ": ")
+                + (string("signed_by").map { " · signed by \($0)" } ?? "")
         case .handoff: "Approval moved from \(string("from") ?? "?") to \(string("to") ?? "nowhere yet")"
         case .error: string("message") ?? ""
         case .surface: "\(string("kind") ?? "") \(string("status") ?? "")"
+        case .device: "\(string("device_id") ?? "A device") \(string("status") ?? "")\(data["hardware"] == .bool(true) ? " · Secure Enclave" : "")"
         case .unknown: ""
         }
     }

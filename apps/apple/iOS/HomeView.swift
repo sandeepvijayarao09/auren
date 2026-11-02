@@ -6,6 +6,7 @@ struct HomeView: View {
     let client: SurfaceClient
     @AppStorage("coreURL") private var coreURL = "http://127.0.0.1:8787"
     @AppStorage("token") private var token = ""
+    @AppStorage("paired") private var paired = false
     @State private var draft = ""
     @State private var showSettings = false
     @State private var speaker = Speaker()
@@ -48,7 +49,7 @@ struct HomeView: View {
                     Button("Settings", systemImage: "gearshape") { showSettings = true }
                 }
             }
-            .sheet(isPresented: $showSettings) { SettingsView(coreURL: $coreURL, token: $token) }
+            .sheet(isPresented: $showSettings) { SettingsView(coreURL: $coreURL, token: $token, client: client) }
         }
         .task {
             client.onSpeak = { speaker.speak($0) }
@@ -56,6 +57,7 @@ struct HomeView: View {
         }
         .onChange(of: coreURL) { connect() }
         .onChange(of: token) { connect() }
+        .onChange(of: paired) { connect() }
         .onChange(of: scenePhase) { _, phase in client.isActive = phase == .active }
     }
 

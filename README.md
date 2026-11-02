@@ -19,7 +19,7 @@ Meta's Muse agent lives on Meta's devices. Auren brings Muse models to **every d
 2. **The task follows you.** Look through the glasses, approve on the watch, read the receipt on the phone. If a device drops, its pending approval moves to the next best one.
 3. **Every app.** Auren uses APIs where they exist and Muse Wonder computer use where they don't.
 
-**iCloud-level security, with no Auren cloud.** Core's master key is sealed to your Mac's Secure Enclave. The log is encrypted and hash-chained, so any edit shows. Every outbound call is recorded. Details in [SECURITY.md](SECURITY.md).
+**iCloud-level security, with no Auren cloud.** Core's master key is sealed to your Mac's Secure Enclave. Your iPhone and Apple Watch pair once, and every tap they approve is signed by their own Secure Enclave. The log is encrypted and hash-chained, so any edit shows. Every outbound call is recorded. Details in [SECURITY.md](SECURITY.md).
 
 **Core enforces safety, not the model.** Reads run on their own. Writes run on their own, with a receipt and an **Undo**. Sends always wait for a **tap**; a spoken yes never sends. Email, chat and web content reaches the model only as untrusted data. Computer use stops before any commit and never solves a CAPTCHA.
 
@@ -69,12 +69,12 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Router output schema and labelling rubric · 10 eval cases, checked in CI | ✅ |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
 | Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
-| Device pairing and Secure Enclave-signed approvals | ⏳ tonight |
+| Device pairing and Secure Enclave-signed approvals: one-time codes, challenge on connect, revoke | ✅ built and tested, Swift ↔ Node signatures verified |
 | Gmail and Slack connectors | ⏳ next |
 | Voice (Muse Voice Transcribe) · glasses (Wearables toolkit) | ⏳ Days 3–5 |
 | Computer-use runner and driver · Auren Memory (Spark Open) · Auren Router (Glimmer) | ⏳ Days 6–7 |
 
-**Tests:** 78 across five suites (Core 51, AurenKit 10, keyd 6, driver 6, router 5). No API key or device needed.
+**Tests:** 102 across five suites (Core 69, AurenKit 16, keyd 6, driver 6, router 5). No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

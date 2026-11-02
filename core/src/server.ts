@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
@@ -8,6 +9,7 @@ import { ClientMessage, type ServerMessage } from "./protocol.ts";
 import type { GoogleAuth } from "./connectors/google/auth.ts";
 import type { KeySource } from "./security/keys.ts";
 import type { Ledger } from "./security/ledger.ts";
+import { approvalPayload, helloPayload, PairingError, type DeviceRegistry } from "./security/devices.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -25,6 +27,16 @@ export interface ServerOptions {
   google?: GoogleAuth;
   ledger?: Ledger;
   keys?: { source: KeySource; note?: string };
+  /** Trusted devices. With it, any surface not on this Mac must be paired and sign its approvals. */
+  devices?: DeviceRegistry;
+}
+
+const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
+const FORWARDED = ["x-forwarded-for", "forwarded", "cf-connecting-ip", "x-real-ip"];
+
+/** A request from this Mac itself. Traffic relayed by a tunnel or proxy carries forwarding headers, so it doesn't count. */
+export function isLocal(remoteAddress: string | undefined, header: (name: string) => string | string[] | undefined | null): boolean {
+  return LOOPBACK.includes(remoteAddress ?? "") && FORWARDED.every((h) => !header(h));
 }
 
 export function createServer(deps: AgentDeps, opts: ServerOptions) {
@@ -49,10 +61,10 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
 
   // Connecting an account happens in a browser on this Mac (or with the token). Google
   // redirects back to a loopback address, so this needs a "Desktop app" OAuth client.
-  const fromThisMac = (c: { env: unknown }) => {
-    const addr = (c.env as { incoming?: { socket?: { remoteAddress?: string } } })?.incoming?.socket?.remoteAddress ?? "";
-    return ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(addr);
-  };
+  const fromThisMac = (c: { env: unknown; req: { header: (name: string) => string | undefined } }) =>
+    isLocal((c.env as { incoming?: { socket?: { remoteAddress?: string } } })?.incoming?.socket?.remoteAddress, (h) => c.req.header(h));
+  // Open sockets by surface id, so revoking a device disconnects it at once.
+  const sockets = new Map<string, WebSocket>();
   app.get("/connect/google", (c) => {
     if (!opts.google) return c.html(connectPage("Google isn't set up yet", "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env and restart Core. The steps are in docs/google-setup.md."), 503);
     if (!fromThisMac(c) && !authorized(c.req.header("authorization"), c.req.query("token"))) return c.text("unauthorized", 401);
@@ -70,6 +82,27 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     }
   });
 
+  // Outside /v1 because an unpaired device has no token yet: the one-time code shown on the Mac is the gate.
+  app.post("/pair/finish", async (c) => {
+    if (!opts.devices) return c.json({ error: "Pairing isn't turned on in this Core." }, 503);
+    const body = await c.req.json().catch(() => ({}));
+    try {
+      const d = opts.devices.finishPairing({
+        code: String(body.code ?? ""),
+        id: String(body.device_id ?? ""),
+        name: typeof body.name === "string" ? body.name : undefined,
+        kind: String(body.kind ?? "other"),
+        publicKey: String(body.public_key ?? ""),
+        hardware: body.hardware === true,
+      });
+      log.append(SESSION, "device", { device_id: d.id, kind: d.kind, status: "paired", hardware: d.hardware });
+      return c.json({ paired: true, device: d });
+    } catch (err) {
+      if (err instanceof PairingError) return c.json({ error: err.message }, 400);
+      throw err;
+    }
+  });
+
   app.use("/v1/*", async (c, next) => {
     if (!authorized(c.req.header("authorization"), c.req.query("token"))) return c.json({ error: "unauthorized" }, 401);
     await next();
@@ -83,8 +116,26 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
       keys: opts.keys ?? { source: "memory" },
       outbound: opts.ledger?.summary() ?? [],
       surfaces: surfaces.online().map((s) => ({ id: s.id, kind: s.kind })),
+      devices: opts.devices?.list().map((d) => ({ id: d.id, kind: d.kind, hardware: d.hardware, revoked: d.revoked })) ?? [],
     }),
   );
+  // Pairing starts on the Mac only: you have to be at the Mac to let a new device in.
+  app.post("/v1/pair/start", (c) => {
+    if (!opts.devices) return c.json({ error: "Pairing isn't turned on in this Core." }, 503);
+    if (!fromThisMac(c)) return c.json({ error: "Start pairing on the Mac itself." }, 403);
+    return c.json(opts.devices.startPairing());
+  });
+  app.get("/v1/devices", (c) => c.json({ devices: opts.devices?.list() ?? [] }));
+  app.delete("/v1/devices/:id", (c) => {
+    if (!fromThisMac(c)) return c.json({ error: "Revoke devices from the Mac itself." }, 403);
+    const id = c.req.param("id");
+    const ok = opts.devices?.revoke(id) ?? false;
+    if (ok) {
+      log.append(SESSION, "device", { device_id: id, status: "revoked" });
+      sockets.get(id)?.close(4001, "This device was revoked on the Mac.");
+    }
+    return c.json({ ok }, ok ? 200 : 404);
+  });
   app.get("/v1/connections", (c) => c.json({ google: opts.google ? { configured: true, ...opts.google.status() } : { configured: false, connected: false } }));
   app.get("/v1/events", (c) => c.json({ events: log.since(SESSION, Number(c.req.query("since") ?? 0)) }));
   app.post("/v1/command", async (c) => {
@@ -94,17 +145,39 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     return c.json({ accepted: true }, 202);
   });
   app.post("/v1/approvals/:id", async (c) => {
+    const id = c.req.param("id");
     const body = await c.req.json().catch(() => ({}));
-    const ok = surfaces.answer(c.req.param("id"), body.approved === true, body.surface_id);
+    const pending = surfaces.approvalFor(id);
+    if (!pending) return c.json({ ok: false }, 404);
+    const approved = body.approved === true;
+    let signedBy: string | undefined;
+    if (opts.devices && typeof body.device_id === "string") {
+      if (!opts.devices.verify(body.device_id, approvalPayload(id, approved, pending.summary), body.signature)) {
+        return c.json({ error: "That approval's signature didn't verify." }, 403);
+      }
+      signedBy = body.device_id;
+    } else if (opts.devices && !fromThisMac(c)) {
+      return c.json({ error: "Approvals from another device must be signed by a paired device." }, 403);
+    }
+    const ok = surfaces.answer(id, approved, typeof body.surface_id === "string" ? body.surface_id : undefined, signedBy);
     return c.json({ ok }, ok ? 200 : 404);
   });
   app.post("/v1/receipts/:id/undo", async (c) => c.json(await undoReceipt(deps, Number(c.req.param("id")), SESSION)));
 
   // Surface protocol over WebSocket.
   const wss = new WebSocketServer({ noServer: true });
-  wss.on("connection", (ws: WebSocket) => {
+  wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     let surfaceId: string | null = null;
+    let deviceId: string | null = null;
+    const local = isLocal(req.socket.remoteAddress, (h) => req.headers[h]);
+    const nonce = randomBytes(18).toString("base64url");
     const send = (msg: ServerMessage) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(msg));
+    const refuse = (message: string) => {
+      send({ type: "event", event: { id: 0, session: SESSION, at: Date.now(), kind: "error", data: { message } } });
+      ws.close(1008, message.slice(0, 120));
+    };
+    // Paired devices answer this with a Secure Enclave signature in their hello.
+    send({ type: "challenge", nonce });
 
     ws.on("message", (raw) => {
       let msg: ClientMessage;
@@ -114,16 +187,41 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
         return send({ type: "event", event: { id: 0, session: SESSION, at: Date.now(), kind: "error", data: { message: "bad message" } } });
       }
       if (msg.type === "hello") {
+        if (msg.auth && opts.devices) {
+          const ok = msg.auth.device_id === msg.surface.id && opts.devices.verify(msg.auth.device_id, helloPayload(nonce, msg.auth.device_id), msg.auth.signature);
+          if (!ok) return refuse("This device's signature didn't verify. Pair it again from the Mac.");
+          deviceId = msg.auth.device_id;
+        } else if (opts.devices && !local) {
+          return refuse("Pair this device first: on the Mac, open the console and choose Pair a device.");
+        }
         surfaceId = msg.surface.id;
+        sockets.set(surfaceId, ws);
         surfaces.join(msg.surface, send);
         return send({ type: "welcome", session_id: SESSION, surfaces: surfaces.online() });
       }
       if (!surfaceId) return ws.close(1008, "hello first");
       if (msg.type === "heartbeat") surfaces.heartbeat(surfaceId, msg.active);
       else if (msg.type === "utterance") start(msg.text, surfaceId);
-      else if (msg.type === "approval_response") surfaces.answer(msg.request_id, msg.approved, surfaceId);
+      else if (msg.type === "approval_response") {
+        const pending = surfaces.approvalFor(msg.request_id);
+        if (!pending) return;
+        // A paired device must sign what it approves; only this Mac's own console may answer unsigned.
+        if (deviceId) {
+          if (!opts.devices?.verify(deviceId, approvalPayload(msg.request_id, msg.approved, pending.summary), msg.signature)) {
+            log.append(SESSION, "error", { message: "An approval arrived without a valid device signature, so Auren ignored it.", surface_id: surfaceId });
+            return;
+          }
+        } else if (opts.devices && !local) {
+          return;
+        }
+        surfaces.answer(msg.request_id, msg.approved, surfaceId, deviceId ?? undefined);
+      }
     });
-    ws.on("close", () => surfaceId && surfaces.leave(surfaceId));
+    ws.on("close", () => {
+      if (!surfaceId) return;
+      if (sockets.get(surfaceId) === ws) sockets.delete(surfaceId);
+      surfaces.leave(surfaceId);
+    });
   });
 
   log.onEvent((event) => surfaces.broadcast({ type: "event", event }));
@@ -133,7 +231,9 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     app,
     upgrade(req: IncomingMessage, socket: Duplex, head: Buffer) {
       const url = new URL(req.url ?? "/", "http://localhost");
-      if (url.pathname !== "/v1/surface" || !authorized(req.headers.authorization, url.searchParams.get("token"))) {
+      // With pairing on, an unpaired device may open the socket; it then has to prove a paired key in hello.
+      const allowed = authorized(req.headers.authorization, url.searchParams.get("token")) || Boolean(opts.devices);
+      if (url.pathname !== "/v1/surface" || !allowed) {
         socket.destroy();
         return;
       }

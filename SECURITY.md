@@ -13,8 +13,8 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 | Metadata stays standard | Event id, time and kind stay readable so the log can be ordered; the contents don't. | ✅ |
 | Mail and Calendar can't be end-to-end (interop) | **What leaves is stated plainly:** model requests go to Meta's Model API, and app calls go to Google and Slack. Each crossing is recorded in the outbound ledger, with contents never stored. | ✅ |
 | Recovery key | `auren-keyd recovery` prints a 52-character recovery code once; `restore` seals it to a new Mac. | ✅ CLI · ⏳ in the app |
-| Trusted devices | Pairing replaces the shared token. Each iPhone and Apple Watch holds a **Secure Enclave key** and proves it on every connection, and you can revoke any device. | ⏳ tonight |
-| Approve on a trusted device | **Every send is signed by the device's Secure Enclave.** A spoken yes, a stolen token or an injected instruction can't make the signature. | ⏳ tonight |
+| Trusted devices | **Pairing** with a one-time code shown on the Mac. Each iPhone and Apple Watch holds a **Secure Enclave key** and signs a fresh challenge on every connection. Revoke any device from the Mac. | ✅ |
+| Approve on a trusted device | **Every send is signed by the device's Secure Enclave**, over the decision and the summary it showed. A spoken yes, a stolen token or an injected instruction can't make that signature. | ✅ |
 
 ## What's protected, and how
 - **Master key.** `auren-keyd` creates a P-256 key inside the Secure Enclave and seals a random 256-bit master key to it with ECIES: ECDH with a one-time key, HKDF-SHA256, then AES-256-GCM. The two files in `.auren-keys/` (mode 0700) are useless on any other Mac. Core reads the key into memory at start-up and never writes it out.
@@ -23,6 +23,7 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 - **Event log.** Every event's contents are encrypted, with id, session, time and kind bound in as associated data. A chain of HMAC-SHA256 links covers every field. Ids are assigned one by one, so a gap means a deleted event.
   - **Limit:** the newest events could be cut off without breaking the chain. Every device sees the chain's head (`head`), so a shorter chain than the one a device already saw stands out.
 - **Connector tokens.** Google and Slack tokens are encrypted in their own table under their own derived key. They never reach a surface, a log line or the model.
+- **Trusted devices.** Pairing can only start on the Mac itself. Codes are six digits, last five minutes, work once, and are cancelled after five wrong tries. Core stores each device's P-256 public key. The device signs `auren-hello\n<nonce>\n<id>` on connect and `auren-approve\n<request>\n<1|0>\n<sha256(summary)>` for each answer. Connections relayed by a tunnel or proxy count as remote, so a tunnel can't pass for the Mac. The full flow is in the [Surface Protocol](spec/surface-protocol.md#trusted-devices-v01).
 - **Forget everything.** `auren-keyd forget` deletes the sealed key. Without it, the log and the tokens can't be decrypted; this is crypto-shredding.
 
 ## Logging
@@ -43,8 +44,10 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 |---|---|
 | Someone copies `auren.db` | Contents and tokens are ciphertext; the key is sealed to this Mac's Secure Enclave |
 | Someone edits or deletes a log entry | `verify` fails at that event |
-| A web page or email tells Auren to send something | It arrives as untrusted data. Sends need a tap, and from tonight a Secure Enclave signature. |
-| A stolen device token | ⏳ Pairing: each device proves a hardware key, and you can revoke it |
+| A web page or email tells Auren to send something | It arrives as untrusted data. Sends need a tap signed by a paired device's Secure Enclave. |
+| A stolen device token, or someone else's phone | Not enough: a device has to prove a paired hardware key, and you can revoke it from the Mac |
+| A compromised relay (such as the iPhone relaying the watch) changes what the watch shows | The watch signs a hash of the summary it displayed, so Core rejects the mismatch |
+| Someone tunnels into Core and claims to be the Mac | Forwarded traffic is treated as remote and must pair |
 | A secret leaks into logs | Redaction by name and by shape; long strings are cut |
 | Model provider retention | Out of Auren's control. The ledger shows exactly what was sent and when. |
 
