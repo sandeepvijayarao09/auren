@@ -13,6 +13,8 @@ export const config = {
   dbPath: process.env.AUREN_DB ?? "auren.db",
   // Encrypts connector tokens. Without it, Core generates a key next to the database.
   secret: process.env.AUREN_SECRET ?? "",
+  // Also append the operational log (JSON lines) to this file. stdout always gets it.
+  logFile: process.env.AUREN_LOG_FILE ?? "",
   // The user's time zone, for dates in the prompt and on the calendar.
   timeZone: process.env.AUREN_TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
   // A Google "Desktop app" OAuth client. Setting both swaps the demo calendar for the real one.

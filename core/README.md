@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 35 tests, no API key needed (scripted Muse, fake Google)
+npm test          # 51 tests, no API key needed (scripted Muse, fake Google)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -18,7 +18,10 @@ npm run typecheck
 | `src/config.ts` | Every setting, read from `.env` | ✅ |
 | `src/server.ts` | HTTP routes and the `/v1/surface` WebSocket | ✅ |
 | `src/protocol.ts` | Surface Protocol v0 schemas (mirrored in `apps/apple/AurenKit`) | ✅ |
-| `src/eventlog.ts` | Append-only log in SQLite; every append is broadcast to every surface | ✅ |
+| `src/eventlog.ts` | Append-only log in SQLite, contents encrypted, every event HMAC-chained to the one before; every append is broadcast to every surface | ✅ |
+| `src/security/keys.ts` | The master key (Secure Enclave via `auren-keyd`, `AUREN_SECRET`, or a file, in that order) and per-purpose keys | ✅ |
+| `src/security/ledger.ts` | The outbound ledger: every call to Meta, Google and Slack, without contents | ✅ |
+| `src/obs/opslog.ts` | JSON operational log with trace ids and redaction | ✅ |
 | `src/surfaces.ts` | Presence, the device picker (`#pick`) and approval handoff | ✅ |
 | `src/agent/loop.ts` | The Muse Wonder loop: tool inventory, tier gate, receipts, undo, fast ack | ✅ |
 | `src/tools/` | Apps and devices as Muse tool namespaces, plus the in-memory demo world | ✅ |
@@ -41,6 +44,9 @@ npm run typecheck
 | `GET /connect/google` | this Mac, or token | Starts the Google sign-in ([setup](../docs/google-setup.md)) |
 | `GET /connect/google/callback` | — | Where Google sends the browser back |
 | `GET /v1/connections` | token | Which accounts are connected |
+| `GET /v1/audit/verify` | token | Walks the log's hash chain: `{ ok, count, head, brokenAt? }` |
+| `GET /v1/outbound` | token | The outbound ledger |
+| `GET /v1/trust` | token | Log integrity, key source, outbound summary, devices online |
 | `GET /v1/events?since=` | token | The event log |
 | `POST /v1/command` | token | `{ text, surface_id? }` → runs a command |
 | `POST /v1/approvals/:id` | token | `{ approved, surface_id? }` |

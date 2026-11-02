@@ -21,3 +21,6 @@ eval/out/
 .claude/
 apps/apple/*/Info.plist
 *.key
+# Secure Enclave key files and operational logs
+.auren-keys/
+logs/

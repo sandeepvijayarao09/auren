@@ -36,6 +36,8 @@ export interface GoogleAuthOptions {
   store: SecretStore;
   fetch?: typeof fetch;
   now?: () => number;
+  /** Called after every request to Google, for the outbound ledger. */
+  onCall?: (call: { operation: string; status: "ok" | "error"; ms: number; bytesOut: number; url: string }) => void;
 }
 
 export class NotConnectedError extends Error {}
@@ -118,8 +120,12 @@ export class GoogleAuth {
 
   /** Calls a Google API with the token, retrying once after a refresh if Google says 401. */
   async json<T = any>(url: string, init: RequestInit = {}): Promise<T> {
-    const send = async (token: string) =>
-      this.#fetch(url, { ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...init.headers, authorization: `Bearer ${token}` } });
+    const send = async (token: string) => {
+      const t0 = performance.now();
+      const res = await this.#fetch(url, { ...init, headers: { ...(init.body ? { "content-type": "application/json" } : {}), ...init.headers, authorization: `Bearer ${token}` } });
+      this.#opts.onCall?.({ operation: init.method ?? "GET", status: res.ok ? "ok" : "error", ms: performance.now() - t0, bytesOut: Buffer.byteLength(String(init.body ?? "")), url });
+      return res;
+    };
     let res = await send(await this.accessToken());
     if (res.status === 401) {
       const t = this.#opts.store.get<StoredTokens>(SECRET_NAME);
@@ -160,14 +166,13 @@ export class GoogleAuth {
   }
 
   async #token(fields: Record<string, string>): Promise<any> {
-    const res = await this.#fetch(TOKEN_URL, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ ...fields, client_id: this.#opts.clientId, client_secret: this.#opts.clientSecret }).toString(),
-    });
-    const body = (await res.json().catch(() => ({}))) as any;
-    if (!res.ok) throw new Error(`Google sign-in failed: ${body.error ?? res.status}${body.error_description ? ` (${body.error_description})` : ""}`);
-    return body;
+    const body = new URLSearchParams({ ...fields, client_id: this.#opts.clientId, client_secret: this.#opts.clientSecret }).toString();
+    const t0 = performance.now();
+    const res = await this.#fetch(TOKEN_URL, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
+    this.#opts.onCall?.({ operation: "POST", status: res.ok ? "ok" : "error", ms: performance.now() - t0, bytesOut: Buffer.byteLength(body), url: TOKEN_URL });
+    const reply = (await res.json().catch(() => ({}))) as any;
+    if (!res.ok) throw new Error(`Google sign-in failed: ${reply.error ?? res.status}${reply.error_description ? ` (${reply.error_description})` : ""}`);
+    return reply;
   }
 }
 

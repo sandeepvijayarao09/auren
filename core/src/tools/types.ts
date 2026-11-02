@@ -5,6 +5,8 @@ export interface ToolContext {
   session: string;
   originSurfaceId?: string;
   surfaces: SurfaceRegistry;
+  /** The command's trace id in the ops log. */
+  trace?: string;
 }
 
 export interface UndoStep {

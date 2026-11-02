@@ -1,6 +1,6 @@
 # One entry point for every part of Auren. Run `make` to list targets.
 .DEFAULT_GOAL := help
-.PHONY: help setup dev test check typecheck secrets apple apple-build icon clean
+.PHONY: help setup dev test check typecheck secrets keyd apple apple-build icon clean
 
 APPLE_FLAGS = -project apps/apple/Auren.xcodeproj -derivedDataPath .build/apple CODE_SIGNING_ALLOWED=NO
 
@@ -12,6 +12,7 @@ setup: ## Install dependencies and turn on the secret scan
 	cd core && npm install
 	cd driver && npm install
 	cd router && uv sync
+	@if [ "$$(uname)" = Darwin ]; then $(MAKE) keyd; fi
 	@test -f .env || (cp .env.example .env && echo "Created .env. Add MODEL_API_KEY from dev.meta.ai.")
 
 dev: ## Run Core on http://127.0.0.1:8787, reloading on save
@@ -22,6 +23,7 @@ test: ## Every test that needs no API key or device
 	cd driver && npm test
 	cd router && uv run python -m unittest discover -s tests -t .
 	cd apps/apple/AurenKit && swift test
+	@if [ "$$(uname)" = Darwin ]; then cd keyd && swift test; fi
 
 typecheck: ## Type-check Core and the driver
 	cd core && npm run typecheck
@@ -31,6 +33,9 @@ secrets: ## Scan the git history for secrets
 	gitleaks git --redact --no-banner
 
 check: test typecheck secrets ## Everything CI runs
+
+keyd: ## Build auren-keyd, which seals Core's master key to the Secure Enclave
+	cd keyd && swift build -c release
 
 apple: ## Generate the Xcode project from apps/apple/project.yml
 	cd apps/apple && xcodegen generate

@@ -16,6 +16,10 @@
   .chips { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
   .chip { font-size:12px; padding:3px 9px; border:1px solid var(--line); border-radius:999px; color:var(--dim); }
   .chip.on { border-color:var(--text); color:var(--text); }
+  .trust { font-size:12px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .trust.ok::before { content:"✓ "; color:var(--done); }
+  .trust.bad { color:var(--bad); }
+  .trust.bad::before { content:"■ "; }
   main { max-width:760px; margin:0 auto; padding:16px 16px 140px; }
   .ev { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
   .ev .k { width:84px; flex:none; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); padding-top:2px; }
@@ -36,7 +40,7 @@
   input[type=text] { flex:1; font:inherit; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); }
   input[type=text]:focus { outline:none; border-color:var(--dim); }
   .tools { max-width:760px; margin:8px auto 0; display:flex; gap:14px; color:var(--dim); font-size:12px; }
-  @media (max-width:520px) { .ev .k { width:64px; } .chips { display:none; } }
+  @media (max-width:520px) { .ev .k { width:64px; } .chips, .me { display:none; } .trust { margin-left:auto; } }
 </style>
 </head>
 <body>
@@ -44,6 +48,7 @@
   <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
   <span class="brand">AUREN</span><span class="me" id="me"></span>
   <div class="chips" id="chips"></div>
+  <span class="trust" id="trust" title="Checks the log's hash chain every 15 seconds">checking the log…</span>
 </header>
 <main><div id="pending"></div><div id="cards"></div><div id="timeline"></div></main>
 <form id="f">
@@ -127,6 +132,17 @@ $("f").addEventListener("submit", (ev) => {
   if (text) ws.send(JSON.stringify({ type: "utterance", text }));
   $("q").value = "";
 });
+
+const KEY_SOURCE = { "secure-enclave": "keys in the Secure Enclave", env: "keys from AUREN_SECRET", file: "keys in a file", memory: "keys in memory" };
+async function trust() {
+  try {
+    const t = await (await fetch(`/v1/trust`, { headers: auth })).json();
+    const el = $("trust");
+    el.className = `trust ${t.log.ok ? "ok" : "bad"}`;
+    el.textContent = t.log.ok ? `Log intact · ${t.log.count} events · ${KEY_SOURCE[t.keys.source] ?? t.keys.source}` : `Log changed: ${t.log.reason}`;
+  } catch { /* Core restarting */ }
+}
+trust(); setInterval(trust, 15000);
 
 fetch(`/v1/events`, { headers: auth }).then((r) => r.json()).then(({ events }) => { events.forEach(line); connect(); }).catch(connect);
 </script>

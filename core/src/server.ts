@@ -6,6 +6,8 @@ import { WebSocket, WebSocketServer } from "ws";
 import { runCommand, undoReceipt, type AgentDeps } from "./agent/loop.ts";
 import { ClientMessage, type ServerMessage } from "./protocol.ts";
 import type { GoogleAuth } from "./connectors/google/auth.ts";
+import type { KeySource } from "./security/keys.ts";
+import type { Ledger } from "./security/ledger.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -17,7 +19,15 @@ const connectPage = (title: string, body: string) => `<!doctype html><meta chars
 <main style="max-width:28rem;padding:24px;text-align:center"><svg width="44" height="44" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="#D4AB54" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="#D4AB54"/></svg>
 <h1 style="font:400 26px/1.2 var(--auren-display);margin:16px 0 8px">${esc(title)}</h1><p style="color:var(--auren-ash);margin:0">${esc(body)}</p></main></body>`;
 
-export function createServer(deps: AgentDeps, opts: { token: string; museReady: boolean; google?: GoogleAuth }) {
+export interface ServerOptions {
+  token: string;
+  museReady: boolean;
+  google?: GoogleAuth;
+  ledger?: Ledger;
+  keys?: { source: KeySource; note?: string };
+}
+
+export function createServer(deps: AgentDeps, opts: ServerOptions) {
   const { log, surfaces } = deps;
   const app = new Hono();
   const authorized = (header?: string | null, query?: string | null) =>
@@ -64,6 +74,17 @@ export function createServer(deps: AgentDeps, opts: { token: string; museReady: 
     if (!authorized(c.req.header("authorization"), c.req.query("token"))) return c.json({ error: "unauthorized" }, 401);
     await next();
   });
+  // Trust: is the log intact, where do the keys live, and what has left this Mac.
+  app.get("/v1/audit/verify", (c) => c.json(log.verify()));
+  app.get("/v1/outbound", (c) => c.json({ calls: opts.ledger?.list(Math.min(Number(c.req.query("limit") ?? 50), 500)) ?? [] }));
+  app.get("/v1/trust", (c) =>
+    c.json({
+      log: log.verify(),
+      keys: opts.keys ?? { source: "memory" },
+      outbound: opts.ledger?.summary() ?? [],
+      surfaces: surfaces.online().map((s) => ({ id: s.id, kind: s.kind })),
+    }),
+  );
   app.get("/v1/connections", (c) => c.json({ google: opts.google ? { configured: true, ...opts.google.status() } : { configured: false, connected: false } }));
   app.get("/v1/events", (c) => c.json({ events: log.since(SESSION, Number(c.req.query("since") ?? 0)) }));
   app.post("/v1/command", async (c) => {

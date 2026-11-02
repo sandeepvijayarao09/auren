@@ -315,6 +315,8 @@ All tool names stay the same when the demo world is swapped for real connectors.
 
 ## 10. Safety model
 
+Keys, encryption, the tamper-evident log and the comparison with iCloud Advanced Data Protection are in [SECURITY.md](SECURITY.md).
+
 **Risk tiers.** Each tool declares a tier and Core enforces it in [`executeCall`](core/src/agent/loop.ts).
 
 | Tier | Behaviour | Examples |

@@ -4,7 +4,7 @@
 | Tool | For | Install |
 |---|---|---|
 | Node 24+ | Core and the driver (TypeScript runs directly, with no build step) | `brew install node` |
-| Xcode 27 + XcodeGen | The iPhone and Apple Watch apps | App Store, `brew install xcodegen` |
+| Xcode 27 + XcodeGen | The iPhone and Apple Watch apps, and `auren-keyd` | App Store, `brew install xcodegen` |
 | uv | The router (Python 3.12+) | `brew install uv` |
 | gitleaks | The pre-commit secret scan | `brew install gitleaks` |
 
@@ -27,7 +27,9 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_DB` | No | SQLite path for the event log (default `auren.db`) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | For real Google | A Desktop OAuth client; swaps the demo calendar for the real one. Setup: [docs/google-setup.md](docs/google-setup.md) |
 | `SLACK_BOT_TOKEN` | Day 2 | Slack demo workspace |
-| `AUREN_SECRET` | No | 64 hex characters that encrypt connector tokens. Without it, Core keeps a key in `auren.db.key`. |
+| `AUREN_SECRET` | No | A 64-hex-character master key. On a Mac, leave it empty and `auren-keyd` seals one to the Secure Enclave. Elsewhere, set it, or Core falls back to a key file and warns you. |
+| `AUREN_KEYD` | No | Path to the `auren-keyd` binary, if not `keyd/.build/release/auren-keyd` |
+| `AUREN_LOG_FILE` | No | Also append the JSON operational log to this file |
 | `AUREN_TZ` | No | Your time zone, if this Mac's is wrong |
 | `BASETEN_API_KEY` | Day 7 | Auren Memory on Muse Spark Open |
 
@@ -36,7 +38,8 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases, Google connector) | `cd core && npm test` | 35 |
+| Core (scripted Muse, surfaces, eval cases, Google, encrypted log, keys, ledger, redaction) | `cd core && npm test` | 51 |
+| keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
 | AurenKit (protocol, client state) | `cd apps/apple/AurenKit && swift test` | 10 |

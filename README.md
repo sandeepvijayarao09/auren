@@ -19,6 +19,8 @@ Meta's Muse agent lives on Meta's devices. Auren brings Muse models to **every d
 2. **The task follows you.** Look through the glasses, approve on the watch, read the receipt on the phone. If a device drops, its pending approval moves to the next best one.
 3. **Every app.** Auren uses APIs where they exist and Muse Wonder computer use where they don't.
 
+**iCloud-level security, with no Auren cloud.** Core's master key is sealed to your Mac's Secure Enclave. The log is encrypted and hash-chained, so any edit shows. Every outbound call is recorded. Details in [SECURITY.md](SECURITY.md).
+
 **Core enforces safety, not the model.** Reads run on their own. Writes run on their own, with a receipt and an **Undo**. Sends always wait for a **tap**; a spoken yes never sends. Email, chat and web content reaches the model only as untrusted data. Computer use stops before any commit and never solves a CAPTCHA.
 
 ## The Golden Path
@@ -66,11 +68,13 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Commit guard and CAPTCHA stop for computer use | ✅ tested |
 | Router output schema and labelling rubric · 10 eval cases, checked in CI | ✅ |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
-| Gmail and Slack connectors | ⏳ Day 2 |
+| Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
+| Device pairing and Secure Enclave-signed approvals | ⏳ tonight |
+| Gmail and Slack connectors | ⏳ next |
 | Voice (Muse Voice Transcribe) · glasses (Wearables toolkit) | ⏳ Days 3–5 |
 | Computer-use runner and driver · Auren Memory (Spark Open) · Auren Router (Glimmer) | ⏳ Days 6–7 |
 
-**Tests:** 56 across four suites (Core 35, AurenKit 10, driver 6, router 5). No API key or device needed.
+**Tests:** 78 across five suites (Core 51, AurenKit 10, keyd 6, driver 6, router 5). No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.
@@ -96,10 +100,12 @@ driver/          computer use on the Mac: the commit guard today, the Playwright
 router/          Auren Router: output schema, labelling rubric; Glimmer fine-tune on Day 6
 eval/            golden-path and safety cases, checked by Core's tests; the runner on Day 7
 spec/            Surface Protocol v0 and the 20-line example surface
+keyd/            auren-keyd: seals Core's master key to the Mac's Secure Enclave (Swift)
 brand/           palette, mark, tokens and naming
 docs/            golden paths, demo runbook
 ARCHITECTURE.md  the full design: components, the five golden paths, safety, presence, build order
 DEVELOPING.md    setup, environment, tests and conventions
+SECURITY.md      keys, encryption, the audit log, and how it compares to iCloud
 MUSE.md          every Meta capability used, and where it is in the code
 ```
 
