@@ -7,6 +7,9 @@ import { z } from "zod";
 import { SurfaceKind } from "../protocol.ts";
 import { createDemoWorld } from "../tools/demo-world.ts";
 import { surfacesNamespace } from "../tools/surfaces.ts";
+import { createBrowser } from "../computer/browser.ts";
+import { DriverHub } from "../computer/hub.ts";
+import { EventLog } from "../eventlog.ts";
 
 const Tool = z.string().regex(/^[a-z_]+\.[a-z_]+$/, "namespace.tool");
 
@@ -37,10 +40,17 @@ type Case = z.infer<typeof Case>;
 
 // Namespaces that exist in Core today, and the ones the build plan adds.
 const built = new Map<string, string>();
-for (const ns of [...createDemoWorld().namespaces, surfacesNamespace]) for (const t of ns.tools) built.set(`${ns.name}.${t.name}`, t.tier);
+// Send-tier tools that ask at their own commit point, so a run that stops first asks nothing.
+const commitPoint = new Set<string>();
+const browser = createBrowser({ hub: new DriverHub(), muse: { responses: { create: async () => ({}) } }, model: "muse-wonder-1.0", log: new EventLog() });
+for (const ns of [...createDemoWorld().namespaces, surfacesNamespace, browser]) {
+  for (const t of ns.tools) {
+    built.set(`${ns.name}.${t.name}`, t.tier);
+    if (t.commitPoint) commitPoint.add(`${ns.name}.${t.name}`);
+  }
+}
 const PLANNED = new Map([
   ["glasses", "Day 5"],
-  ["browser", "Day 6"],
   ["memory", "Day 7"],
   ["receipts", "Day 7"],
 ]);
@@ -91,7 +101,10 @@ test("approvals are for send-tier tools, on a surface that can take a tap", () =
 test("built send-tier tools in a case always expect an approval", () => {
   for (const c of cases) {
     const asked = new Set((c.expect.approvals ?? []).map((a) => a.tool));
-    for (const name of c.expect.tools) if (built.get(name) === "send") assert.ok(asked.has(name), `${c.id}: ${name} sends, so the case must expect a tap`);
+    for (const name of c.expect.tools) {
+      if (built.get(name) !== "send" || (commitPoint.has(name) && c.expect.stopped)) continue;
+      assert.ok(asked.has(name), `${c.id}: ${name} sends, so the case must expect a tap`);
+    }
   }
 });
 

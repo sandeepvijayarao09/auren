@@ -19,6 +19,7 @@ import { approvalPayload, helloPayload, PairingError, type DeviceRegistry } from
 import type { AsrConnector } from "./voice/asr.ts";
 import { handleVoice } from "./voice/gateway.ts";
 import { silentOps } from "./obs/opslog.ts";
+import type { DriverHub } from "./computer/hub.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -42,6 +43,8 @@ export interface ServerOptions {
   devices?: DeviceRegistry;
   /** Speech to text for /v1/voice. Without it, voice answers with a setup error. */
   voice?: { asr?: AsrConnector; keywords: () => string[] };
+  /** R7: the computer-use driver's socket, /v1/driver. */
+  driver?: DriverHub;
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -297,6 +300,13 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     app,
     upgrade(req: IncomingMessage, socket: Duplex, head: Buffer) {
       const url = new URL(req.url ?? "/", "http://localhost");
+      // R7: the computer-use driver dials in from this Mac, or from anywhere with AUREN_TOKEN.
+      if (url.pathname === "/v1/driver") {
+        const hub = opts.driver;
+        const local = isLocal(req.socket.remoteAddress, (h) => req.headers[h]);
+        if (!hub || !(local || (opts.token && authorized(req.headers.authorization, url.searchParams.get("token"))))) return void socket.destroy();
+        return hub.wss.handleUpgrade(req, socket, head, (ws) => hub.wss.emit("connection", ws, req));
+      }
       // With pairing on, an unpaired device may open the socket; it then has to prove a paired key in hello.
       const allowed = authorized(req.headers.authorization, url.searchParams.get("token")) || Boolean(opts.devices);
       const target = url.pathname === "/v1/surface" ? wss : url.pathname === "/v1/voice" ? voiceWss : null;

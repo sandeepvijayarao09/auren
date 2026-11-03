@@ -9,6 +9,8 @@ export interface ToolContext {
   trace?: string;
   /** The crop glasses.look kept earlier in this command, so the receipts that follow show what Auren saw. */
   seen?: { crop_id: string };
+  /** Only for `commitPoint` tools: Core's send-tier tap, asked at the commit itself. */
+  approveCommit?: (summary: string) => Promise<boolean>;
 }
 
 export interface UndoStep {
@@ -30,6 +32,12 @@ export interface ToolSpec<A = any, R = any> {
   hidden?: boolean;
   /** The tool appends its own receipt (receipts.undo does, through undoReceipt), so the loop doesn't add a second. */
   ownReceipt?: boolean;
+  /**
+   * A send-tier tool whose tap comes at its own commit point instead of before it
+   * runs (computer use browses first, then asks before the confirm click). Core
+   * hands it `ctx.approveCommit` and writes a receipt only if that tap approved.
+   */
+  commitPoint?: boolean;
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;

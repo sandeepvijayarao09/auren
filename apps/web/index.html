@@ -31,6 +31,7 @@
   .ev .proof { color:var(--proof); margin-left:8px; font-size:13px; }
   .ev .signed { color:var(--done); margin-left:8px; font-size:13px; }
   .ev .seen { display:block; max-width:min(220px, 100%); margin-top:8px; border:1px solid var(--line); border-radius:8px; }
+  .ev .frame { display:block; width:100%; max-width:320px; border-radius:8px; border:1px solid var(--line); margin-bottom:6px; }
   .pair .code { font:600 30px/1.2 var(--auren-mono); letter-spacing:.14em; margin:10px 0 6px; }
   .pair .dev { display:flex; gap:10px; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:14px; }
   .pair .dev span { flex:1; min-width:0; }
@@ -100,6 +101,7 @@ function line(e) {
     reply: () => esc(d.text),
     error: () => esc(d.message),
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
+    browser_frame: () => `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}`,
   }[e.kind] || (() => esc(JSON.stringify(d)));
   if (e.kind === "surface") { d.status === "online" ? online.set(d.surface_id, { id: d.surface_id, kind: d.kind }) : online.delete(d.surface_id); chips(); }
   const el = document.createElement("div");
