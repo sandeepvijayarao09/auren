@@ -85,3 +85,57 @@ test("an approval with no surface waits for one to join", async () => {
   reg.answer(req.request_id, false, "watch");
   assert.equal(await p, false);
 });
+
+test("replies are split into sentences, short ones merged and long ones wrapped", async () => {
+  const { splitSpeech } = await import("./surfaces.ts");
+  assert.deepEqual(splitSpeech("On it. Moved your 3 PM to 3:15. Reply to Prof. Lee is drafted."), ["On it. Moved your 3 PM to 3:15.", "Reply to Prof. Lee is drafted."]);
+  const long = splitSpeech(`${"word ".repeat(80)}end.`, 100);
+  assert.ok(long.length >= 4 && long.every((c) => c.length <= 100));
+  assert.deepEqual(splitSpeech("   "), []);
+});
+
+test("GP3: glasses come off mid-reply and the rest plays on the watch within 2 seconds", () => {
+  const { reg, inbox, events, join, tick } = setup();
+  join(glasses);
+  join(watch);
+  join(phone);
+  assert.equal(reg.heartbeatMsFor("glasses"), 500);
+  assert.equal(reg.heartbeatMsFor("watch"), 1000);
+
+  reg.speak("Your afternoon has three things. Office hours at 3:15. Thesis sync with Prof. Lee at 5:30.", "glasses");
+  const sent = inbox.glasses.filter((m) => m.type === "speak") as Array<{ reply_id: string; seq: number; text: string; final: boolean }>;
+  assert.equal(sent.length, 3);
+  assert.equal(sent.at(-1)?.final, true);
+  reg.progress(sent[0].reply_id, 0, "glasses");
+
+  // The glasses go silent. Everything else keeps beating, and Core sweeps every 500 ms.
+  let elapsed = 0;
+  while (!events.some(([k, d]) => k === "handoff" && d.what === "speech") && elapsed < 5000) {
+    tick(500);
+    elapsed += 500;
+    reg.heartbeat("watch", true);
+    reg.heartbeat("phone", false);
+    reg.sweep();
+  }
+  assert.ok(elapsed <= 2000, `moved after ${elapsed} ms`);
+  const moved = inbox.watch.filter((m) => m.type === "speak") as Array<{ reply_id: string; seq: number; text: string }>;
+  assert.deepEqual(moved.map((m) => m.seq), [1, 2]);
+  assert.equal(moved[0].text, "Office hours at 3:15.");
+  const handoff = events.find(([k, d]) => k === "handoff" && d.what === "speech")?.[1];
+  assert.deepEqual([handoff?.from, handoff?.to, handoff?.remaining], ["glasses", "watch", 2]);
+});
+
+test("a finished reply doesn't move, and progress counts only from the surface playing it", () => {
+  const { reg, inbox, events, join, tick } = setup();
+  join(glasses);
+  join(watch);
+  reg.speak("Done. Posted in office hours.", "glasses");
+  const [first] = inbox.glasses.filter((m) => m.type === "speak") as Array<{ reply_id: string; seq: number }>;
+  reg.progress(first.reply_id, 0, "watch");
+  reg.progress(first.reply_id, 0, "glasses");
+  tick(2000);
+  reg.heartbeat("watch", true);
+  reg.sweep();
+  assert.equal(events.some(([k, d]) => k === "handoff" && d.what === "speech"), false);
+  assert.equal(inbox.watch.some((m) => m.type === "speak"), false);
+});

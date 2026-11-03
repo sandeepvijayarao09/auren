@@ -53,12 +53,19 @@ struct HomeView: View {
             .sheet(isPresented: $showSettings) { SettingsView(coreURL: $coreURL, token: $token, client: client) }
         }
         .task {
-            client.onSpeak = { speaker.speak($0) }
+            client.onSpeak = { speech in speaker.speak(speech) { client.spoke($0) } }
             voice = VoiceSession(client: client)
             connect()
+            WatchLink.shared.pushConfig(coreURL: coreURL, token: token)
         }
-        .onChange(of: coreURL) { connect() }
-        .onChange(of: token) { connect() }
+        .onChange(of: coreURL) {
+            connect()
+            WatchLink.shared.pushConfig(coreURL: coreURL, token: token)
+        }
+        .onChange(of: token) {
+            connect()
+            WatchLink.shared.pushConfig(coreURL: coreURL, token: token)
+        }
         .onChange(of: paired) { connect() }
         .onChange(of: scenePhase) { _, phase in client.isActive = phase == .active }
     }

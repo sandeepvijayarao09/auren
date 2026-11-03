@@ -28,19 +28,24 @@ public final class SurfaceClient {
     /// Approvals Core routed to this surface. Core moves them away if this surface drops.
     public private(set) var approvals: [ApprovalRequest] = []
     public private(set) var cards: [Card] = []
-    /// Called for every `speak` Core routes to this surface.
-    public var onSpeak: (@MainActor (String) -> Void)?
+    /// Called for every sentence Core routes to this surface. Call `spoke(_:)` when it finishes playing.
+    public var onSpeak: (@MainActor (Speech) -> Void)?
     /// Called once when an approval lands here (the watch plays a haptic).
     public var onApproval: (@MainActor (ApprovalRequest) -> Void)?
     /// Sent with each heartbeat. Core prefers active surfaces when it picks a device.
     public var isActive = true
 
-    private var socket: URLSessionWebSocketTask?
+    private let makeTransport: @MainActor () -> SurfaceTransport
+    private var transport: SurfaceTransport?
     private var run: Task<Void, Never>?
+    /// Core sets this in welcome: 500 ms for glasses, 1 s for others.
+    private var heartbeat: Duration = .seconds(1)
 
-    public init(manifest: Manifest, identity: DeviceIdentity? = nil) {
+    /// `transport` is asked for a fresh connection each time: a WebSocket, or the watch's relay through the iPhone.
+    public init(manifest: Manifest, identity: DeviceIdentity? = nil, transport: @escaping @MainActor () -> SurfaceTransport = { WebSocketTransport() }) {
         self.manifest = manifest
         self.identity = identity
+        self.makeTransport = transport
     }
 
     /// `core` is the address Core prints at start-up, such as http://192.168.1.20:8787.
@@ -75,8 +80,8 @@ public final class SurfaceClient {
     public func disconnect() {
         run?.cancel()
         run = nil
-        socket?.cancel(with: .goingAway, reason: nil)
-        socket = nil
+        transport?.close()
+        transport = nil
         state = .idle
     }
 
@@ -91,13 +96,20 @@ public final class SurfaceClient {
         try await send(.approvalResponse(requestID: request.id, approved: approved, signature: signature))
     }
 
+    /// Tells Core a sentence finished playing here.
+    public func spoke(_ speech: Speech) {
+        guard let replyID = speech.replyID, let seq = speech.seq else { return }
+        Task { try? await send(.speakProgress(replyID: replyID, seq: seq)) }
+    }
+
     /// Applies one message from Core. Internal so tests can drive it without a socket.
     func apply(_ message: ServerMessage) {
         switch message {
         case .challenge:
             break
-        case .welcome(let session, let surfaces):
+        case .welcome(let session, let surfaces, let heartbeatMs):
             sessionID = session
+            if let heartbeatMs, heartbeatMs >= 100 { heartbeat = .milliseconds(heartbeatMs) }
             online = surfaces.map { Presence(id: $0.id, kind: $0.kind) }
             state = .online
         case .event(let event):
@@ -108,8 +120,8 @@ public final class SurfaceClient {
                     online.append(Presence(id: id, kind: kind))
                 }
             }
-        case .speak(let text):
-            onSpeak?(text)
+        case .speak(let speech):
+            onSpeak?(speech)
         case .showCard(let card):
             cards.insert(card, at: 0)
         case .approvalRequest(let request):
@@ -129,16 +141,15 @@ public final class SurfaceClient {
         events.append(event)
     }
 
-    private func session(_ url: URL) async {
-        let socket = URLSession.shared.webSocketTask(with: url)
-        self.socket = socket
+    func session(_ url: URL) async {
+        let transport = makeTransport()
+        self.transport = transport
         state = .connecting
-        socket.resume()
         do {
+            try await transport.open(url)
             // Core opens with a challenge; a paired device signs it. An older Core sends nothing first.
             var early: ServerMessage?
-            if case .string(let text) = try await socket.receive(),
-               let first = try? JSONDecoder().decode(ServerMessage.self, from: Data(text.utf8)) {
+            if let first = try? JSONDecoder().decode(ServerMessage.self, from: Data(try await transport.receive().utf8)) {
                 if case .challenge(let nonce) = first {
                     try await send(.hello(manifest, auth: try identity?.helloAuth(nonce: nonce)))
                 } else {
@@ -151,14 +162,14 @@ public final class SurfaceClient {
             if let early { apply(early) }
             let beat = Task { [weak self] in
                 while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(1))
                     guard let self else { return }
+                    try? await Task.sleep(for: self.heartbeat)
                     try? await self.send(.heartbeat(active: self.isActive))
                 }
             }
             defer { beat.cancel() }
             while !Task.isCancelled {
-                guard case .string(let text) = try await socket.receive() else { continue }
+                let text = try await transport.receive()
                 if let message = try? JSONDecoder().decode(ServerMessage.self, from: Data(text.utf8)) {
                     apply(message)
                 }
@@ -166,13 +177,13 @@ public final class SurfaceClient {
         } catch {
             if !Task.isCancelled { state = .offline(reason: error.localizedDescription) }
         }
-        socket.cancel(with: .goingAway, reason: nil)
+        transport.close()
     }
 
     private func send(_ message: ClientMessage) async throws {
-        guard let socket else { throw URLError(.notConnectedToInternet) }
+        guard let transport else { throw URLError(.notConnectedToInternet) }
         let data = try JSONEncoder().encode(message)
-        try await socket.send(.string(String(decoding: data, as: UTF8.self)))
+        try await transport.send(String(decoding: data, as: UTF8.self))
     }
 
     private struct EventPage: Decodable { let events: [AurenEvent] }

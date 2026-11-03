@@ -22,6 +22,8 @@ export const ClientMessage = z.discriminatedUnion("type", [
   z.object({ type: z.literal("heartbeat"), active: z.boolean().default(false) }),
   z.object({ type: z.literal("utterance"), text: z.string().min(1).max(2000) }),
   z.object({ type: z.literal("approval_response"), request_id: z.string(), approved: z.boolean(), signature: z.string().max(512).optional() }),
+  // v0.1: a chunk of a reply finished playing, so Core knows where to resume if this surface drops.
+  z.object({ type: z.literal("speak_progress"), reply_id: z.string().max(64), seq: z.number().int().min(0) }),
 ]);
 export type ClientMessage = z.infer<typeof ClientMessage>;
 
@@ -41,9 +43,9 @@ export interface AurenEvent {
 
 export type ServerMessage =
   | { type: "challenge"; nonce: string }
-  | { type: "welcome"; session_id: string; surfaces: Manifest[] }
+  | { type: "welcome"; session_id: string; surfaces: Manifest[]; heartbeat_ms?: number }
   | { type: "event"; event: AurenEvent }
-  | { type: "speak"; text: string }
+  | { type: "speak"; text: string; reply_id?: string; seq?: number; final?: boolean }
   | { type: "show_card"; title: string; body: string }
   | { type: "approval_request"; request_id: string; summary: string; tier: Tier }
   | { type: "approval_cancel"; request_id: string; reason: "moved" | "expired" | "answered" };

@@ -19,7 +19,46 @@ interface PendingApproval {
   timer: ReturnType<typeof setTimeout>;
 }
 
+/** A spoken reply, sent sentence by sentence so the rest can move if its surface drops mid-reply. */
+interface Reply {
+  id: string;
+  chunks: string[];
+  surfaceId: string | null;
+  /** The last chunk the surface said it finished playing. */
+  acked: number;
+  startedAt: number;
+}
+
 type Purpose = "speak" | "approval" | "card";
+
+/** Glasses come off without warning, so they report more often and drop sooner (GP3: the reply moves within 2 s). */
+const KIND_TIMEOUT_MS: Partial<Record<string, number>> = { glasses: 1500 };
+const KIND_HEARTBEAT_MS: Partial<Record<string, number>> = { glasses: 500 };
+const REPLY_TTL_MS = 120_000;
+
+/** Splits a reply into sentences (merging very short ones, wrapping very long ones) so it can resume mid-way. */
+export function splitSpeech(text: string, max = 180): string[] {
+  const sentences = text.replace(/\s+/g, " ").trim().split(/(?<=[.!?…])\s+(?=["“(]?[A-Z0-9])/);
+  const out: string[] = [];
+  for (const sentence of sentences) {
+    if (!sentence) continue;
+    const pieces: string[] = [];
+    let line = "";
+    for (const word of sentence.split(" ")) {
+      if (line && line.length + word.length + 1 > max) {
+        pieces.push(line);
+        line = word;
+      } else line = line ? `${line} ${word}` : word;
+    }
+    if (line) pieces.push(line);
+    for (const piece of pieces) {
+      const last = out.at(-1);
+      if (last && last.length + piece.length + 1 <= 40) out[out.length - 1] = `${last} ${piece}`;
+      else out.push(piece);
+    }
+  }
+  return out;
+}
 
 export interface SurfaceRegistryOptions {
   now?: () => number;
@@ -35,6 +74,7 @@ export interface SurfaceRegistryOptions {
 export class SurfaceRegistry {
   #surfaces = new Map<string, Surface>();
   #pending = new Map<string, PendingApproval>();
+  #replies = new Map<string, Reply>();
   #now: () => number;
   #timeoutMs: number;
   #onEvent: (kind: EventKind, data: Record<string, unknown>) => void;
@@ -86,6 +126,12 @@ export class SurfaceRegistry {
   /** Marks surfaces whose heartbeats stopped as offline. Call on an interval. */
   sweep(): void {
     for (const [id, s] of this.#surfaces) if (!s.offline && !this.#isOnline(s)) this.#markOffline(id);
+    for (const [id, r] of this.#replies) if (this.#now() - r.startedAt > REPLY_TTL_MS) this.#replies.delete(id);
+  }
+
+  /** How often a surface of this kind should send heartbeats; sent to it in welcome. */
+  heartbeatMsFor(kind: string): number {
+    return KIND_HEARTBEAT_MS[kind] ?? 1000;
   }
 
   broadcast(msg: ServerMessage): void {
@@ -94,8 +140,20 @@ export class SurfaceRegistry {
 
   speak(text: string, originId?: string): string | null {
     const s = this.#pick("speak", originId);
-    s?.send({ type: "speak", text });
-    return s?.manifest.id ?? null;
+    const chunks = splitSpeech(text);
+    if (!s || !chunks.length) return s?.manifest.id ?? null;
+    const reply: Reply = { id: randomUUID(), chunks, surfaceId: s.manifest.id, acked: -1, startedAt: this.#now() };
+    this.#replies.set(reply.id, reply);
+    this.#sendSpeech(s, reply, 0);
+    return s.manifest.id;
+  }
+
+  /** A surface finished playing chunk `seq` of a reply. */
+  progress(replyId: string, seq: number, fromSurfaceId: string): void {
+    const r = this.#replies.get(replyId);
+    if (!r || r.surfaceId !== fromSurfaceId) return;
+    r.acked = Math.max(r.acked, seq);
+    if (r.acked >= r.chunks.length - 1) this.#replies.delete(replyId);
   }
 
   showCard(title: string, body: string): string | null {
@@ -131,7 +189,7 @@ export class SurfaceRegistry {
   // ── internals ──────────────────────────────────────────────────────────
 
   #isOnline(s: Surface): boolean {
-    return this.#now() - s.lastSeen <= this.#timeoutMs;
+    return this.#now() - s.lastSeen <= (KIND_TIMEOUT_MS[s.manifest.kind] ?? this.#timeoutMs);
   }
 
   #markOffline(id: string): void {
@@ -140,6 +198,24 @@ export class SurfaceRegistry {
     s.offline = true;
     this.#onEvent("surface", { surface_id: id, kind: s.manifest.kind, status: "offline" });
     for (const p of this.#pending.values()) if (p.surfaceId === id) this.#offer(p, id);
+    // The unspoken rest of a reply moves to the next voice surface, so the task follows you.
+    for (const r of this.#replies.values()) {
+      if (r.surfaceId !== id) continue;
+      const target = this.#pick("speak", undefined, id);
+      if (!target) {
+        this.#replies.delete(r.id);
+        continue;
+      }
+      r.surfaceId = target.manifest.id;
+      this.#onEvent("handoff", { reply_id: r.id, what: "speech", from: id, to: target.manifest.id, remaining: r.chunks.length - 1 - r.acked });
+      this.#sendSpeech(target, r, r.acked + 1);
+    }
+  }
+
+  #sendSpeech(s: Surface, r: Reply, from: number): void {
+    for (let seq = from; seq < r.chunks.length; seq++) {
+      s.send({ type: "speak", text: r.chunks[seq], reply_id: r.id, seq, final: seq === r.chunks.length - 1 });
+    }
   }
 
   #offer(p: PendingApproval, fromId: string | null): void {
@@ -148,7 +224,7 @@ export class SurfaceRegistry {
     p.surfaceId = target?.manifest.id ?? null;
     target?.send({ type: "approval_request", request_id: p.requestId, summary: p.summary, tier: p.tier });
     if (fromId) {
-      this.#onEvent("handoff", { request_id: p.requestId, from: fromId, to: p.surfaceId });
+      this.#onEvent("handoff", { request_id: p.requestId, what: "approval", from: fromId, to: p.surfaceId });
     } else {
       this.#onEvent("approval", { request_id: p.requestId, status: "requested", summary: p.summary, surface_id: p.surfaceId });
     }

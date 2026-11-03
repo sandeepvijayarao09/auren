@@ -93,7 +93,7 @@ function line(e) {
     receipt: () => `${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a class="proof" href="${esc(d.link)}" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? ` <button data-undo="${e.id}">Undo</button>` : ""}`,
     approval: () => `${esc(d.status)}${d.summary ? `: ${esc(d.summary)}` : ""}${d.surface_id ? ` <span class="t">on ${esc(d.surface_id)}</span>` : ""}${d.signed_by ? ` <span class="signed">✓ signed by ${esc(d.signed_by)}</span>` : ""}`,
     device: () => `${esc(d.device_id)} ${esc(d.status)}${d.hardware ? " · key in the Secure Enclave" : ""}`,
-    handoff: () => `approval moved ${esc(d.from)} → ${esc(d.to ?? "nowhere yet")}`,
+    handoff: () => `${d.what === "speech" ? "reply" : "approval"} moved ${esc(d.from)} → ${esc(d.to ?? "nowhere yet")}${d.remaining ? ` <span class="t">${esc(d.remaining)} sentences left</span>` : ""}`,
     reply: () => esc(d.text),
     error: () => esc(d.message),
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
@@ -106,18 +106,30 @@ function line(e) {
 }
 
 let ws, beat;
+function beatEvery(ms) {
+  clearInterval(beat);
+  beat = setInterval(() => !$("offline").checked && ws.send(JSON.stringify({ type: "heartbeat", active: document.hasFocus() })), ms);
+}
+// Speak each sentence and tell Core when it finished, so if this tab drops mid-reply the rest moves on.
+function say(m) {
+  const done = () => m.reply_id != null && ws.readyState === 1 && ws.send(JSON.stringify({ type: "speak_progress", reply_id: m.reply_id, seq: m.seq }));
+  if (!$("voice").checked || !surface.outputs.includes("voice")) return done();
+  const u = new SpeechSynthesisUtterance(m.text);
+  u.onend = done;
+  speechSynthesis.speak(u);
+}
 function connect() {
   ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/v1/surface${token ? `?token=${encodeURIComponent(token)}` : ""}`);
   ws.onopen = () => {
     ws.send(JSON.stringify({ type: "hello", surface }));
-    beat = setInterval(() => !$("offline").checked && ws.send(JSON.stringify({ type: "heartbeat", active: document.hasFocus() })), 1000);
+    beatEvery(1000);
   };
   ws.onclose = () => { clearInterval(beat); setTimeout(connect, 1000); };
   ws.onmessage = ({ data }) => {
     const m = JSON.parse(data);
-    if (m.type === "welcome") { m.surfaces.forEach((s) => online.set(s.id, s)); chips(); }
+    if (m.type === "welcome") { m.surfaces.forEach((s) => online.set(s.id, s)); chips(); if (m.heartbeat_ms) beatEvery(m.heartbeat_ms); }
     if (m.type === "event") line(m.event);
-    if (m.type === "speak" && $("voice").checked && surface.outputs.includes("voice")) speechSynthesis.speak(new SpeechSynthesisUtterance(m.text));
+    if (m.type === "speak") say(m);
     if (m.type === "show_card") $("cards").insertAdjacentHTML("afterbegin", `<div class="card"><b>${esc(m.title)}</b><div>${esc(m.body)}</div></div>`);
     if (m.type === "approval_request") {
       if (navigator.vibrate) navigator.vibrate(60);

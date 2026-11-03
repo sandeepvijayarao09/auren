@@ -66,6 +66,11 @@ A surface on the Mac that runs Core is trusted as it is. **Any other device must
 
 The exact bytes are defined in `core/src/security/devices.ts` and `apps/apple/AurenKit/Sources/AurenKit/DeviceIdentity.swift`, and a CryptoKit-made signature is pinned in Core's tests.
 
+## Continuity (v0.1)
+- **Heartbeats.** `welcome` carries `heartbeat_ms`: 500 for glasses, 1000 for everything else. Glasses count as gone after 1.5 s of silence; others after 3 s.
+- **Speech in sentences.** A reply arrives as `speak { text, reply_id, seq, final }`, one message per sentence. When a sentence finishes playing, the surface sends `speak_progress { reply_id, seq }`. If the surface drops mid-reply, Core sends the sentences it hasn't heard back about to the next voice surface and logs a `handoff` with `what: "speech"`. A v0 surface that ignores these fields still speaks every sentence.
+- **Relay.** A surface that can't keep a WebSocket open (a real Apple Watch, per Apple's TN3135) can send its frames through another app on the same person's devices (the iPhone app). The relay only carries frames: the relayed device still signs its own hello and approvals.
+
 ## Voice (v0.1)
 A surface streams its microphone to `wss://<core>/v1/voice`. Core relays the audio to Muse Voice Transcribe, sends live partials back, and runs the final transcript as a command from that surface. The model key never leaves Core.
 

@@ -10,7 +10,16 @@ struct AurenWatchApp: App {
         let id = DeviceID.stable(prefix: "watch")
         // The approval you tap is signed by this key, held in the watch's Secure Enclave.
         let identity = try? DeviceIdentity.loadOrCreate(deviceID: id)
-        _watch = State(initialValue: SurfaceClient(manifest: .watch(id: id), identity: identity))
+        // The iPhone hands over the Core address and token, so nothing is typed on the wrist.
+        WatchLink.shared.onConfig = { coreURL, token in
+            UserDefaults.standard.set(coreURL, forKey: "coreURL")
+            UserDefaults.standard.set(token, forKey: "token")
+        }
+        WatchLink.shared.activate()
+        // Through the iPhone when it's reachable (a real watch can't keep its own socket open); direct otherwise.
+        _watch = State(initialValue: SurfaceClient(manifest: .watch(id: id), identity: identity, transport: {
+            WatchLink.shared.isReachable ? WatchRelayTransport(link: WatchLink.shared) as SurfaceTransport : WebSocketTransport()
+        }))
     }
 
     var body: some Scene {
@@ -23,7 +32,7 @@ struct AurenWatchApp: App {
 /// The wrist: black until something needs you, then the approval takes the whole screen.
 struct WatchHomeView: View {
     let client: SurfaceClient
-    // Day 4: the iPhone app hands these over through WatchConnectivity.
+    // Set by the iPhone app over WatchConnectivity.
     @AppStorage("coreURL") private var coreURL = "http://127.0.0.1:8787"
     @AppStorage("token") private var token = ""
     @AppStorage("paired") private var paired = false
@@ -43,12 +52,13 @@ struct WatchHomeView: View {
             }
         }
         .task {
-            client.onSpeak = { speaker.speak($0) }
+            client.onSpeak = { speech in speaker.speak(speech) { client.spoke($0) } }
             client.onApproval = { _ in WKInterfaceDevice.current().play(.notification) }
             if let url = URL(string: coreURL) { client.connect(to: url, token: token) }
         }
         .onChange(of: scenePhase) { _, phase in client.isActive = phase == .active }
         .onChange(of: paired) { if let url = URL(string: coreURL) { client.connect(to: url, token: token) } }
+        .onChange(of: coreURL) { if let url = URL(string: coreURL) { client.connect(to: url, token: token) } }
         .sheet(isPresented: $showPairing) { WatchPairView(client: client, paired: $paired) }
     }
 

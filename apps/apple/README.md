@@ -24,12 +24,14 @@ make test           # includes `swift test` for AurenKit
 3. The watch app is embedded in the iPhone app. Run the **AurenWatch** scheme on a paired watch Simulator to try approvals on the wrist.
 4. On real devices, set `AUREN_TOKEN` in `.env`. Then enter your Mac's network address and the token in the iPhone app's settings, and set your team in `project.yml` (`DEVELOPMENT_TEAM`).
 
-## Known limit: sockets on a real watch
-On a real Apple Watch, watchOS allows `URLSessionWebSocketTask` only in specific cases, such as an active audio session ([TN3135: Low-level networking on watchOS](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos)). The Simulator doesn't enforce this, so the watch app connects directly there. On a device it won't stay connected. The Day 4 plan:
-- The iPhone app relays the watch's surface connection over WatchConnectivity, so Core still sees a `watch` surface with haptic output, and approvals reach the wrist.
-- The watch opens its own socket only while it's listening (an audio session is active then), and falls back to the HTTPS routes in the spec.
+## The watch relays through the iPhone
+On a real Apple Watch, watchOS allows `URLSessionWebSocketTask` only in specific cases ([TN3135: Low-level networking on watchOS](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos)).
+- **When the iPhone is reachable,** the watch's `SurfaceClient` uses `WatchRelayTransport`, which carries its frames to the iPhone over WatchConnectivity. On the iPhone, `RelayHost` opens Core's socket for it.
+- **The watch still signs its own hello and every approval** with its Secure Enclave key; the iPhone only carries bytes.
+- **Address and token.** The iPhone pushes the Core address and token to the watch through the application context.
+- **Simulator.** The watch connects directly.
 
-This is the first thing to test when the watch arrives (gate G0).
+The relay is tested end to end in `RelayTests`, with an in-memory link. It still has to be tried on a real watch.
 
 ## Pairing and signed approvals
 Each app creates a P-256 key in its device's **Secure Enclave** on first launch (a software key in the Simulator) and keeps it in the Keychain, never synced. To pair, choose **Pair a device** in the Mac console and type the code: on iPhone in **Settings → Pair with your Mac**, on the watch with **Pair with your Mac**. After that the app signs Core's challenge on every connection and signs every approval over the decision and the summary it showed. In the Simulator, connections from `127.0.0.1` count as the Mac, so pairing is optional there.

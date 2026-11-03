@@ -202,11 +202,12 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
         surfaceId = msg.surface.id;
         sockets.set(surfaceId, ws);
         surfaces.join(msg.surface, send);
-        return send({ type: "welcome", session_id: SESSION, surfaces: surfaces.online() });
+        return send({ type: "welcome", session_id: SESSION, surfaces: surfaces.online(), heartbeat_ms: surfaces.heartbeatMsFor(msg.surface.kind) });
       }
       if (!surfaceId) return ws.close(1008, "hello first");
       if (msg.type === "heartbeat") surfaces.heartbeat(surfaceId, msg.active);
       else if (msg.type === "utterance") start(msg.text, surfaceId);
+      else if (msg.type === "speak_progress") surfaces.progress(msg.reply_id, msg.seq, surfaceId);
       else if (msg.type === "approval_response") {
         const pending = surfaces.approvalFor(msg.request_id);
         if (!pending) return;

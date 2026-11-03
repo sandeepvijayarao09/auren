@@ -62,8 +62,10 @@ public enum ClientMessage: Encodable, Sendable, Equatable {
     case heartbeat(active: Bool)
     case utterance(String)
     case approvalResponse(requestID: String, approved: Bool, signature: String? = nil)
+    /// A sentence of a reply finished playing here, so Core can resume elsewhere if this surface drops.
+    case speakProgress(replyID: String, seq: Int)
 
-    private enum Keys: String, CodingKey { case type, surface, auth, active, text, request_id, approved, signature }
+    private enum Keys: String, CodingKey { case type, surface, auth, active, text, request_id, approved, signature, reply_id, seq }
 
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: Keys.self)
@@ -83,6 +85,10 @@ public enum ClientMessage: Encodable, Sendable, Equatable {
             try c.encode(requestID, forKey: .request_id)
             try c.encode(approved, forKey: .approved)
             try c.encodeIfPresent(signature, forKey: .signature)
+        case .speakProgress(let replyID, let seq):
+            try c.encode("speak_progress", forKey: .type)
+            try c.encode(replyID, forKey: .reply_id)
+            try c.encode(seq, forKey: .seq)
         }
     }
 }
@@ -114,6 +120,21 @@ public struct ApprovalRequest: Sendable, Equatable, Identifiable {
     public let tier: Tier
 }
 
+/// One sentence of a reply. `replyID` and `seq` let Core move the rest if this surface drops mid-reply.
+public struct Speech: Sendable, Equatable {
+    public let text: String
+    public let replyID: String?
+    public let seq: Int?
+    public let isFinal: Bool
+
+    public init(text: String, replyID: String? = nil, seq: Int? = nil, isFinal: Bool = true) {
+        self.text = text
+        self.replyID = replyID
+        self.seq = seq
+        self.isFinal = isFinal
+    }
+}
+
 public struct Card: Sendable, Equatable {
     public let title: String
     public let body: String
@@ -123,16 +144,16 @@ public struct Card: Sendable, Equatable {
 public enum ServerMessage: Decodable, Sendable, Equatable {
     /// Sent first on every connection; a paired device signs it in its hello.
     case challenge(nonce: String)
-    case welcome(sessionID: String, surfaces: [Manifest])
+    case welcome(sessionID: String, surfaces: [Manifest], heartbeatMs: Int? = nil)
     case event(AurenEvent)
-    case speak(text: String)
+    case speak(Speech)
     case showCard(Card)
     case approvalRequest(ApprovalRequest)
     case approvalCancel(requestID: String, reason: String)
     /// A message this build doesn't know yet. Newer Cores add messages; old surfaces ignore them.
     case unknown(type: String)
 
-    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, event, text, title, body, request_id, summary, tier, reason }
+    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: Keys.self)
@@ -141,11 +162,15 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
         case "challenge":
             self = .challenge(nonce: try c.decode(String.self, forKey: .nonce))
         case "welcome":
-            self = .welcome(sessionID: try c.decode(String.self, forKey: .session_id), surfaces: try c.decode([Manifest].self, forKey: .surfaces))
+            self = .welcome(sessionID: try c.decode(String.self, forKey: .session_id), surfaces: try c.decode([Manifest].self, forKey: .surfaces),
+                            heartbeatMs: try c.decodeIfPresent(Int.self, forKey: .heartbeat_ms))
         case "event":
             self = .event(try c.decode(AurenEvent.self, forKey: .event))
         case "speak":
-            self = .speak(text: try c.decode(String.self, forKey: .text))
+            self = .speak(Speech(text: try c.decode(String.self, forKey: .text),
+                                 replyID: try c.decodeIfPresent(String.self, forKey: .reply_id),
+                                 seq: try c.decodeIfPresent(Int.self, forKey: .seq),
+                                 isFinal: try c.decodeIfPresent(Bool.self, forKey: .final) ?? true))
         case "show_card":
             self = .showCard(Card(title: try c.decode(String.self, forKey: .title), body: try c.decode(String.self, forKey: .body)))
         case "approval_request":

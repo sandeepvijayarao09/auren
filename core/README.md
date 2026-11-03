@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 96 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
+npm test          # 99 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -23,7 +23,7 @@ npm run typecheck
 | `src/security/ledger.ts` | The outbound ledger: every call to Meta, Google and Slack, without contents | ✅ |
 | `src/security/devices.ts` | Trusted devices: pairing codes, P-256 keys, signed hellos and approvals, revoke | ✅ |
 | `src/obs/opslog.ts` | JSON operational log with trace ids and redaction | ✅ |
-| `src/surfaces.ts` | Presence, the device picker (`#pick`) and approval handoff | ✅ |
+| `src/surfaces.ts` | Presence (faster for glasses), the device picker (`#pick`), approval handoff, and replies in sentences that move mid-reply | ✅ |
 | `src/agent/loop.ts` | The Muse Wonder loop: tool inventory, tier gate, receipts, undo, fast ack | ✅ |
 | `src/tools/` | Apps and devices as Muse tool namespaces, plus the in-memory demo world | ✅ |
 | `src/eval/cases.test.ts` | Checks every case in `eval/cases` against the real tools | ✅ |

@@ -68,15 +68,34 @@ public struct AurenMark: View {
     }
 }
 
-/// Speaks Core's `speak` messages with the system voice until Muse voice lands (Day 3).
+/// Speaks Core's sentences with the system voice and says when each one finished,
+/// so Core knows where to pick up if this device drops mid-reply.
 @MainActor
-public final class Speaker {
+public final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
+    private var playing: [ObjectIdentifier: (Speech, @MainActor (Speech) -> Void)] = [:]
 
-    public init() {}
+    public override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
 
-    public func speak(_ text: String) {
-        synthesizer.speak(AVSpeechUtterance(string: text))
+    public func speak(_ speech: Speech, finished: @escaping @MainActor (Speech) -> Void = { _ in }) {
+        let utterance = AVSpeechUtterance(string: speech.text)
+        playing[ObjectIdentifier(utterance)] = (speech, finished)
+        synthesizer.speak(utterance)
+    }
+
+    nonisolated public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        let key = ObjectIdentifier(utterance)
+        Task { @MainActor in
+            if let (speech, finished) = self.playing.removeValue(forKey: key) { finished(speech) }
+        }
+    }
+
+    nonisolated public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        let key = ObjectIdentifier(utterance)
+        Task { @MainActor in _ = self.playing.removeValue(forKey: key) }
     }
 }
 
