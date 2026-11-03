@@ -35,6 +35,8 @@ jobs:
           cache-dependency-path: driver/package-lock.json
       - run: npm ci
         working-directory: driver
+      - run: npx playwright install --with-deps chromium
+        working-directory: driver
       - run: npm test
         working-directory: driver
       - run: npm run typecheck

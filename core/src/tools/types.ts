@@ -7,6 +7,8 @@ export interface ToolContext {
   surfaces: SurfaceRegistry;
   /** The command's trace id in the ops log. */
   trace?: string;
+  /** Only for `commitPoint` tools: Core's send-tier tap, asked at the commit itself. */
+  approveCommit?: (summary: string) => Promise<boolean>;
 }
 
 export interface UndoStep {
@@ -26,6 +28,12 @@ export interface ToolSpec<A = any, R = any> {
   external?: boolean;
   /** Not offered to the model (used by undo). */
   hidden?: boolean;
+  /**
+   * A send-tier tool whose tap comes at its own commit point instead of before it
+   * runs (computer use browses first, then asks before the confirm click). Core
+   * hands it `ctx.approveCommit` and writes a receipt only if that tap approved.
+   */
+  commitPoint?: boolean;
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;

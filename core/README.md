@@ -65,7 +65,7 @@ npm run typecheck
 1. Write a `ToolSpec` in a namespace under `src/tools/` (see `demo-world.ts`). Give it a `tier`:
    - `read` runs on its own;
    - `write` runs on its own, leaves a receipt, and should define `undo`;
-   - `send` always waits for a tap.
+   - `send` always waits for a tap. With `commitPoint: true` the tap comes at the tool's own commit point instead (computer use browses first, then asks before the confirm click) through `ctx.approveCommit`, and the receipt is written only if that tap approved.
 2. Set `external: true` if its result carries outside text (email, chat, web), so the loop wraps it as untrusted data.
 3. Register the namespace in `src/index.ts`.
 4. Add a scripted test in `src/agent/loop.test.ts`, and an eval case in `eval/cases/` if it touches a golden path.

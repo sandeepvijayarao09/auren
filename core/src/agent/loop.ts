@@ -125,7 +125,20 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
   const name = `${ns.name}.${tool.name}`;
 
   // Core enforces the tier; the model cannot talk its way past an approval.
-  if (tool.tier === "send") {
+  let callCtx = ctx;
+  let committed = false;
+  if (tool.tier === "send" && tool.commitPoint) {
+    // The tap comes at the tool's own commit point (computer use), and only Core can grant it.
+    callCtx = {
+      ...ctx,
+      approveCommit: async (summary) => {
+        const approved = await ctx.surfaces.requestApproval(summary, "send", deps.approvalTimeoutMs);
+        ops.info("tool.approval", { trace: ctx.trace, tool: name, approved, at: "commit" });
+        committed ||= approved;
+        return approved;
+      },
+    };
+  } else if (tool.tier === "send") {
     const summary = tool.summarize?.(args) ?? `${ns.app}: ${tool.name}`;
     const approved = await ctx.surfaces.requestApproval(summary, tool.tier, deps.approvalTimeoutMs);
     ops.info("tool.approval", { trace: ctx.trace, tool: name, approved });
@@ -134,9 +147,9 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
 
   const t0 = performance.now();
   try {
-    const result = await tool.run(args, ctx);
+    const result = await tool.run(args, callCtx);
     ops.info("tool.call", { trace: ctx.trace, tool: name, tier: tool.tier, ms: Math.round(performance.now() - t0), ok: true });
-    if (tool.tier !== "read") {
+    if (tool.tier !== "read" && (!tool.commitPoint || committed)) {
       deps.log.append(ctx.session, "receipt", {
         app: ns.app,
         namespace: ns.name,

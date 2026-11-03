@@ -18,6 +18,8 @@ import { museAsr } from "./voice/asr.ts";
 import { voiceKeywords } from "./voice/wake.ts";
 import { ToolRegistry } from "./tools/registry.ts";
 import { surfacesNamespace } from "./tools/surfaces.ts";
+import { createBrowser } from "./computer/browser.ts";
+import { DriverHub } from "./computer/hub.ts";
 
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
@@ -56,6 +58,10 @@ const namespaces = createDemoWorld().namespaces.map((ns) => live.get(ns.name) ??
 const tools = new ToolRegistry().add(...namespaces, surfacesNamespace);
 const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger);
 
+// R7: computer use. The Playwright driver dials in on /v1/driver; browser.run_task drives it.
+const driver = new DriverHub({ ops });
+tools.add(createBrowser({ hub: driver, muse, model: config.agentModel, log, ops, ledger, approvalTimeoutMs: config.approvalTimeoutMs }));
+
 const core = createServer(
   {
     muse,
@@ -77,6 +83,7 @@ const core = createServer(
       asr: config.museApiKey ? museAsr({ apiKey: config.museApiKey, metadataOnlyLogging: config.asrMetadataOnly }) : undefined,
       keywords: () => voiceKeywords(config.asrKeywords),
     },
+    driver,
   },
 );
 
@@ -98,6 +105,7 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   const googleState = !google ? "demo" : g?.connected ? `Google (${g.email ?? "connected"})` : `Google, not connected: open ${local}/connect/google`;
   console.log(`  apps: calendar and gmail ${googleState} · slack ${config.slackBotToken ? "live" : "demo"}`);
   console.log(`  time zone: ${config.timeZone}`);
+  console.log("  browser: start the computer-use driver with `cd driver && npm start`");
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
 });
 server.on("upgrade", core.upgrade);
