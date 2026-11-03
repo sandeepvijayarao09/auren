@@ -17,8 +17,14 @@ export class ToolRegistry {
     return this;
   }
 
-  toResponsesTools(ctx: ToolContext): unknown[] {
+  /**
+   * R9: `preload` names namespaces (the Auren Router's hint) whose deferred tools go
+   * straight into the inventory instead of behind tool_search. It can't add a
+   * namespace that isn't available, and it never changes a tier.
+   */
+  toResponsesTools(ctx: ToolContext, opts: { preload?: readonly string[] } = {}): unknown[] {
     const live = this.#namespaces.filter((ns) => ns.available?.(ctx) ?? true);
+    const deferred = (ns: Namespace, t: ToolSpec) => Boolean(t.deferred) && !opts.preload?.includes(ns.name);
     const tools: unknown[] = live.map((ns) => ({
       type: "namespace",
       name: ns.name,
@@ -30,12 +36,17 @@ export class ToolRegistry {
           name: t.name,
           description: t.description,
           parameters: t.parameters,
-          ...(t.deferred ? { defer_loading: true } : {}),
+          ...(deferred(ns, t) ? { defer_loading: true } : {}),
         })),
     }));
-    const anyDeferred = live.some((ns) => ns.tools.some((t) => t.deferred && !t.hidden));
+    const anyDeferred = live.some((ns) => ns.tools.some((t) => deferred(ns, t) && !t.hidden));
     if (anyDeferred) tools.push({ type: "tool_search" });
     return tools;
+  }
+
+  /** R9: every registered namespace, available right now or not (the router's rules name only these). */
+  names(): string[] {
+    return this.#namespaces.map((ns) => ns.name);
   }
 
   /** Resolve a model function call. Accepts `namespace` + `name`, "ns.name", or a unique bare name. */

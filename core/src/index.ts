@@ -29,6 +29,7 @@ import { createBrowser } from "./computer/browser.ts";
 import { DriverHub } from "./computer/hub.ts";
 // R11: MCP bridge
 import { loadMcpConfig, McpBridge } from "./connectors/mcp.ts";
+import { createRouter } from "./router/router.ts";
 
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
@@ -90,6 +91,21 @@ const mcp = new McpBridge({ servers: mcpConfig.servers, ledger, ops });
 tools.add(...mcp.namespaces);
 mcp.start();
 
+// R9: Auren Router. Glimmer on Modal when AUREN_ROUTER_URL is set, else Muse Spark (with a key), else rules.
+// Advisory: it preloads namespaces, starts the camera early for "this" and shapes the ack. Tiers stay with the tools.
+const router = createRouter({
+  url: config.routerUrl || undefined,
+  key: config.routerKey || undefined,
+  model: config.routerModel,
+  budgetMs: config.routerBudgetMs,
+  muse: config.museApiKey ? muse : undefined,
+  sparkModel: config.fastModel,
+  namespaces: () => tools.names(),
+  ledger,
+  ops,
+});
+const r9 = { router, prefetchFrame: (purpose: string) => void frames.prefetch(purpose) };
+
 const core = createServer(
   {
     muse,
@@ -102,6 +118,7 @@ const core = createServer(
     maxTurns: config.maxTurns,
     approvalTimeoutMs: config.approvalTimeoutMs,
     ops,
+    ...r9,
   },
   { token: config.token, museReady: Boolean(config.museApiKey), google,
     ledger,
@@ -140,6 +157,7 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   const servers = mcpConfig.servers.map((s) => `${s.namespace} (${s.transport}${s.trust ? ", read-only hints trusted" : ", every tool asks"})`);
   console.log(`  mcp: ${servers.length ? `${servers.join(", ")}; connecting in the background, see /v1/connections` : mcpConfig.found ? "no servers in mcp.json" : "no mcp.json (see mcp.example.json)"}`);
   for (const e of mcpConfig.errors) console.warn(`  ⚠ mcp: ${e}`);
+  console.log(`  router: ${config.routerUrl ? `Glimmer at ${new URL(config.routerUrl).host}, then Spark, then rules` : config.museApiKey ? "Muse Spark, then rules (set AUREN_ROUTER_URL for Glimmer)" : "rules"}`);
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
 });
 server.on("upgrade", core.upgrade);

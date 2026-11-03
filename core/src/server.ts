@@ -24,6 +24,7 @@ import type { DriverHub } from "./computer/hub.ts";
 import type { McpServerStatus } from "./connectors/mcp.ts";
 // R12: hold-to-talk clips from the watch.
 import { acceptClip, MAX_CLIP_BYTES, ReplayCache } from "./voice/clip.ts";
+import { examplesJsonl } from "./router/examples.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -146,6 +147,11 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     if (!opts.devices) return c.json({ error: "Pairing isn't turned on in this Core." }, 503);
     if (!fromThisMac(c)) return c.json({ error: "Start pairing on the Mac itself." }, 403);
     return c.json(opts.devices.startPairing());
+  });
+  // R9: free labels for the Auren Router, as JSON lines. They hold command text, so they never leave this Mac.
+  app.get("/v1/router/examples", (c) => {
+    if (!fromThisMac(c)) return c.json({ error: "Export router examples on the Mac itself." }, 403);
+    return c.body(examplesJsonl(log, SESSION), 200, { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store" });
   });
   app.get("/v1/devices", (c) => c.json({ devices: opts.devices?.list() ?? [] }));
   app.delete("/v1/devices/:id", (c) => {

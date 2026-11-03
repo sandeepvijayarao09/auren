@@ -4,6 +4,7 @@ import { silentOps, type OpsLog } from "../obs/opslog.ts";
 import type { SurfaceRegistry } from "../surfaces.ts";
 import type { ToolRegistry } from "../tools/registry.ts";
 import type { ToolContext, UndoStep } from "../tools/types.ts";
+import { contextOf, liveDevices, startHints, type RouterLike } from "../router/router.ts";
 
 /** The slice of the OpenAI-compatible client Auren uses (Meta Model API is drop-in). */
 export interface MuseLike {
@@ -24,6 +25,10 @@ export interface AgentDeps {
   ops?: OpsLog;
   maxTurns?: number;
   approvalTimeoutMs?: number;
+  // R9: Auren Router. Advisory hints at the fast lane; a tool's tier stays the only authority.
+  router?: RouterLike;
+  /** Starts a camera capture early for a route that needs vision; glasses.look takes the frame if it's fresh. */
+  prefetchFrame?: (purpose: string) => void;
 }
 
 export interface Command {
@@ -63,11 +68,18 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
   const started = performance.now();
   const ctx: ToolContext = { session: cmd.session, originSurfaceId: cmd.originSurfaceId, surfaces, trace };
   ops.info("command.start", { trace, surface: cmd.originSurfaceId ?? null, chars: cmd.text.length });
-  log.append(cmd.session, "utterance", { text: cmd.text, surface_id: cmd.originSurfaceId ?? null });
+  // R9: the devices online go on the utterance, so the router can learn from what happened next (router/examples.ts).
+  const devices = liveDevices(surfaces);
+  log.append(cmd.session, "utterance", { text: cmd.text, surface_id: cmd.originSurfaceId ?? null, devices });
   surfaces.touch(cmd.originSurfaceId);
 
   let done = false;
-  const ack = deps.fastModel ? fastAck(deps, cmd, () => done) : Promise.resolve();
+  // R9: route at the fast lane. Hints only: preload namespaces, an early camera frame, the ack.
+  let planned = false;
+  const hints = deps.router
+    ? startHints({ ...deps, router: deps.router }, cmd.text, contextOf(devices, cmd.originSurfaceId), { trace, late: () => done || planned })
+    : undefined;
+  const ack = deps.fastModel || hints ? fastAck(deps, cmd, () => done, hints?.ack) : Promise.resolve();
 
   try {
     const base = {
@@ -77,7 +89,10 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
       reasoning: { effort: "low" },
     };
     let turns = 0;
-    let resp = await model(deps, ops, trace, turns, { ...base, input: cmd.text, tools: deps.tools.toResponsesTools(ctx) });
+    // R9: the route's namespaces skip tool_search, if it came back within the router's hold.
+    const preload = { preload: await hints?.preload };
+    let resp = await model(deps, ops, trace, turns, { ...base, input: cmd.text, tools: deps.tools.toResponsesTools(ctx, preload) });
+    planned = true;
 
     for (let turn = 0; turn < (deps.maxTurns ?? 8); turn++) {
       const calls = (resp.output ?? []).filter((o: { type?: string }) => o.type === "function_call") as FunctionCall[];
@@ -87,7 +102,7 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
         ...base,
         previous_response_id: resp.id,
         input: outputs,
-        tools: deps.tools.toResponsesTools(ctx),
+        tools: deps.tools.toResponsesTools(ctx, preload),
       });
     }
 
@@ -205,13 +220,17 @@ async function model(deps: AgentDeps, ops: OpsLog, trace: string, turn: number, 
   }
 }
 
-async function fastAck(deps: AgentDeps, cmd: Command, isDone: () => boolean): Promise<void> {
+async function fastAck(deps: AgentDeps, cmd: Command, isDone: () => boolean, routed?: Promise<string | null>): Promise<void> {
   try {
-    const resp = await Promise.race([
-      deps.muse.responses.create({ model: deps.fastModel, instructions: ACK, input: cmd.text, reasoning: { effort: "minimal" }, max_output_tokens: 40 }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("ack timeout")), 2500)),
-    ]);
-    const text = outputText(resp);
+    // R9: a route that names apps shapes the ack itself, so Spark isn't asked.
+    let text = (await routed) ?? "";
+    if (!text && deps.fastModel) {
+      const resp = await Promise.race([
+        deps.muse.responses.create({ model: deps.fastModel, instructions: ACK, input: cmd.text, reasoning: { effort: "minimal" }, max_output_tokens: 40 }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("ack timeout")), 2500)),
+      ]);
+      text = outputText(resp);
+    }
     if (text && !isDone()) {
       deps.log.append(cmd.session, "ack", { text, spoken_on: deps.surfaces.speak(text, cmd.originSurfaceId) });
     }

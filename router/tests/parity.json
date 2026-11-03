@@ -1,0 +1,26 @@
+{
+  "_note": "Router completions that schema.parse() and Core's Route (core/src/router/router.ts) must both accept or both reject. Both test suites read this file.",
+  "valid": [
+    {"text": "{\"apps\":[\"slack\",\"calendar\",\"gmail\"],\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":false}", "apps": ["slack", "calendar", "gmail"]},
+    {"text": "{\"apps\":[\"glasses\",\"calendar\"],\"risk_tier\":\"send\",\"reply_surface\":\"glasses\",\"needs_vision\":true}", "apps": ["glasses", "calendar"]},
+    {"text": "{\"apps\":[],\"risk_tier\":\"read\",\"reply_surface\":\"web\",\"needs_vision\":false}", "apps": []},
+    {"text": "{\"apps\":[\"calendar\",\"calendar\",\"gmail\"],\"risk_tier\":\"write\",\"reply_surface\":\"phone\",\"needs_vision\":false}", "apps": ["calendar", "gmail"]},
+    {"text": " {\"needs_vision\":false,\"reply_surface\":\"phone\",\"risk_tier\":\"read\",\"apps\":[\"memory\",\"receipts\",\"browser\"]} ", "apps": ["memory", "receipts", "browser"]}
+  ],
+  "invalid": [
+    "not json",
+    "[]",
+    "null",
+    "{\"apps\":[\"calendar\"],\"risk_tier\":\"write\",\"reply_surface\":\"phone\"}",
+    "{\"apps\":[\"venmo\"],\"risk_tier\":\"send\",\"reply_surface\":\"phone\",\"needs_vision\":false}",
+    "{\"apps\":\"slack\",\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":false}",
+    "{\"apps\":[1],\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":false}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"urgent\",\"reply_surface\":\"watch\",\"needs_vision\":false}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"Send\",\"reply_surface\":\"watch\",\"needs_vision\":false}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"send\",\"reply_surface\":\"tv\",\"needs_vision\":false}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"send\",\"reply_surface\":\"desktop\",\"needs_vision\":false}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":\"no\"}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":0}",
+    "{\"apps\":[\"slack\"],\"risk_tier\":\"send\",\"reply_surface\":\"watch\",\"needs_vision\":false,\"grant\":\"send\"}"
+  ]
+}

@@ -125,6 +125,11 @@ export class SurfaceRegistry {
     return [...this.#surfaces.values()].filter((s) => this.#isOnline(s)).map((s) => s.manifest);
   }
 
+  /** R9: whether the surface's last heartbeat said it's in use (part of the Auren Router's device context). */
+  isActive(id: string): boolean {
+    return this.#surfaces.get(id)?.active ?? false;
+  }
+
   /** Marks surfaces whose heartbeats stopped as offline. Call on an interval. */
   sweep(): void {
     for (const [id, s] of this.#surfaces) if (!s.offline && !this.#isOnline(s)) this.#markOffline(id);
