@@ -94,7 +94,10 @@ public enum ClientMessage: Encodable, Sendable, Equatable {
 }
 
 public enum EventKind: String, Decodable, Sendable {
-    case utterance, ack, toolCall = "tool_call", receipt, approval, handoff, reply, error, surface, device, unknown
+    case utterance, ack, toolCall = "tool_call", receipt, approval, handoff, reply, error, surface, device
+    /// A small JPEG of the browser on the Mac after each computer-use step. Decode it with `browserFrame`.
+    case browserFrame = "browser_frame"
+    case unknown
 
     public init(from decoder: Decoder) throws {
         self = EventKind(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .unknown
@@ -118,6 +121,22 @@ public struct ApprovalRequest: Sendable, Equatable, Identifiable {
     public let id: String
     public let summary: String
     public let tier: Tier
+    /// What the approve button does, such as "Post" or "Invite" (Surface Protocol v0.1). Display only:
+    /// the signature covers the request, the decision and the summary, never the verb.
+    public let verb: String?
+
+    public init(id: String, summary: String, tier: Tier, verb: String? = nil) {
+        self.id = id
+        self.summary = summary
+        self.tier = tier
+        self.verb = verb
+    }
+
+    /// The approve button's word: the verb Core sent, or "Approve" from an older Core.
+    public var actionLabel: String {
+        let word = verb?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return word.isEmpty ? "Approve" : String(word.prefix(24))
+    }
 }
 
 /// One sentence of a reply. `replyID` and `seq` let Core move the rest if this surface drops mid-reply.
@@ -167,7 +186,7 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
     /// A message this build doesn't know yet. Newer Cores add messages; old surfaces ignore them.
     case unknown(type: String)
 
-    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason }
+    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason, verb }
     private enum CaptureKeys: String, CodingKey { case request_id, purpose }
 
     public init(from decoder: Decoder) throws {
@@ -195,7 +214,8 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
         case "approval_request":
             self = .approvalRequest(ApprovalRequest(id: try c.decode(String.self, forKey: .request_id),
                                                     summary: try c.decode(String.self, forKey: .summary),
-                                                    tier: try c.decode(Tier.self, forKey: .tier)))
+                                                    tier: try c.decode(Tier.self, forKey: .tier),
+                                                    verb: try c.decodeIfPresent(String.self, forKey: .verb)))
         case "approval_cancel":
             self = .approvalCancel(requestID: try c.decode(String.self, forKey: .request_id), reason: try c.decode(String.self, forKey: .reason))
         default:

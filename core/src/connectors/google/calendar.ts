@@ -144,6 +144,7 @@ export function createGoogleCalendar(google: GoogleApi, opts: { timeZone: string
         description: "Invite people (by email) to an event. Google emails them an invitation.",
         parameters: params({ event_id: { type: "string" }, emails: { type: "array", items: { type: "string" } } }),
         tier: "send",
+        verb: "Invite",
         deferred: true,
         async run({ event_id, emails }: { event_id: string; emails: string[] }) {
           const bad = emails.filter((m) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m));

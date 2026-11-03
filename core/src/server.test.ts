@@ -127,3 +127,18 @@ test("over HTTP, only this Mac may approve unsigned, and pairing starts only on 
   const start = await fetch(`http://127.0.0.1:${port}/v1/pair/start`, { method: "POST" });
   assert.match((await start.json()).code, /^\d{6}$/);
 });
+
+// R12: the verb is display only. The device signs the same payload as before.
+test("an approval that says Post is signed and verified exactly as before", async () => {
+  const dev = pairDevice("watch-verb");
+  const c = await connect("watch-verb", { remote: true, dev });
+  await c.next("welcome");
+  const decided = surfaces.requestApproval("Post in #design-crit", "send", 2_000, "Post");
+  // An earlier test's unanswered approval may land here first, so pick this one by its summary.
+  let req: any;
+  while (!(req = c.inbox.find((m) => m.type === "approval_request" && m.summary === "Post in #design-crit"))) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(req.verb, "Post");
+  c.ws.send(JSON.stringify({ type: "approval_response", request_id: req.request_id, approved: true, signature: dev.sign(approvalPayload(req.request_id, true, req.summary)) }));
+  assert.equal(await decided, true);
+  c.ws.close();
+});

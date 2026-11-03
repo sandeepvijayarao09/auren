@@ -34,6 +34,12 @@ public extension AurenEvent {
         case .handoff: EventStyle(signal: .read, word: "Moved", symbol: "arrow.left.arrow.right")
         case .surface: EventStyle(signal: .read, word: "Device", symbol: "dot.radiowaves.left.and.right")
         case .device: EventStyle(signal: .read, word: "Trust", symbol: "lock.shield")
+        case .browserFrame:
+            if ["stopped", "error"].contains(string("status")) {
+                EventStyle(signal: .stopped, word: "Stopped", symbol: "stop.fill")
+            } else {
+                EventStyle(signal: .read, word: "Browser", symbol: "macwindow")
+            }
         case .unknown: EventStyle(signal: .read, word: "Event", symbol: "circle")
         }
     }
@@ -52,6 +58,9 @@ public extension AurenEvent {
         case .error: string("message") ?? ""
         case .surface: "\(string("kind") ?? "") \(string("status") ?? "")"
         case .device: "\(string("device_id") ?? "A device") \(string("status") ?? "")\(data["hardware"] == .bool(true) ? " · Secure Enclave" : "")"
+        case .browserFrame:
+            "\(string("host") ?? "") · step \(string("step") ?? "?")"
+                + (string("status") == "paused" ? " · waiting for your tap" : string("status") == "stopped" ? " · stopped" : "")
         case .unknown: ""
         }
     }

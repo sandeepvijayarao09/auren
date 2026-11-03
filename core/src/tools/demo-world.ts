@@ -81,6 +81,7 @@ export function createDemoWorld() {
         description: "Send calendar invitations for an event to people (by email).",
         parameters: params({ event_id: { type: "string" }, emails: { type: "array", items: { type: "string" } } }),
         tier: "send",
+        verb: "Invite",
         deferred: true,
         async run({ event_id, emails }: { event_id: string; emails: string[] }) {
           const e = state.events.get(event_id);
@@ -133,6 +134,7 @@ export function createDemoWorld() {
         description: "Post a message to a Slack channel as the user.",
         parameters: params({ channel_id: { type: "string" }, text: { type: "string" } }),
         tier: "send",
+        verb: "Post",
         deferred: true,
         async run({ channel_id, text }: { channel_id: string; text: string }) {
           const ts = `${Date.now() / 1000}`;

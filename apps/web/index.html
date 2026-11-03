@@ -139,7 +139,7 @@ function connect() {
     if (m.type === "approval_request") {
       if (navigator.vibrate) navigator.vibrate(60);
       $("pending").insertAdjacentHTML("afterbegin", `<div class="approval" id="a-${m.request_id}"><div>${esc(m.summary)}</div>
-        <div class="row"><button class="gold" data-a="${m.request_id}" data-v="1">Approve</button><button data-a="${m.request_id}" data-v="0">Not now</button></div></div>`);
+        <div class="row"><button class="gold" data-a="${m.request_id}" data-v="1">${esc(m.verb || "Approve")}</button><button data-a="${m.request_id}" data-v="0">Not now</button></div></div>`);
     }
     if (m.type === "approval_cancel") $(`a-${m.request_id}`)?.remove();
   };

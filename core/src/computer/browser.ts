@@ -54,6 +54,7 @@ export function createBrowser(deps: BrowserDeps): Namespace {
           summary: { type: "string", description: 'What committing does, under 10 words, shown on the approval. Example: "Hold a table for 2 at 8:00 PM".' },
         }),
         tier: "send",
+        verb: "Confirm",
         commitPoint: true,
         external: true,
         async run(raw: RunTaskArgs, ctx): Promise<TaskResult> {

@@ -22,6 +22,8 @@ import { silentOps } from "./obs/opslog.ts";
 import type { DriverHub } from "./computer/hub.ts";
 // R11: MCP bridge
 import type { McpServerStatus } from "./connectors/mcp.ts";
+// R12: hold-to-talk clips from the watch.
+import { acceptClip, MAX_CLIP_BYTES, ReplayCache } from "./voice/clip.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -228,6 +230,34 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     if (!jpeg) return c.json({ error: "not found" }, 404);
     return c.body(new Uint8Array(jpeg), 200, { "content-type": "image/jpeg", "cache-control": "private, max-age=3600" });
   });
+
+  // ── R12: hold-to-talk clips (the watch) ────────────────────────────────
+  // The whole clip in one POST, straight from the watch or relayed unchanged by the iPhone.
+  // Signed by a paired device over the exact bytes; stale or repeated clips are refused.
+  const clipReplay = new ReplayCache();
+  app.post(
+    "/v1/voice/clip",
+    bodyLimit({ maxSize: MAX_CLIP_BYTES, onError: (c) => c.json({ error: "A clip can be at most 30 seconds." }, 413) }),
+    async (c) => {
+      const reply = await acceptClip(
+        { pcm: new Uint8Array(await c.req.arrayBuffer()), local: fromThisMac(c), header: (h) => c.req.header(h) },
+        {
+          voice: {
+            asr: opts.voice?.asr,
+            devices: opts.devices,
+            keywords: opts.voice?.keywords ?? (() => []),
+            onCommand: (text, surfaceId) => start(text, surfaceId),
+            ops: deps.ops ?? silentOps,
+            ledger: opts.ledger,
+          },
+          devices: opts.devices,
+          replay: clipReplay,
+          onRefused: (message, deviceId) => log.append(SESSION, "error", { message, surface_id: deviceId }),
+        },
+      );
+      return c.json(reply.body, reply.status);
+    },
+  );
 
   // Surface protocol over WebSocket.
   const wss = new WebSocketServer({ noServer: true });

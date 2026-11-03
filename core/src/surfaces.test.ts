@@ -139,3 +139,25 @@ test("a finished reply doesn't move, and progress counts only from the surface p
   assert.equal(events.some(([k, d]) => k === "handoff" && d.what === "speech"), false);
   assert.equal(inbox.watch.some((m) => m.type === "speak"), false);
 });
+
+// R12: approval verbs.
+test("approval_request carries the tool's verb, and leaves it out when there is none", async () => {
+  const { reg, inbox, join, tick } = setup();
+  join(watch);
+  const post = reg.requestApproval("Post to #office-hours: \"Running 15 late\"", "send", 10_000, "Post");
+  const plain = reg.requestApproval("Book a table for two?", "send", 10_000);
+  const [withVerb, without] = inbox.watch.filter((m) => m.type === "approval_request") as Array<Record<string, unknown>>;
+  assert.equal(withVerb.verb, "Post");
+  assert.equal("verb" in without, false, "a v0 surface sees the same message as before");
+
+  // The verb travels with the request when it moves to another surface.
+  join(phone);
+  tick(4000);
+  reg.heartbeat("phone", true);
+  reg.sweep();
+  const moved = inbox.phone.find((m) => m.type === "approval_request" && m.request_id === withVerb.request_id) as Record<string, unknown>;
+  assert.equal(moved?.verb, "Post");
+  reg.answer(String(withVerb.request_id), true, "phone");
+  reg.answer(String(without.request_id), false, "phone");
+  assert.deepEqual([await post, await plain], [true, false]);
+});

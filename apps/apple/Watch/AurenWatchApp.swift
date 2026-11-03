@@ -39,6 +39,8 @@ struct WatchHomeView: View {
     @State private var showPairing = false
     @State private var draft = ""
     @State private var speaker = Speaker()
+    // R12: hold to talk. The clip goes straight to Core, or through the iPhone when Core can't be reached.
+    @State private var recorder: ClipRecorder?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -54,6 +56,13 @@ struct WatchHomeView: View {
         .task {
             client.onSpeak = { speech in speaker.speak(speech) { client.spoke($0) } }
             client.onApproval = { _ in WKInterfaceDevice.current().play(.notification) }
+            if recorder == nil {
+                let recorder = ClipRecorder(client: client, sender: ClipSender(relay: { clip in
+                    try WatchLink.shared.transferClip(clip.pcm, metadata: clip.metadata)
+                }))
+                recorder.onSend = { WKInterfaceDevice.current().play(.click) }
+                self.recorder = recorder
+            }
             if let url = URL(string: coreURL) { client.connect(to: url, token: token) }
         }
         .onChange(of: scenePhase) { _, phase in client.isActive = phase == .active }
@@ -66,8 +75,13 @@ struct WatchHomeView: View {
         ScrollView {
             VStack(spacing: 10) {
                 AurenMark(size: 40)
+                if let recorder {
+                    WatchTalkButton(recorder: recorder, coreURL: coreURL, token: token)
+                    ClipStatus(recorder: recorder)
+                }
                 Text(client.events.last?.line ?? "Say it once.")
                     .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(4)
                 if client.identity != nil && !paired {
@@ -97,7 +111,8 @@ struct ApprovalView: View {
                     .foregroundStyle(Color.aurenAurum)
                 Text(request.summary).font(.headline)
                 Button { answer(true) } label: {
-                    Text("Approve").foregroundStyle(Color.aurenOnyx).frame(maxWidth: .infinity)
+                    // R12: the verb Core sent ("Post", "Invite"), or "Approve".
+                    Text(request.actionLabel).foregroundStyle(Color.aurenOnyx).frame(maxWidth: .infinity)
                 }
                 .tint(.aurenAurum)
                 .buttonStyle(.borderedProminent)
@@ -109,6 +124,59 @@ struct ApprovalView: View {
                            startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
+    }
+}
+
+/// R12: hold to talk. The microphone is on only while your finger is down, and at most 30 seconds.
+struct WatchTalkButton: View {
+    let recorder: ClipRecorder
+    let coreURL: String
+    let token: String
+    // One clip per press, so a press held past 30 seconds doesn't start a second one.
+    @State private var holding = false
+
+    var body: some View {
+        let live = recorder.phase == .recording
+        Image(systemName: live ? "waveform.circle.fill" : "mic.circle.fill")
+            .font(.system(size: 44))
+            .foregroundStyle(live ? Color.aurenHalo : Color.secondary)
+            .symbolEffect(.pulse, isActive: live)
+            .accessibilityLabel(live ? "Listening. Let go to send." : "Hold to talk")
+            .accessibilityAddTraits(.isButton)
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !holding, let url = URL(string: coreURL) else { return }
+                        holding = true
+                        Task { await recorder.start(core: url, token: token) }
+                    }
+                    .onEnded { _ in
+                        holding = false
+                        Task { await recorder.stop() }
+                    }
+            )
+    }
+}
+
+/// What happened to the last clip, in a few words.
+struct ClipStatus: View {
+    let recorder: ClipRecorder
+
+    var body: some View {
+        switch recorder.phase {
+        case .idle:
+            Text("Hold to talk").font(.caption2).foregroundStyle(.secondary)
+        case .recording:
+            Text("Listening…").font(.caption2)
+        case .sending:
+            Text("Sending…").font(.caption2).foregroundStyle(.secondary)
+        case .sent(let text):
+            Text(text.isEmpty ? "Only heard “Hey Muse”." : "“\(text)”").font(.caption2).multilineTextAlignment(.center).lineLimit(3)
+        case .relayed:
+            Label("Sent through your iPhone", systemImage: "iphone").font(.caption2).foregroundStyle(.secondary)
+        case .failed(let message):
+            Label(message, systemImage: "stop.fill").font(.caption2).foregroundStyle(Color.aurenStopped)
+        }
     }
 }
 

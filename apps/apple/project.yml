@@ -58,6 +58,7 @@ targets:
         WKCompanionAppBundleIdentifier: com.sandeepvijayarao.auren
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSMicrophoneUsageDescription: Auren listens only while you hold the talk button, and sends that clip to Auren Core on your Mac.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sandeepvijayarao.auren.watchkitapp

@@ -15,6 +15,8 @@ interface PendingApproval {
   summary: string;
   tier: Tier;
   surfaceId: string | null;
+  /** R12: the approve button's word, such as "Post". Display only, never signed. */
+  verb?: string;
   resolve: (approved: boolean) => void;
   timer: ReturnType<typeof setTimeout>;
 }
@@ -162,11 +164,12 @@ export class SurfaceRegistry {
     return s?.manifest.id ?? null;
   }
 
-  requestApproval(summary: string, tier: Tier, timeoutMs = 60_000): Promise<boolean> {
+  /** R12: `verb` labels the approve button ("Post", "Invite", "Confirm"); surfaces fall back to "Approve". */
+  requestApproval(summary: string, tier: Tier, timeoutMs = 60_000, verb?: string): Promise<boolean> {
     return new Promise((resolve) => {
       const requestId = randomUUID();
       const timer = setTimeout(() => this.#settle(requestId, false, "expired"), timeoutMs);
-      const pending: PendingApproval = { requestId, summary, tier, surfaceId: null, resolve, timer };
+      const pending: PendingApproval = { requestId, summary, tier, surfaceId: null, resolve, timer, ...(verb ? { verb } : {}) };
       this.#pending.set(requestId, pending);
       this.#offer(pending, null);
     });
@@ -237,7 +240,7 @@ export class SurfaceRegistry {
     if (fromId) this.#surfaces.get(fromId)?.send({ type: "approval_cancel", request_id: p.requestId, reason: "moved" });
     const target = this.#pick("approval", undefined, fromId ?? undefined);
     p.surfaceId = target?.manifest.id ?? null;
-    target?.send({ type: "approval_request", request_id: p.requestId, summary: p.summary, tier: p.tier });
+    target?.send({ type: "approval_request", request_id: p.requestId, summary: p.summary, tier: p.tier, ...(p.verb ? { verb: p.verb } : {}) });
     if (fromId) {
       this.#onEvent("handoff", { request_id: p.requestId, what: "approval", from: fromId, to: p.surfaceId });
     } else {
