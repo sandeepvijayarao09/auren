@@ -24,6 +24,7 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
   - **Limit:** the newest events could be cut off without breaking the chain. Every device sees the chain's head (`head`), so a shorter chain than the one a device already saw stands out.
 - **Connector tokens.** Google and Slack tokens are encrypted in their own table under their own derived key. They never reach a surface, a log line or the model.
 - **Trusted devices.** Pairing can only start on the Mac itself. Codes are six digits, last five minutes, work once, and are cancelled after five wrong tries. Core stores each device's P-256 public key. The device signs `auren-hello\n<nonce>\n<id>` on connect and `auren-approve\n<request>\n<1|0>\n<sha256(summary)>` for each answer. Connections relayed by a tunnel or proxy count as remote, so a tunnel can't pass for the Mac. The full flow is in the [Surface Protocol](spec/surface-protocol.md#trusted-devices-v01).
+- **Voice.** The microphone streams only while you hold to talk, and a device off the Mac must sign the voice channel's challenge. Core relays the audio to Muse Voice Transcribe and asks for metadata-only logging (`zdrOverride`). Core keeps the resulting text in the encrypted log and never stores the audio.
 - **Forget everything.** `auren-keyd forget` deletes the sealed key. Without it, the log and the tokens can't be decrypted; this is crypto-shredding.
 
 ## Logging

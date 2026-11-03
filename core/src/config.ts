@@ -22,6 +22,10 @@ export const config = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   // The Slack bot token (xoxb-…) for the demo workspace. Setting it swaps the demo Slack for the real one.
   slackBotToken: process.env.SLACK_BOT_TOKEN ?? "",
+  // Extra words for speech recognition to favour (names, channels), comma-separated.
+  asrKeywords: (process.env.AUREN_ASR_KEYWORDS ?? "").split(",").map((w) => w.trim()).filter(Boolean),
+  // Set to "false" if your Meta account doesn't allow metadata-only logging for voice.
+  asrMetadataOnly: process.env.AUREN_ASR_METADATA_ONLY !== "false",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

@@ -14,6 +14,8 @@ import { DeviceRegistry } from "./security/devices.ts";
 import { derive, masterKey } from "./security/keys.ts";
 import { Ledger, ledgerMuse, pathTemplate } from "./security/ledger.ts";
 import { createDemoWorld } from "./tools/demo-world.ts";
+import { museAsr } from "./voice/asr.ts";
+import { voiceKeywords } from "./voice/wake.ts";
 import { ToolRegistry } from "./tools/registry.ts";
 import { surfacesNamespace } from "./tools/surfaces.ts";
 
@@ -67,7 +69,15 @@ const core = createServer(
     approvalTimeoutMs: config.approvalTimeoutMs,
     ops,
   },
-  { token: config.token, museReady: Boolean(config.museApiKey), google, ledger, devices, keys: { source: master.source, note: master.note } },
+  { token: config.token, museReady: Boolean(config.museApiKey), google,
+    ledger,
+    devices,
+    keys: { source: master.source, note: master.note },
+    voice: {
+      asr: config.museApiKey ? museAsr({ apiKey: config.museApiKey, metadataOnlyLogging: config.asrMetadataOnly }) : undefined,
+      keywords: () => voiceKeywords(config.asrKeywords),
+    },
+  },
 );
 
 const server = serve({ fetch: core.app.fetch, port: config.port, hostname: config.host }, (info) => {

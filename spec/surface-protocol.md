@@ -66,6 +66,19 @@ A surface on the Mac that runs Core is trusted as it is. **Any other device must
 
 The exact bytes are defined in `core/src/security/devices.ts` and `apps/apple/AurenKit/Sources/AurenKit/DeviceIdentity.swift`, and a CryptoKit-made signature is pinned in Core's tests.
 
+## Voice (v0.1)
+A surface streams its microphone to `wss://<core>/v1/voice`. Core relays the audio to Muse Voice Transcribe, sends live partials back, and runs the final transcript as a command from that surface. The model key never leaves Core.
+
+| Step | Message |
+|---|---|
+| Core → surface | `challenge { nonce }` |
+| Surface → Core | `start { surface_id, auth? }`, where `auth.signature` signs `auren-voice\n<nonce>\n<surface_id>`. Required off the Mac; it has its own prefix, so a hello signature can't open the microphone. |
+| Core → surface | `ready` |
+| Surface → Core | Binary frames of PCM16 mono audio at 24 kHz (about 100 ms each), then `end` |
+| Core → surface | `transcript { text, final }` as it hears you, then `done { text }`, the command it ran with the wake phrase removed |
+
+A turn is capped at 30 seconds. If no final transcript arrives within 5 seconds of `end`, Core acts on the last partial.
+
 ## Presence and routing
 A surface is **online** while its heartbeats arrive. It goes offline after 3 s of silence. Core routes each output to the best online surface:
 

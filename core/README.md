@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 80 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
+npm test          # 96 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -31,7 +31,7 @@ npm run typecheck
 | `src/connectors/google/` | Google sign-in (Desktop client, PKCE, refresh) and the live `calendar` and `gmail` namespaces | ✅ |
 | `src/connectors/slack.ts` | Slack through a bot in the demo workspace | ✅ |
 | `src/connectors/tape.ts` | Record real API responses once (tokens scrubbed), replay them offline in tests and evals | ✅ |
-| `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe | ⏳ Day 3 |
+| `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe → a command; wake phrase and keywords | ✅ |
 | `src/vision/` | `glasses.look`: frames → Muse Spark → SAM 3.1 outline | ⏳ Day 5 |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/` | ⏳ Day 6 |
 | `src/memory/` | Auren Memory: recap and recall over receipts on Muse Spark Open | ⏳ Day 7 |
@@ -56,7 +56,8 @@ npm run typecheck
 | `POST /v1/command` | token | `{ text, surface_id? }` → runs a command |
 | `POST /v1/approvals/:id` | token | `{ approved, surface_id? }` |
 | `POST /v1/receipts/:id/undo` | token | Reverses a write |
-| `WS /v1/surface` | token | The Surface Protocol ([spec](../spec/surface-protocol.md)) |
+| `WS /v1/surface` | token or paired device | The Surface Protocol ([spec](../spec/surface-protocol.md)) |
+| `WS /v1/voice` | this Mac or paired device | Hold-to-talk audio in, transcripts out ([spec](../spec/surface-protocol.md#voice-v01)) |
 
 "token" means `Authorization: Bearer $AUREN_TOKEN` or `?token=`. Without `AUREN_TOKEN`, Core listens on 127.0.0.1 only and needs no token.
 

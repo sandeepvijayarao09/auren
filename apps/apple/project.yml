@@ -36,6 +36,7 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Auren connects to Auren Core on your Mac over your local network.
+        NSMicrophoneUsageDescription: Auren listens only while you hold the talk button, and sends that audio to Auren Core on your Mac.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sandeepvijayarao.auren

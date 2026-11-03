@@ -25,6 +25,9 @@ export class PairingError extends Error {}
 /** What a device signs when it connects: the server's one-time nonce, bound to its id. */
 export const helloPayload = (nonce: string, deviceId: string) => Buffer.from(`auren-hello\n${nonce}\n${deviceId}`);
 
+/** What a device signs to open the microphone stream. A different prefix, so a hello signature can't be replayed here. */
+export const voicePayload = (nonce: string, deviceId: string) => Buffer.from(`auren-voice\n${nonce}\n${deviceId}`);
+
 /** What a device signs to approve or decline: the request, the decision, and a hash of the summary it showed. */
 export const approvalPayload = (requestId: string, approved: boolean, summary: string) =>
   Buffer.from(`auren-approve\n${requestId}\n${approved ? 1 : 0}\n${createHash("sha256").update(summary).digest("hex")}`);

@@ -71,10 +71,11 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
 | Device pairing and Secure Enclave-signed approvals: one-time codes, challenge on connect, revoke | ✅ built and tested, Swift ↔ Node signatures verified |
 | Gmail and Slack connectors, plus record and replay for API calls | ✅ built and tested; live runs need your accounts ([Google](docs/google-setup.md), [Slack](docs/slack-setup.md)) |
-| Voice (Muse Voice Transcribe) · glasses (Wearables toolkit) | ⏳ Days 3–5 |
+| Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone | ✅ built and tested against a fake transcriber; live run needs the API key |
+| Glasses (Wearables toolkit) | ⏳ |
 | Computer-use runner and driver · Auren Memory (Spark Open) · Auren Router (Glimmer) | ⏳ Days 6–7 |
 
-**Tests:** 113 across five suites (Core 80, AurenKit 16, keyd 6, driver 6, router 5). No API key or device needed.
+**Tests:** 133 across five suites (Core 96, AurenKit 20, keyd 6, driver 6, router 5). No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

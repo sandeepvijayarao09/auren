@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var draft = ""
     @State private var showSettings = false
     @State private var speaker = Speaker()
+    @State private var voice: VoiceSession?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -53,6 +54,7 @@ struct HomeView: View {
         }
         .task {
             client.onSpeak = { speaker.speak($0) }
+            voice = VoiceSession(client: client)
             connect()
         }
         .onChange(of: coreURL) { connect() }
@@ -62,6 +64,20 @@ struct HomeView: View {
     }
 
     private var composer: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let voice, voice.phase != .idle || !voice.transcript.isEmpty {
+                VoiceStatus(voice: voice)
+            }
+            HStack(spacing: 8) {
+                if let voice { TalkButton(voice: voice, coreURL: coreURL, token: token) }
+                typing
+            }
+        }
+        .padding()
+        .background(.bar)
+    }
+
+    private var typing: some View {
         HStack(spacing: 8) {
             TextField("Say it once…", text: $draft)
                 .textFieldStyle(.roundedBorder)
@@ -71,8 +87,6 @@ struct HomeView: View {
                 .buttonStyle(.bordered)
                 .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding()
-        .background(.bar)
     }
 
     private func send() {
@@ -157,6 +171,49 @@ struct StatusDot: View {
         case .connecting: "Connecting to Core"
         case .idle: "Not connected"
         case .offline(let reason): "Offline: \(reason)"
+        }
+    }
+}
+
+/// Hold to talk. The microphone is on only while your finger is down.
+struct TalkButton: View {
+    let voice: VoiceSession
+    let coreURL: String
+    let token: String
+
+    var body: some View {
+        let live = voice.phase == .listening
+        Image(systemName: live ? "waveform.circle.fill" : "mic.circle.fill")
+            .font(.system(size: 34))
+            .foregroundStyle(live ? Color.aurenHalo : Color.secondary)
+            .symbolEffect(.pulse, isActive: live)
+            .accessibilityLabel(live ? "Listening. Let go to send." : "Hold to talk")
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard let url = URL(string: coreURL) else { return }
+                        Task { await voice.start(core: url, token: token) }
+                    }
+                    .onEnded { _ in Task { await voice.stop() } }
+            )
+    }
+}
+
+/// The words as Muse hears them, or why voice stopped.
+struct VoiceStatus: View {
+    let voice: VoiceSession
+
+    var body: some View {
+        switch voice.phase {
+        case .failed(let message):
+            Label(message, systemImage: "stop.fill").font(.footnote).foregroundStyle(Color.aurenStopped)
+        case .connecting:
+            Text("Opening the microphone…").font(.footnote).foregroundStyle(.secondary)
+        default:
+            Text(voice.transcript.isEmpty ? "Listening…" : "“\(voice.transcript)”")
+                .font(.callout)
+                .foregroundStyle(voice.phase == .listening ? .primary : .secondary)
+                .lineLimit(3)
         }
     }
 }

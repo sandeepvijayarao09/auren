@@ -31,6 +31,8 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_KEYD` | No | Path to the `auren-keyd` binary, if not `keyd/.build/release/auren-keyd` |
 | `AUREN_LOG_FILE` | No | Also append the JSON operational log to this file |
 | `AUREN_TZ` | No | Your time zone, if this Mac's is wrong |
+| `AUREN_ASR_KEYWORDS` | No | Extra names for speech recognition to favour, comma-separated (people, channels) |
+| `AUREN_ASR_METADATA_ONLY` | No | Set to `false` if your Meta account rejects metadata-only logging for voice |
 | `BASETEN_API_KEY` | Day 7 | Auren Memory on Muse Spark Open |
 
 Keys live only in `.env` on the machine running Core. Surfaces never hold a model key.
@@ -38,11 +40,11 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases, Google, Slack, Gmail, tape, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 80 |
+| Core (scripted Muse, surfaces, eval cases, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 96 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
-| AurenKit (protocol, client state, device identity) | `cd apps/apple/AurenKit && swift test` | 16 |
+| AurenKit (protocol, client state, device identity, voice) | `cd apps/apple/AurenKit && swift test` | 20 |
 
 `make check` runs all of them, both type checks and the secret scan, which is the same as CI minus the Swift suite.
 

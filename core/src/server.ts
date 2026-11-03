@@ -10,6 +10,9 @@ import type { GoogleAuth } from "./connectors/google/auth.ts";
 import type { KeySource } from "./security/keys.ts";
 import type { Ledger } from "./security/ledger.ts";
 import { approvalPayload, helloPayload, PairingError, type DeviceRegistry } from "./security/devices.ts";
+import type { AsrConnector } from "./voice/asr.ts";
+import { handleVoice } from "./voice/gateway.ts";
+import { silentOps } from "./obs/opslog.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -29,6 +32,8 @@ export interface ServerOptions {
   keys?: { source: KeySource; note?: string };
   /** Trusted devices. With it, any surface not on this Mac must be paired and sign its approvals. */
   devices?: DeviceRegistry;
+  /** Speech to text for /v1/voice. Without it, voice answers with a setup error. */
+  voice?: { asr?: AsrConnector; keywords: () => string[] };
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -224,6 +229,19 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     });
   });
 
+  // Microphone audio → Muse Voice Transcribe → a command from that surface.
+  const voiceWss = new WebSocketServer({ noServer: true, maxPayload: 1 << 20 });
+  voiceWss.on("connection", (ws: WebSocket, req: IncomingMessage) =>
+    handleVoice(ws, isLocal(req.socket.remoteAddress, (h) => req.headers[h]), {
+      asr: opts.voice?.asr,
+      devices: opts.devices,
+      keywords: opts.voice?.keywords ?? (() => []),
+      onCommand: (text, surfaceId) => start(text, surfaceId),
+      ops: deps.ops ?? silentOps,
+      ledger: opts.ledger,
+    }),
+  );
+
   log.onEvent((event) => surfaces.broadcast({ type: "event", event }));
   const sweeper = setInterval(() => surfaces.sweep(), 500);
 
@@ -233,15 +251,17 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
       const url = new URL(req.url ?? "/", "http://localhost");
       // With pairing on, an unpaired device may open the socket; it then has to prove a paired key in hello.
       const allowed = authorized(req.headers.authorization, url.searchParams.get("token")) || Boolean(opts.devices);
-      if (url.pathname !== "/v1/surface" || !allowed) {
+      const target = url.pathname === "/v1/surface" ? wss : url.pathname === "/v1/voice" ? voiceWss : null;
+      if (!target || !allowed) {
         socket.destroy();
         return;
       }
-      wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
+      target.handleUpgrade(req, socket, head, (ws) => target.emit("connection", ws, req));
     },
     close() {
       clearInterval(sweeper);
       wss.close();
+      voiceWss.close();
     },
   };
 }
