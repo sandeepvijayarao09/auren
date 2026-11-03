@@ -37,6 +37,7 @@ targets:
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Auren connects to Auren Core on your Mac over your local network.
         NSMicrophoneUsageDescription: Auren listens only while you hold the talk button, and sends that audio to Auren Core on your Mac.
+        NSCameraUsageDescription: Auren takes one photo only when you ask about something in front of you. People in it are blurred on your iPhone before it's sent to your Mac.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sandeepvijayarao.auren

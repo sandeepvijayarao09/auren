@@ -47,6 +47,7 @@ Sent once, in `hello`.
 | `show_card` | `title`, `body` | Show this on a screen |
 | `approval_request` | `request_id`, `summary`, `tier` | Ask for a yes/no tap |
 | `approval_cancel` | `request_id`, `reason` | The request moved to another surface, or expired |
+| `capture_request` | `request_id`, `purpose` | Take one photo for a "this" command (v0.1, see [Camera](#camera-v01)) |
 
 ## Trusted devices (v0.1)
 A surface on the Mac that runs Core is trusted as it is. **Any other device must pair once, and then prove its key every time it connects.** A connection relayed by a tunnel or proxy (one with `X-Forwarded-For`, `Forwarded`, `CF-Connecting-IP` or `X-Real-IP`) counts as another device.
@@ -84,6 +85,22 @@ A surface streams its microphone to `wss://<core>/v1/voice`. Core relays the aud
 
 A turn is capped at 30 seconds. If no final transcript arrives within 5 seconds of `end`, Core acts on the last partial.
 
+## Camera (v0.1)
+The camera runs only when Core asks, for a command about something in front of you ("add this"). A surface with `camera` in its manifest may get:
+
+| Step | Message |
+|---|---|
+| Core → surface | `capture_request { request_id, purpose }`, sent to the best camera surface: glasses beat a phone, and active beats idle |
+| Surface | Takes one photo, **blurs every person in it on the device**, and re-encodes it as a JPEG with no metadata (no location), at most 2 MB |
+| Surface → Core | `POST /v1/frames/:request_id` with the JPEG as the body (`content-type: image/jpeg`) and `x-auren-surface: <surface id>` |
+| Core | `202` when taken. `404` if no capture is waiting for that id, `403` if it came from another surface or wasn't signed, `413` over 2 MB, `415` not a JPEG |
+
+Off the Mac, a paired device signs the upload. It adds `x-auren-device: <device id>` (which must be the surface Core asked) and `x-auren-signature`, ECDSA P-256 / SHA-256 (DER, base64) over:
+```
+auren-frame\n<request_id>\n<sha256 hex of the body>
+```
+Core waits about 5 seconds for the frame, then gives up. It keeps only the crop of what SAM 3.1 outlined, encrypted, served to the timeline at `GET /v1/crops/:id`; the frame itself is never stored.
+
 ## Presence and routing
 A surface is **online** while its heartbeats arrive. It goes offline after 3 s of silence. Core routes each output to the best online surface:
 
@@ -92,7 +109,7 @@ A surface is **online** while its heartbeats arrive. It goes offline after 3 s o
 | `speak` | The surface the command came from, if it's online and has `voice` out. Otherwise the most recently active surface with `voice` out. Otherwise it's shown as text on a screen. |
 | `approval_request` | The best surface with `touch` in: `haptic` beats `screen` alone, and active beats idle. |
 | `show_card` | The best surface with `screen` out. A phone beats web, and active beats idle. |
-| capture (later) | A surface with `camera` in. Glasses beat a phone. |
+| `capture_request` | The best surface with `camera` in. Glasses beat a phone, and active beats idle. |
 
 **Handoff:** if a surface goes offline while it holds a pending approval, Core sends `approval_cancel` (reason `moved`) to that surface, re-issues the request to the next best surface, and logs a `handoff` event. The task follows the person, not the device.
 

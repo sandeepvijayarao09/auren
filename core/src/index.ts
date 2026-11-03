@@ -16,6 +16,10 @@ import { Ledger, ledgerMuse, pathTemplate } from "./security/ledger.ts";
 import { createDemoWorld } from "./tools/demo-world.ts";
 import { museAsr } from "./voice/asr.ts";
 import { voiceKeywords } from "./voice/wake.ts";
+import { CaptureBroker } from "./vision/capture.ts";
+import { CropStore } from "./vision/crops.ts";
+import { createGlasses } from "./vision/look.ts";
+import { samSegmenter, sparkReader } from "./vision/models.ts";
 import { ToolRegistry } from "./tools/registry.ts";
 import { surfacesNamespace } from "./tools/surfaces.ts";
 import { createMemory } from "./memory/memory.ts";
@@ -65,6 +69,12 @@ const spark = config.basetenApiKey
 tools.add(createMemory({ log, spark, timeZone: config.timeZone, ops }), createReceipts({ log, tools, timeZone: config.timeZone }));
 const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger);
 
+// Vision: glasses.look asks a camera surface for one blurred frame; Muse Spark reads it,
+// SAM 3.1 outlines what's at the centre, and only that crop is kept (encrypted) for the receipt.
+const frames = new CaptureBroker(surfaces);
+const crops = new CropStore(config.dbPath, derive(master.key, "crops"));
+tools.add(createGlasses({ broker: frames, reader: sparkReader(muse, config.fastModel), segmenter: samSegmenter(muse), crops, ops, timeZone: config.timeZone }));
+
 const core = createServer(
   {
     muse,
@@ -86,6 +96,7 @@ const core = createServer(
       asr: config.museApiKey ? museAsr({ apiKey: config.museApiKey, metadataOnlyLogging: config.asrMetadataOnly }) : undefined,
       keywords: () => voiceKeywords(config.asrKeywords),
     },
+    vision: { frames, crops },
   },
 );
 

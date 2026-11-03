@@ -32,6 +32,8 @@ public final class SurfaceClient {
     public var onSpeak: (@MainActor (Speech) -> Void)?
     /// Called once when an approval lands here (the watch plays a haptic).
     public var onApproval: (@MainActor (ApprovalRequest) -> Void)?
+    /// Called when Core asks this surface for one camera frame. Only surfaces with `camera` in get these.
+    public var onCapture: (@MainActor (CaptureRequest) -> Void)?
     /// Sent with each heartbeat. Core prefers active surfaces when it picks a device.
     public var isActive = true
 
@@ -124,6 +126,8 @@ public final class SurfaceClient {
             onSpeak?(speech)
         case .showCard(let card):
             cards.insert(card, at: 0)
+        case .captureRequest(let request):
+            onCapture?(request)
         case .approvalRequest(let request):
             guard !approvals.contains(request) else { return }
             approvals.append(request)

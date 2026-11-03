@@ -140,6 +140,18 @@ public struct Card: Sendable, Equatable {
     public let body: String
 }
 
+/// Core asks this surface for one camera frame, for a "this" command. Answer with `FrameUpload` to POST /v1/frames/:request_id.
+public struct CaptureRequest: Sendable, Equatable, Identifiable {
+    public let id: String
+    /// Why Auren is looking, to show while the camera is on.
+    public let purpose: String
+
+    public init(id: String, purpose: String) {
+        self.id = id
+        self.purpose = purpose
+    }
+}
+
 /// Core → surface.
 public enum ServerMessage: Decodable, Sendable, Equatable {
     /// Sent first on every connection; a paired device signs it in its hello.
@@ -148,12 +160,15 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
     case event(AurenEvent)
     case speak(Speech)
     case showCard(Card)
+    /// v0.1 camera: one frame, only for a "this" command.
+    case captureRequest(CaptureRequest)
     case approvalRequest(ApprovalRequest)
     case approvalCancel(requestID: String, reason: String)
     /// A message this build doesn't know yet. Newer Cores add messages; old surfaces ignore them.
     case unknown(type: String)
 
     private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason }
+    private enum CaptureKeys: String, CodingKey { case request_id, purpose }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: Keys.self)
@@ -173,6 +188,10 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
                                  isFinal: try c.decodeIfPresent(Bool.self, forKey: .final) ?? true))
         case "show_card":
             self = .showCard(Card(title: try c.decode(String.self, forKey: .title), body: try c.decode(String.self, forKey: .body)))
+        case "capture_request":
+            let k = try decoder.container(keyedBy: CaptureKeys.self)
+            self = .captureRequest(CaptureRequest(id: try k.decode(String.self, forKey: .request_id),
+                                                  purpose: try k.decodeIfPresent(String.self, forKey: .purpose) ?? ""))
         case "approval_request":
             self = .approvalRequest(ApprovalRequest(id: try c.decode(String.self, forKey: .request_id),
                                                     summary: try c.decode(String.self, forKey: .summary),
