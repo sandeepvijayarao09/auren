@@ -45,5 +45,7 @@ export type ServerMessage =
   | { type: "event"; event: AurenEvent }
   | { type: "speak"; text: string }
   | { type: "show_card"; title: string; body: string }
+  // v0.1 camera: one frame for a "this" command, uploaded to POST /v1/frames/:request_id.
+  | { type: "capture_request"; request_id: string; purpose: string }
   | { type: "approval_request"; request_id: string; summary: string; tier: Tier }
   | { type: "approval_cancel"; request_id: string; reason: "moved" | "expired" | "answered" };

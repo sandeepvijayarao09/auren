@@ -3,8 +3,8 @@ import SwiftUI
 
 @main
 struct AurenApp: App {
-    // The phone is one surface. From Day 5 this app also runs a second SurfaceClient
-    // for the Ray-Ban Meta glasses, fed by the Meta Wearables Device Access Toolkit.
+    // The phone is one surface, and its camera answers Core's capture requests (plan B).
+    // A second SurfaceClient for the Ray-Ban Meta glasses joins once WearablesToolkitCamera.isAvailable.
     @State private var phone: SurfaceClient
 
     init() {

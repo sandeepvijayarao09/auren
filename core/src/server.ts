@@ -6,6 +6,12 @@ import { Hono } from "hono";
 import { WebSocket, WebSocketServer } from "ws";
 import { runCommand, undoReceipt, type AgentDeps } from "./agent/loop.ts";
 import { ClientMessage, type ServerMessage } from "./protocol.ts";
+// Camera frames for glasses.look.
+import { bodyLimit } from "hono/body-limit";
+import { framePayload } from "./security/devices.ts";
+import { MAX_FRAME_BYTES, type CaptureBroker } from "./vision/capture.ts";
+import type { CropStore } from "./vision/crops.ts";
+import { isJpeg } from "./vision/jpeg.ts";
 import type { GoogleAuth } from "./connectors/google/auth.ts";
 import type { KeySource } from "./security/keys.ts";
 import type { Ledger } from "./security/ledger.ts";
@@ -29,6 +35,8 @@ export interface ServerOptions {
   museReady: boolean;
   google?: GoogleAuth;
   ledger?: Ledger;
+  /** Camera frames for glasses.look, and the receipt crops it keeps. Without it, /v1/frames answers 503. */
+  vision?: { frames: CaptureBroker; crops: CropStore };
   keys?: { source: KeySource; note?: string };
   /** Trusted devices. With it, any surface not on this Mac must be paired and sign its approvals. */
   devices?: DeviceRegistry;
@@ -168,6 +176,45 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     return c.json({ ok }, ok ? 200 : 404);
   });
   app.post("/v1/receipts/:id/undo", async (c) => c.json(await undoReceipt(deps, Number(c.req.param("id")), SESSION)));
+
+  // ── Camera frames ──────────────────────────────────────────────────────
+  // A frame is taken only for a capture Core asked for, only from the surface it
+  // asked, and from another device only with its signature over the exact bytes.
+  app.post(
+    "/v1/frames/:request_id",
+    bodyLimit({ maxSize: MAX_FRAME_BYTES, onError: (c) => c.json({ error: "A frame can be at most 2 MB." }, 413) }),
+    async (c) => {
+      if (!opts.vision) return c.json({ error: "The camera isn't turned on in this Core." }, 503);
+      const requestId = c.req.param("request_id");
+      const target = opts.vision.frames.target(requestId);
+      if (!target) return c.json({ error: "No capture is waiting for that request." }, 404);
+      const jpeg = Buffer.from(await c.req.arrayBuffer());
+      if (!isJpeg(jpeg)) return c.json({ error: "A frame must be a JPEG." }, 415);
+      const deviceId = c.req.header("x-auren-device");
+      let from: string;
+      if (opts.devices && deviceId) {
+        if (!opts.devices.verify(deviceId, framePayload(requestId, jpeg), c.req.header("x-auren-signature"))) {
+          log.append(SESSION, "error", { message: "A camera frame arrived without a valid device signature, so Auren dropped it.", surface_id: deviceId });
+          return c.json({ error: "That frame's signature didn't verify." }, 403);
+        }
+        from = deviceId;
+      } else if (opts.devices && !fromThisMac(c)) {
+        return c.json({ error: "Frames from another device must be signed by a paired device." }, 403);
+      } else {
+        from = c.req.header("x-auren-surface") ?? c.req.query("surface_id") ?? "";
+      }
+      if (opts.vision.frames.deliver(requestId, from, jpeg) !== "accepted") {
+        return c.json({ error: "That capture was sent to a different device." }, 403);
+      }
+      return c.json({ accepted: true }, 202);
+    },
+  );
+  // The receipt's crop: the outline SAM drew, never the whole frame.
+  app.get("/v1/crops/:id", (c) => {
+    const jpeg = opts.vision?.crops.get(c.req.param("id"));
+    if (!jpeg) return c.json({ error: "not found" }, 404);
+    return c.body(new Uint8Array(jpeg), 200, { "content-type": "image/jpeg", "cache-control": "private, max-age=3600" });
+  });
 
   // Surface protocol over WebSocket.
   const wss = new WebSocketServer({ noServer: true });

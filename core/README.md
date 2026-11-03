@@ -32,7 +32,7 @@ npm run typecheck
 | `src/connectors/slack.ts` | Slack through a bot in the demo workspace | ✅ |
 | `src/connectors/tape.ts` | Record real API responses once (tokens scrubbed), replay them offline in tests and evals | ✅ |
 | `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe → a command; wake phrase and keywords | ✅ |
-| `src/vision/` | `glasses.look`: frames → Muse Spark → SAM 3.1 outline | ⏳ Day 5 |
+| `src/vision/` | `glasses.look`: a capture request → one blurred frame → Muse Spark reads it, SAM 3.1 outlines it → an encrypted receipt crop | ✅ tested against fake models ([R6](../docs/rounds/R6.md)) |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/` | ⏳ Day 6 |
 | `src/memory/` | Auren Memory: recap and recall over receipts on Muse Spark Open | ⏳ Day 7 |
 
@@ -56,6 +56,8 @@ npm run typecheck
 | `POST /v1/command` | token | `{ text, surface_id? }` → runs a command |
 | `POST /v1/approvals/:id` | token | `{ approved, surface_id? }` |
 | `POST /v1/receipts/:id/undo` | token | Reverses a write |
+| `POST /v1/frames/:request_id` | token, plus the surface Core asked (signed off the Mac) | One camera frame for a `capture_request` ([spec](../spec/surface-protocol.md#camera-v01)) |
+| `GET /v1/crops/:id` | token | A receipt's crop: what SAM 3.1 outlined |
 | `WS /v1/surface` | token or paired device | The Surface Protocol ([spec](../spec/surface-protocol.md)) |
 | `WS /v1/voice` | this Mac or paired device | Hold-to-talk audio in, transcripts out ([spec](../spec/surface-protocol.md#voice-v01)) |
 

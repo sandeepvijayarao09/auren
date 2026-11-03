@@ -11,6 +11,8 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var speaker = Speaker()
     @State private var voice: VoiceSession?
+    // Answers Core's capture requests with the phone camera (plan B for the glasses), blurring people first.
+    @State private var camera: CaptureCoordinator?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -55,6 +57,9 @@ struct HomeView: View {
         .task {
             client.onSpeak = { speaker.speak($0) }
             voice = VoiceSession(client: client)
+            let camera = CaptureCoordinator(client: client, camera: PhoneCamera())
+            camera.attach()
+            self.camera = camera
             connect()
         }
         .onChange(of: coreURL) { connect() }
@@ -67,6 +72,9 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let voice, voice.phase != .idle || !voice.transcript.isEmpty {
                 VoiceStatus(voice: voice)
+            }
+            if let camera, camera.phase != .idle {
+                CameraStatus(camera: camera)
             }
             HStack(spacing: 8) {
                 if let voice { TalkButton(voice: voice, coreURL: coreURL, token: token) }
@@ -98,6 +106,8 @@ struct HomeView: View {
 
     private func connect() {
         guard let url = URL(string: coreURL) else { return }
+        camera?.core = url
+        camera?.token = token
         client.connect(to: url, token: token)
     }
 }
@@ -196,6 +206,26 @@ struct TalkButton: View {
                     }
                     .onEnded { _ in Task { await voice.stop() } }
             )
+    }
+}
+
+/// The camera is on only for one photo Core asked for; say so while it is.
+struct CameraStatus: View {
+    let camera: CaptureCoordinator
+
+    var body: some View {
+        switch camera.phase {
+        case .looking(let purpose):
+            Label(purpose.isEmpty ? "Looking…" : "Looking: \(purpose)", systemImage: "camera.viewfinder")
+                .font(.footnote).foregroundStyle(.secondary)
+        case .sent:
+            Label("Sent one photo, with people blurred", systemImage: "checkmark.shield")
+                .font(.footnote).foregroundStyle(.secondary)
+        case .failed(let message):
+            Label(message, systemImage: "stop.fill").font(.footnote).foregroundStyle(Color.aurenStopped)
+        case .idle:
+            EmptyView()
+        }
     }
 }
 

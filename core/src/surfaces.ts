@@ -19,7 +19,7 @@ interface PendingApproval {
   timer: ReturnType<typeof setTimeout>;
 }
 
-type Purpose = "speak" | "approval" | "card";
+type Purpose = "speak" | "approval" | "card" | "camera";
 
 export interface SurfaceRegistryOptions {
   now?: () => number;
@@ -120,6 +120,21 @@ export class SurfaceRegistry {
     return p && { summary: p.summary, surfaceId: p.surfaceId };
   }
 
+  // ── camera ─────────────────────────────────────────────────────────────
+
+  /** The best online surface with a camera: glasses beat a phone, and active beats idle. */
+  camera(): Manifest | undefined {
+    return this.#pick("camera")?.manifest;
+  }
+
+  /** Sends one message to one surface. False when it isn't online. */
+  sendTo(id: string, msg: ServerMessage): boolean {
+    const s = this.#surfaces.get(id);
+    if (!s || s.offline || !this.#isOnline(s)) return false;
+    s.send(msg);
+    return true;
+  }
+
   /** `signedBy` is the paired device whose Secure Enclave signed this answer, if one did. */
   answer(requestId: string, approved: boolean, fromSurfaceId?: string, signedBy?: string): boolean {
     if (!this.#pending.has(requestId)) return false;
@@ -186,6 +201,9 @@ export class SurfaceRegistry {
     }
     if (purpose === "approval") {
       return best(live.filter((s) => s.manifest.inputs.includes("touch")), (s) => (has(s, "haptic") ? 2 : 0));
+    }
+    if (purpose === "camera") {
+      return best(live.filter((s) => s.manifest.inputs.includes("camera")), (s) => (s.manifest.kind === "glasses" ? 2 : 0));
     }
     return best(live.filter((s) => has(s, "screen")), (s) => (s.manifest.kind === "phone" ? 2 : 0));
   }

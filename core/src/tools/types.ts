@@ -7,6 +7,8 @@ export interface ToolContext {
   surfaces: SurfaceRegistry;
   /** The command's trace id in the ops log. */
   trace?: string;
+  /** The crop glasses.look kept earlier in this command, so the receipts that follow show what Auren saw. */
+  seen?: { crop_id: string };
 }
 
 export interface UndoStep {
