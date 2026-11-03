@@ -11,6 +11,7 @@
     "dev": "node --env-file-if-exists=../.env --watch src/index.ts",
     "start": "node --env-file-if-exists=../.env src/index.ts",
     "test": "node --test \"src/**/*.test.ts\"",
+    "eval": "node --env-file-if-exists=../.env src/eval/run.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

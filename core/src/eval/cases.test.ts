@@ -1,6 +1,5 @@
 // Keeps eval/cases honest: every case parses, names real tools with the right
-// tiers, and asks for approvals only where a tap is possible. The runner that
-// plays the cases against record/replay connectors lands on Day 7.
+// tiers, and asks for approvals only where a tap is possible. run.ts plays them.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";

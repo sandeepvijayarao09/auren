@@ -1,0 +1,21 @@
+{
+  "case": "undo-a-draft",
+  "note": "receipts.undo's arguments are a guess until R8 lands.",
+  "commands": [
+    {
+      "ack": "On it: email.",
+      "turns": [
+        { "calls": [ { "tool": "gmail.search_threads", "args": { "query": "Lee" } } ] },
+        { "calls": [ { "tool": "gmail.create_draft", "args": { "thread_id": "thr_9", "body": "Hi Prof. Lee, grades will be in by 5." } } ] },
+        { "say": "Draft ready for Prof. Lee." }
+      ]
+    },
+    {
+      "ack": "Undoing that.",
+      "turns": [
+        { "calls": [ { "tool": "receipts.undo", "args": { "receipt_id": "{{receipt:gmail.create_draft}}" } } ] },
+        { "say": "Deleted the draft." }
+      ]
+    }
+  ]
+}

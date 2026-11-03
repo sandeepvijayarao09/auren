@@ -1,0 +1,20 @@
+{
+  "case": "gp5-recap-then-undo",
+  "note": "Runs after gp1-watch-fan-out in the same world. memory.recap's and receipts.undo's arguments are guesses until R8 lands.",
+  "commands": [
+    {
+      "ack": "Pulling up today.",
+      "turns": [
+        { "calls": [ { "tool": "memory.recap", "args": { "period": "today" } } ] },
+        { "say": "You posted to office hours, moved office hours to 3:15 and drafted a reply to Prof. Lee." }
+      ]
+    },
+    {
+      "ack": "Undoing the move.",
+      "turns": [
+        { "calls": [ { "tool": "receipts.undo", "args": { "receipt_id": "{{receipt:calendar.move_event}}" } } ] },
+        { "say": "Office hours are back at 3." }
+      ]
+    }
+  ]
+}

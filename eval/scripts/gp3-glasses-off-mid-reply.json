@@ -1,0 +1,13 @@
+{
+  "case": "gp3-glasses-off-mid-reply",
+  "note": "The last turn takes 1.2 s, standing in for the model writing its answer, so the glasses come off (at 0.8 s) before the reply is spoken.",
+  "commands": [
+    {
+      "ack": "Checking your calendar.",
+      "turns": [
+        { "calls": [ { "tool": "calendar.list_events", "args": { "date": "{{today}}" } } ] },
+        { "ms": 1200, "say": "Office hours at 3, then your thesis sync with Prof. Lee at 5:30." }
+      ]
+    }
+  ]
+}
