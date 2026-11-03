@@ -26,6 +26,10 @@ export const config = {
   asrKeywords: (process.env.AUREN_ASR_KEYWORDS ?? "").split(",").map((w) => w.trim()).filter(Boolean),
   // Set to "false" if your Meta account doesn't allow metadata-only logging for voice.
   asrMetadataOnly: process.env.AUREN_ASR_METADATA_ONLY !== "false",
+  // Auren Memory on Muse Spark Open, hosted on Baseten. Without the key, recaps are built locally from the receipts.
+  basetenApiKey: process.env.BASETEN_API_KEY ?? "",
+  basetenBaseUrl: process.env.BASETEN_BASE_URL ?? "https://inference.baseten.co/v1",
+  memoryModel: process.env.AUREN_MEMORY_MODEL ?? "meta-models/muse-spark-open-1026",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

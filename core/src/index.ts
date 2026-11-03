@@ -18,6 +18,9 @@ import { museAsr } from "./voice/asr.ts";
 import { voiceKeywords } from "./voice/wake.ts";
 import { ToolRegistry } from "./tools/registry.ts";
 import { surfacesNamespace } from "./tools/surfaces.ts";
+import { createMemory } from "./memory/memory.ts";
+import { createReceipts } from "./memory/receipts.ts";
+import { sparkOpen } from "./memory/spark.ts";
 
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
@@ -54,6 +57,12 @@ if (config.slackBotToken) {
 }
 const namespaces = createDemoWorld().namespaces.map((ns) => live.get(ns.name) ?? ns);
 const tools = new ToolRegistry().add(...namespaces, surfacesNamespace);
+
+// Auren Memory and voice undo. Muse Spark Open writes the recaps only when BASETEN_API_KEY is set.
+const spark = config.basetenApiKey
+  ? sparkOpen({ client: new OpenAI({ baseURL: config.basetenBaseUrl, apiKey: config.basetenApiKey, maxRetries: 1 }), model: config.memoryModel, ledger, ops })
+  : undefined;
+tools.add(createMemory({ log, spark, timeZone: config.timeZone, ops }), createReceipts({ log, tools, timeZone: config.timeZone }));
 const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger);
 
 const core = createServer(

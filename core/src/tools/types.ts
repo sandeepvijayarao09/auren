@@ -26,6 +26,8 @@ export interface ToolSpec<A = any, R = any> {
   external?: boolean;
   /** Not offered to the model (used by undo). */
   hidden?: boolean;
+  /** The tool appends its own receipt (receipts.undo does, through undoReceipt), so the loop doesn't add a second. */
+  ownReceipt?: boolean;
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;
