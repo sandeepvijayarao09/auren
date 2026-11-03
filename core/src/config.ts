@@ -30,6 +30,12 @@ export const config = {
   basetenApiKey: process.env.BASETEN_API_KEY ?? "",
   basetenBaseUrl: process.env.BASETEN_BASE_URL ?? "https://inference.baseten.co/v1",
   memoryModel: process.env.AUREN_MEMORY_MODEL ?? "meta-models/muse-spark-open-1026",
+  // R9: Auren Router. The Glimmer LoRA on Modal (OpenAI-compatible, …/v1). Without it, Muse Spark
+  // routes when a key is set, else the rules. Advisory only; tiers stay with the tools.
+  routerUrl: process.env.AUREN_ROUTER_URL ?? "",
+  routerKey: process.env.AUREN_ROUTER_KEY ?? "",
+  routerModel: process.env.AUREN_ROUTER_MODEL || "auren-router",
+  routerBudgetMs: Number(process.env.AUREN_ROUTER_BUDGET_MS) || 300,
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,
