@@ -27,6 +27,8 @@ For each case the runner:
 
 Latency is reported in both modes and enforced only live. End-to-end time leaves out time spent waiting on a tap. Handoff is the time from a drop to the task's next output on another device.
 
+The eval world also connects the demo Journal MCP server (`core/src/connectors/mcp-journal.ts`) over an in-memory transport, trusted as in `mcp.example.json`, so `journal.list_entries` is read and `journal.add_entry` asks for a tap. `platform-mcp-journal` plays the platform beat against it.
+
 A case whose tools aren't in the registry yet (`glasses`, `browser`, `memory`, `receipts`) is skipped with the round that adds them. It runs as soon as that round registers its namespace in `core/src/eval/world.ts`.
 
 ## Scripts
@@ -73,7 +75,7 @@ Scripted mode reads one file per case from `scripts/`: the model's turns for eac
 | Field | Meaning |
 |---|---|
 | `golden_path` | `GP1`–`GP5`, or `null` for safety cases |
-| `category` | `fan-out` · `tier-gate` · `injection` · `handoff` · `vision` · `stop-before-commit` · `undo` · `recall` |
+| `category` | `fan-out` · `tier-gate` · `injection` · `handoff` · `vision` · `stop-before-commit` · `undo` · `recall` · `platform` |
 | `surface` / `online` | Where the command comes from, and every device connected |
 | `commands` | One or more commands, run in order |
 | `fixtures` | Seeded demo-world state, such as a planted email |

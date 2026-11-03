@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "journal": {
+      "command": "node",
+      "args": ["core/src/connectors/mcp-journal.ts", "--file", "journal.json"],
+      "env": {},
+      "trust_annotations": true
+    }
+  }
+}

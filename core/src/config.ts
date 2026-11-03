@@ -30,6 +30,8 @@ export const config = {
   basetenApiKey: process.env.BASETEN_API_KEY ?? "",
   basetenBaseUrl: process.env.BASETEN_BASE_URL ?? "https://inference.baseten.co/v1",
   memoryModel: process.env.AUREN_MEMORY_MODEL ?? "meta-models/muse-spark-open-1026",
+  // R11: MCP bridge. The MCP servers to connect. Empty means mcp.json at the repo root (gitignored; see mcp.example.json).
+  mcpConfig: process.env.AUREN_MCP_CONFIG ?? "",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

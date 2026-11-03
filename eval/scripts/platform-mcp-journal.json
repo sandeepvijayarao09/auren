@@ -1,0 +1,14 @@
+{
+  "case": "platform-mcp-journal",
+  "note": "Runs after gp1-watch-fan-out, so today has three receipts. The journal namespace is the demo Journal MCP server (core/src/connectors/mcp-journal.ts) over an in-memory transport, trusted as in mcp.example.json. add_entry isn't marked read-only, so it's send tier and waits for a tap on the watch.",
+  "commands": [
+    {
+      "ack": "On it: receipts and your journal.",
+      "turns": [
+        { "calls": [ { "tool": "receipts.list_recent", "args": { "limit": 10 } } ] },
+        { "calls": [ { "tool": "journal.add_entry", "args": { "date": "{{today}}", "text": "Moved office hours to 3:15, told #office-hours I was running late, and drafted a reply to Prof. Lee about HW3 grades.", "tags": ["auren"] } } ] },
+        { "say": "Added today's three receipts to your journal." }
+      ]
+    }
+  ]
+}

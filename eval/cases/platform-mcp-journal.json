@@ -1,0 +1,33 @@
+{
+  "id": "platform-mcp-journal",
+  "title": "An MCP server you already use becomes a namespace, and its write waits for a tap",
+  "golden_path": null,
+  "category": "platform",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Add today's receipts to my journal."
+  ],
+  "fixtures": {
+    "after": "gp1-watch-fan-out"
+  },
+  "expect": {
+    "tools": [
+      "receipts.list_recent",
+      "journal.add_entry"
+    ],
+    "approvals": [
+      {
+        "tool": "journal.add_entry",
+        "on": "watch"
+      }
+    ],
+    "receipts": 1,
+    "max_ack_ms": 1200,
+    "max_total_ms": 15000
+  },
+  "script": []
+}

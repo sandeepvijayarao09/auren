@@ -20,6 +20,8 @@ import type { AsrConnector } from "./voice/asr.ts";
 import { handleVoice } from "./voice/gateway.ts";
 import { silentOps } from "./obs/opslog.ts";
 import type { DriverHub } from "./computer/hub.ts";
+// R11: MCP bridge
+import type { McpServerStatus } from "./connectors/mcp.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -45,6 +47,8 @@ export interface ServerOptions {
   voice?: { asr?: AsrConnector; keywords: () => string[] };
   /** R7: the computer-use driver's socket, /v1/driver. */
   driver?: DriverHub;
+  /** R11: MCP bridge. The servers from mcp.json, listed in /v1/connections. */
+  mcp?: { status(): McpServerStatus[] };
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -152,7 +156,13 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     }
     return c.json({ ok }, ok ? 200 : 404);
   });
-  app.get("/v1/connections", (c) => c.json({ google: opts.google ? { configured: true, ...opts.google.status() } : { configured: false, connected: false } }));
+  app.get("/v1/connections", (c) =>
+    c.json({
+      google: opts.google ? { configured: true, ...opts.google.status() } : { configured: false, connected: false },
+      // R11: MCP bridge. Name, state, tool counts and trust mode; never commands, URLs, env or headers.
+      mcp: opts.mcp?.status() ?? [],
+    }),
+  );
   app.get("/v1/events", (c) => c.json({ events: log.since(SESSION, Number(c.req.query("since") ?? 0)) }));
   app.post("/v1/command", async (c) => {
     const body = await c.req.json().catch(() => ({}));
