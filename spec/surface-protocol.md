@@ -10,6 +10,7 @@ The protocol is small on purpose. A new surface should take about 20 lines (see 
   - `POST /v1/command` `{ "text": "...", "surface_id": "..." }`
   - `POST /v1/approvals/:request_id` `{ "approved": true }`
   - `GET /v1/events?since=<id>` to poll the session timeline
+  - `POST /v1/voice/clip` with a whole hold-to-talk clip, when a voice socket can't stay open (v0.1, see [Voice clips](#voice-clips-v01))
 
 ## Manifest
 Sent once, in `hello`.
@@ -42,10 +43,10 @@ Sent once, in `hello`.
 | `type` | Fields | Meaning |
 |---|---|---|
 | `welcome` | `session_id`, `surfaces[]` | Joined. Lists the other surfaces online. |
-| `event` | `event` | A timeline entry: `utterance`, `ack`, `tool_call`, `receipt`, `approval`, `handoff`, `reply`, `error` |
+| `event` | `event` | A timeline entry: `utterance`, `ack`, `tool_call`, `receipt`, `approval`, `handoff`, `reply`, `error`, and from v0.1 `browser_frame` (see [Timeline media](#timeline-media-v01)) |
 | `speak` | `text` | Say this out loud |
 | `show_card` | `title`, `body` | Show this on a screen |
-| `approval_request` | `request_id`, `summary`, `tier` | Ask for a yes/no tap |
+| `approval_request` | `request_id`, `summary`, `tier`, `verb?` | Ask for a yes/no tap. `verb` (v0.1) is the approve button's word, such as "Post" (see [Approval verbs](#approval-verbs-v01)) |
 | `approval_cancel` | `request_id`, `reason` | The request moved to another surface, or expired |
 | `capture_request` | `request_id`, `purpose` | Take one photo for a "this" command (v0.1, see [Camera](#camera-v01)) |
 
@@ -67,6 +68,11 @@ A surface on the Mac that runs Core is trusted as it is. **Any other device must
 
 The exact bytes are defined in `core/src/security/devices.ts` and `apps/apple/AurenKit/Sources/AurenKit/DeviceIdentity.swift`, and a CryptoKit-made signature is pinned in Core's tests.
 
+## Approval verbs (v0.1)
+A tap button says what it does. `approval_request` may carry `verb`, the word for the approve button: "Post" for a Slack message, "Invite" for calendar invitations, "Confirm" for the commit in computer use. A surface shows it on the button and falls back to **Approve** when it's missing, so a v0 surface still works. The decline button stays "Not now".
+
+The verb is **display only**. Core takes it from the tool's spec (`verb` in `ToolSpec`), never from the model or a page, and the signed approval is unchanged: a paired device still signs `auren-approve\n<request_id>\n<1|0>\n<sha256 hex of summary>`, with no verb in it. The summary is what carries the meaning, and it's what the signature covers.
+
 ## Continuity (v0.1)
 - **Heartbeats.** `welcome` carries `heartbeat_ms`: 500 for glasses, 1000 for everything else. Glasses count as gone after 1.5 s of silence; others after 3 s.
 - **Speech in sentences.** A reply arrives as `speak { text, reply_id, seq, final }`, one message per sentence. When a sentence finishes playing, the surface sends `speak_progress { reply_id, seq }`. If the surface drops mid-reply, Core sends the sentences it hasn't heard back about to the next voice surface and logs a `handoff` with `what: "speech"`. A v0 surface that ignores these fields still speaks every sentence.
@@ -85,6 +91,22 @@ A surface streams its microphone to `wss://<core>/v1/voice`. Core relays the aud
 
 A turn is capped at 30 seconds. If no final transcript arrives within 5 seconds of `end`, Core acts on the last partial.
 
+## Voice clips (v0.1)
+A device that can't keep `/v1/voice` open (a real Apple Watch) records while you hold, then uploads the whole clip in one request. Core sends it to the same transcriber in 100 ms frames and ends the turn the same way: the wake phrase removed, the last partial used if no final arrives within 5 seconds, and the command run from that device.
+
+| Step | Message |
+|---|---|
+| Surface → Core | `POST /v1/voice/clip`, body PCM16 mono at 24 kHz (`content-type: application/octet-stream`), at most 30 seconds (1,440,000 bytes) |
+| Core → surface | `200 { text }`: the command it ran, with the wake phrase removed (`""` if it heard only the wake phrase). `400` empty or odd-length audio, `403` unsigned, unpaired, bad signature, stale or repeated, `413` over 30 seconds, `502`/`503` the transcriber failed or isn't set up |
+
+Off the Mac, a paired device signs the clip. It adds `x-auren-device: <device id>` (the command runs from that surface), `x-auren-timestamp: <milliseconds since 1970>` and `x-auren-signature`, ECDSA P-256 / SHA-256 (DER, base64) over:
+```
+auren-clip\n<device id>\n<timestamp>\n<sha256 hex of the body>
+```
+There's no server nonce, because the clip may travel through another device first. Instead Core refuses a clip whose timestamp is more than **60 seconds** from its own clock, either way, and remembers every clip it took until it would be stale, so **a repeated clip is refused**. A late or repeated clip is logged on the timeline. This Mac may post unsigned, naming the surface in `x-auren-surface`.
+
+**Relay.** If Core can't be reached from the watch, the watch hands the signed clip to the iPhone app (WatchConnectivity `transferFile`, with the headers as metadata) and the iPhone posts it unchanged, with its own token. The signature covers the bytes and the time, so the iPhone can't change what was said or hold it back for later. If the watch's own upload did reach Core but the answer was lost, the relayed copy is refused as a repeat, so the command runs once.
+
 ## Camera (v0.1)
 The camera runs only when Core asks, for a command about something in front of you ("add this"). A surface with `camera` in its manifest may get:
 
@@ -100,6 +122,14 @@ Off the Mac, a paired device signs the upload. It adds `x-auren-device: <device 
 auren-frame\n<request_id>\n<sha256 hex of the body>
 ```
 Core waits about 5 seconds for the frame, then gives up. It keeps only the crop of what SAM 3.1 outlined, encrypted, served to the timeline at `GET /v1/crops/:id`; the frame itself is never stored.
+
+## Timeline media (v0.1)
+Two kinds of picture appear on the timeline. A surface checks both before showing them.
+
+| What | Where it comes from | Rules |
+|---|---|---|
+| **What the camera saw** | A `receipt` after `glasses.look` carries `crop_id` | Fetch `GET /v1/crops/:id` with the same bearer token as the rest of `/v1/*` (the token a device already sends for `/v1/events`). Only ids shaped `crop_` + 16 lowercase hex digits; only a `200` of JPEG bytes. |
+| **The browser on the Mac** | A `browser_frame` event per computer-use step: `{ step, status, host, title, frame }`, with `status` one of `ok`, `paused` (waiting for the tap at the commit), `stopped`, `error` | Show `frame` only if it's a `data:image/jpeg;base64,` URL of JPEG bytes, at most 200 KB. Anything else is shown as text. The iPhone shows the newest frame as a live thumbnail and older steps as one line each. |
 
 ## Presence and routing
 A surface is **online** while its heartbeats arrive. It goes offline after 3 s of silence. Core routes each output to the best online surface:

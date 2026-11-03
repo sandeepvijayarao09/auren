@@ -17,7 +17,11 @@ import type { AsrConnector, AsrSession } from "./asr.ts";
 import { stripWake } from "./wake.ts";
 
 const MAX_SECONDS = 30;
-const MAX_BYTES = 24_000 * 2 * MAX_SECONDS;
+/** PCM16 mono at 24 kHz: 48,000 bytes a second. One turn, streamed or uploaded, is at most 30 s. */
+export const MAX_TURN_BYTES = 24_000 * 2 * MAX_SECONDS;
+const MAX_BYTES = MAX_TURN_BYTES;
+/** 100 ms of audio, the frame size surfaces stream in. */
+const FRAME_BYTES = 4_800;
 const START_TIMEOUT_MS = 15_000;
 const FINAL_GRACE_MS = 5_000;
 
@@ -58,10 +62,7 @@ export function handleVoice(ws: WebSocket, local: boolean, deps: VoiceDeps): voi
     if (completed || !surfaceId) return;
     completed = true;
     clearTimeout(grace);
-    const command = stripWake(latest);
-    deps.ops.info("voice.final", { surface: surfaceId, ms_after_end: Math.round(performance.now() - endedAt), seconds: +(bytes / 48_000).toFixed(1), chars: command.length });
-    deps.ledger?.record({ service: "Meta Model API", operation: "asr.realtime muse-voice-transcribe-1.0", status: "ok", ms: performance.now() - endedAt, bytesOut: bytes });
-    if (command) deps.onCommand(command, surfaceId);
+    const command = settleTurn(deps, { surfaceId, heard: latest, bytes, endedAt, via: "stream" });
     send({ type: "done", text: command });
     session?.close();
     ws.close(1000);
@@ -128,4 +129,67 @@ export function handleVoice(ws: WebSocket, local: boolean, deps: VoiceDeps): voi
     clearTimeout(grace);
     session?.close();
   });
+}
+
+/**
+ * How every turn ends, streamed or uploaded: drop the wake phrase, log metadata only
+ * (never the words), and run what's left as a command from that surface. Returns the command,
+ * or "" when only the wake phrase was heard.
+ */
+function settleTurn(deps: VoiceDeps, t: { surfaceId: string; heard: string; bytes: number; endedAt: number; via: "stream" | "clip" }): string {
+  const command = stripWake(t.heard);
+  const ms = performance.now() - t.endedAt;
+  deps.ops.info("voice.final", { surface: t.surfaceId, via: t.via, ms_after_end: Math.round(ms), seconds: +(t.bytes / 48_000).toFixed(1), chars: command.length });
+  deps.ledger?.record({ service: "Meta Model API", operation: "asr.realtime muse-voice-transcribe-1.0", status: "ok", ms, bytesOut: t.bytes });
+  if (command) deps.onCommand(command, t.surfaceId);
+  return command;
+}
+
+/** A clip that couldn't be transcribed: 503 when voice isn't set up, 502 when the transcriber failed. */
+export class VoiceError extends Error {
+  status: 502 | 503;
+  constructor(status: 502 | 503, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+/**
+ * R12: one whole hold-to-talk clip (the watch can't keep the voice socket open). It goes to
+ * the same transcriber in 100 ms frames, then ends exactly like a streamed turn: a final
+ * transcript, or the last partial after the same grace period.
+ */
+export async function transcribeClip(pcm: Uint8Array, surfaceId: string, deps: VoiceDeps): Promise<string> {
+  if (!deps.asr) throw new VoiceError(503, "Voice needs MODEL_API_KEY in .env.");
+  let session: AsrSession;
+  try {
+    session = await deps.asr.open({ keywords: deps.keywords() });
+  } catch (err) {
+    deps.ops.error("voice.open", { surface: surfaceId, via: "clip", message: err instanceof Error ? err.message : String(err) });
+    throw new VoiceError(502, `Muse Voice Transcribe didn't start: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  let latest = "";
+  let ended = false;
+  let grace: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const final = new Promise<void>((resolve, reject) => {
+      session.onTranscript((text, isFinal) => {
+        latest = text;
+        if (isFinal && ended) resolve();
+      });
+      session.onError((message) => reject(new VoiceError(502, `Transcription failed: ${message}`)));
+    });
+    final.catch(() => {});
+    deps.ops.info("voice.start", { surface: surfaceId, via: "clip" });
+    for (let at = 0; at < pcm.length; at += FRAME_BYTES) session.send(Buffer.from(pcm.subarray(at, at + FRAME_BYTES)));
+    ended = true;
+    const endedAt = performance.now();
+    session.end();
+    // If no final arrives, act on the last partial, exactly as the socket does.
+    await Promise.race([final, new Promise<void>((resolve) => (grace = setTimeout(resolve, FINAL_GRACE_MS)))]);
+    return settleTurn(deps, { surfaceId, heard: latest, bytes: pcm.length, endedAt, via: "clip" });
+  } finally {
+    clearTimeout(grace);
+    session.close();
+  }
 }

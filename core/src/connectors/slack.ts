@@ -73,6 +73,7 @@ export function createSlack(opts: SlackOptions): Namespace {
         description: "Post a message to a Slack channel, as the Auren bot.",
         parameters: params({ channel_id: { type: "string" }, text: { type: "string" } }),
         tier: "send",
+        verb: "Post",
         deferred: true,
         async run({ channel_id, text }: { channel_id: string; text: string }) {
           const res = await call("chat.postMessage", { channel: channel_id, text }, true);

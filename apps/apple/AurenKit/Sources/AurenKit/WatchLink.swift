@@ -42,7 +42,34 @@ public final class WatchLink: NSObject, RelayLink, WCSessionDelegate, @unchecked
         lock.withLock { self.handler = handler }
     }
 
+    #if os(watchOS)
+    /// R12, watch → iPhone: a signed voice clip, as a file (a message is too small for audio).
+    /// The iPhone posts the bytes unchanged, so the watch's signature still covers them.
+    public func transferClip(_ pcm: Data, metadata: [String: String]) throws {
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated else {
+            throw RelayError(message: "Couldn't reach Core or your iPhone.")
+        }
+        let file = FileManager.default.temporaryDirectory.appending(path: "clip-\(UUID().uuidString).pcm")
+        try pcm.write(to: file)
+        WCSession.default.transferFile(file, metadata: metadata)
+    }
+
+    public func session(_ session: WCSession, didFinish fileTransfer: WCSessionFileTransfer, error: Error?) {
+        try? FileManager.default.removeItem(at: fileTransfer.file.fileURL)
+    }
+    #endif
+
     #if os(iOS)
+    /// R12: called on the iPhone with each voice clip the watch hands over, to post to Core unchanged.
+    public var onClip: (@Sendable (_ pcm: Data, _ metadata: [String: String]) -> Void)?
+
+    public func session(_ session: WCSession, didReceive file: WCSessionFile) {
+        // WatchConnectivity deletes the file when this returns, so read it now, and never more than a clip can be.
+        let size = (try? file.fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? .max
+        guard size <= ClipBuffer.maxBytes, let pcm = try? Data(contentsOf: file.fileURL) else { return }
+        onClip?(pcm, (file.metadata ?? [:]).compactMapValues { $0 as? String })
+    }
+
     /// iPhone → watch: the address and token the watch should use.
     public func pushConfig(coreURL: String, token: String) {
         guard WCSession.isSupported(), WCSession.default.activationState == .activated, WCSession.default.isPaired, WCSession.default.isWatchAppInstalled else { return }

@@ -132,7 +132,7 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
     callCtx = {
       ...ctx,
       approveCommit: async (summary) => {
-        const approved = await ctx.surfaces.requestApproval(summary, "send", deps.approvalTimeoutMs);
+        const approved = await ctx.surfaces.requestApproval(summary, "send", deps.approvalTimeoutMs, tool.verb); // R12: verb
         ops.info("tool.approval", { trace: ctx.trace, tool: name, approved, at: "commit" });
         committed ||= approved;
         return approved;
@@ -140,7 +140,7 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
     };
   } else if (tool.tier === "send") {
     const summary = tool.summarize?.(args) ?? `${ns.app}: ${tool.name}`;
-    const approved = await ctx.surfaces.requestApproval(summary, tool.tier, deps.approvalTimeoutMs);
+    const approved = await ctx.surfaces.requestApproval(summary, tool.tier, deps.approvalTimeoutMs, tool.verb); // R12: verb
     ops.info("tool.approval", { trace: ctx.trace, tool: name, approved });
     if (!approved) return out({ error: "user_declined" });
   }

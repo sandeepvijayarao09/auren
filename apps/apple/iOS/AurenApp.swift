@@ -13,7 +13,15 @@ struct AurenApp: App {
         return SurfaceClient.socketURL(core: core, token: defaults.string(forKey: "token"))
     })
 
+    // R12: the watch's voice clips, when it can't reach Core itself. Posted byte for byte, with the watch's signature.
+    private static let clips = ClipRelayHost(core: {
+        let defaults = UserDefaults.standard
+        guard let core = URL(string: defaults.string(forKey: "coreURL") ?? "http://127.0.0.1:8787") else { return nil }
+        return (core, defaults.string(forKey: "token"))
+    })
+
     init() {
+        WatchLink.shared.onClip = { pcm, metadata in Task { try? await Self.clips.forward(pcm: pcm, metadata: metadata) } }
         WatchLink.shared.activate()
         relay.start()
         let id = DeviceID.stable(prefix: "phone")

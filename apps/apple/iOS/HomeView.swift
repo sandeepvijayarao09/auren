@@ -32,7 +32,11 @@ struct HomeView: View {
                         Text("Say it once. Everything Muse does shows up here, with a receipt.")
                             .foregroundStyle(.secondary)
                     }
-                    ForEach(client.events.reversed()) { EventRow(event: $0) }
+                    // R12: the newest computer-use frame shows its picture; receipts show what the camera saw.
+                    let live = client.events.liveBrowserFrameID
+                    ForEach(client.events.reversed()) { event in
+                        EventRow(event: event, showsFrame: event.id == live, core: URL(string: coreURL), token: token)
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
@@ -121,6 +125,9 @@ struct HomeView: View {
 
 struct EventRow: View {
     let event: AurenEvent
+    var showsFrame = false
+    var core: URL?
+    var token = ""
 
     var body: some View {
         let style = event.style
@@ -130,13 +137,57 @@ struct EventRow: View {
                 .foregroundStyle(style.signal.color)
                 .frame(width: 96, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
+                if showsFrame, let frame = event.browserFrame, let image = UIImage(data: frame.jpeg) {
+                    TimelineImage(image: image, label: "The browser on your Mac, step \(frame.step)")
+                }
                 Text(event.line)
+                if let cropID = event.cropID, let core {
+                    CropThumbnail(core: core, token: token, cropID: cropID)
+                }
                 Text(event.date, style: .time)
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// R12: a picture on the timeline, at the size of the console's.
+struct TimelineImage: View {
+    let image: UIImage
+    let label: String
+
+    var body: some View {
+        Image(uiImage: image)
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: 320, alignment: .leading)
+            .clipShape(.rect(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
+            .accessibilityLabel(label)
+    }
+}
+
+/// R12: what the camera saw for "add this": the crop SAM outlined, fetched from Core with the app's token.
+struct CropThumbnail: View {
+    let core: URL
+    let token: String
+    let cropID: String
+    @State private var image: UIImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                TimelineImage(image: image, label: "What Auren saw")
+                    .frame(maxWidth: 220, alignment: .leading)
+            }
+        }
+        .task(id: cropID) {
+            guard image == nil, let request = CropImage.request(core: core, token: token, cropID: cropID),
+                  let data = try? await CropImage.fetch(request) else { return }
+            image = UIImage(data: data)
+        }
     }
 }
 
@@ -153,7 +204,8 @@ struct ApprovalCard: View {
             Text(request.summary).font(.headline)
             HStack {
                 Button { answer(true) } label: {
-                    Text("Approve").foregroundStyle(Color.aurenOnyx).frame(maxWidth: .infinity)
+                    // R12: the verb Core sent ("Post", "Invite", "Confirm"), or "Approve".
+                    Text(request.actionLabel).foregroundStyle(Color.aurenOnyx).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 Button("Not now") { answer(false) }

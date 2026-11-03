@@ -116,3 +116,14 @@ test("the prompt carries the user's date and time", async () => {
   assert.match(text, /Today's date is 2026-10-31\./);
   assert.doesNotMatch(text, /powered by/i);
 });
+
+// R12: the approve button says what it does.
+test("a send tool's verb reaches the approval: the Slack post asks to Post", async () => {
+  const { deps, world, watchInbox } = setup(GP1, true);
+  await runCommand(deps, { session: "s", text: "I'm running 15 late…", originSurfaceId: "watch" });
+  const asked = watchInbox.find((m) => m.type === "approval_request");
+  assert.equal(asked?.type === "approval_request" && asked.verb, "Post");
+  // Every send in the demo world names its button.
+  const sends = world.namespaces.flatMap((ns) => ns.tools.filter((t) => t.tier === "send").map((t) => [`${ns.name}.${t.name}`, t.verb]));
+  assert.deepEqual(Object.fromEntries(sends), { "calendar.invite": "Invite", "slack.post_message": "Post" });
+});

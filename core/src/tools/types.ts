@@ -38,6 +38,12 @@ export interface ToolSpec<A = any, R = any> {
    * hands it `ctx.approveCommit` and writes a receipt only if that tap approved.
    */
   commitPoint?: boolean;
+  /**
+   * R12: the word on the approval button for a send-tier tool ("Post", "Send", "Invite",
+   * "Confirm"). Display only: Core sends it with approval_request, and a device's signature
+   * still covers just the request, the decision and the summary. Surfaces fall back to "Approve".
+   */
+  verb?: string;
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;

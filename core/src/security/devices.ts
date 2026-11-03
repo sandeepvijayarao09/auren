@@ -32,6 +32,15 @@ export const voicePayload = (nonce: string, deviceId: string) => Buffer.from(`au
 export const framePayload = (requestId: string, jpeg: Uint8Array) =>
   Buffer.from(`auren-frame\n${requestId}\n${createHash("sha256").update(jpeg).digest("hex")}`);
 
+/**
+ * R12: what a device signs to upload a hold-to-talk clip (the watch): its id, when it
+ * recorded (milliseconds since 1970), and a hash of the exact PCM bytes. There's no
+ * server nonce, because the clip may travel through the iPhone; Core refuses stale and
+ * repeated uploads instead.
+ */
+export const clipPayload = (deviceId: string, timestamp: number, pcm: Uint8Array) =>
+  Buffer.from(`auren-clip\n${deviceId}\n${timestamp}\n${createHash("sha256").update(pcm).digest("hex")}`);
+
 /** What a device signs to approve or decline: the request, the decision, and a hash of the summary it showed. */
 export const approvalPayload = (requestId: string, approved: boolean, summary: string) =>
   Buffer.from(`auren-approve\n${requestId}\n${approved ? 1 : 0}\n${createHash("sha256").update(summary).digest("hex")}`);
