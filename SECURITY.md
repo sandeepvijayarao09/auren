@@ -32,13 +32,26 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 |---|---|---|
 | Audit log (`auren.db`) | Every utterance, tool call, approval, receipt and reply: encrypted and chained | — |
 | Operational log (stdout, plus `AUREN_LOG_FILE`) | Trace id, latency, model, token counts, tool name, tier, outcome | Tokens, keys or message bodies. Anything shaped like a secret is scrubbed, and long strings are cut. |
-| Outbound ledger (`/v1/outbound`) | Service, operation (ids removed from paths), bytes sent, time, status | Contents |
+| Outbound ledger (`/v1/outbound`) | Service, operation (ids removed from paths; for MCP, the tool and `stdio` or the host), bytes sent, time, status | Contents |
 
 ## Safety in the agent
 - **Tiers are enforced by Core, not the model.** Reads run on their own. Writes leave a receipt and an Undo. Sends wait for a tap ([ARCHITECTURE.md §10](ARCHITECTURE.md#10-safety-model)).
 - **Untrusted content.** Email, chat, calendar and web content reaches the model wrapped as data, never as instructions.
 - **Computer use** stops before any commit and never solves a CAPTCHA ([driver/src/guard.ts](driver/src/guard.ts)).
 - **Secrets in git.** A gitleaks pre-commit hook and CI scan block commits that contain keys.
+
+## MCP servers
+You can connect MCP servers you already use ([docs/mcp-setup.md](docs/mcp-setup.md)). Auren treats each one as a stranger with good intentions: what a server says about its tools is **a claim, not a fact**. The MCP spec says the same thing: clients shouldn't trust tool annotations from servers they don't trust.
+- **Every MCP tool asks for a tap by default.** All of a server's tools are send tier unless you set `"trust_annotations": true` for that server in `mcp.json`. Then, and only then, a tool the server marks `readOnlyHint: true` runs on its own (read). A hint that isn't exactly `true` doesn't count.
+- **Nothing from MCP is ever write.** Write means "runs on its own, with an Undo", and Auren can't undo a call on someone else's server. So it's read or send, never write.
+- **Results are untrusted data.** Every MCP result reaches the model wrapped as data, never as instructions, like email and web content. Error text from a server is labelled as the server's words. Images and files are described, not passed on, and results are capped at 16,000 characters.
+- **Names and descriptions are untrusted too** (tool poisoning). Before the model sees them, Auren removes control, zero-width, bidi and tag characters, caps descriptions at 400 characters, and maps names to the Responses function-name charset with a stable hash. It drops schema defaults, examples and `$ref`s, which are free text the model would otherwise read. The namespace description says which server the tools came from. A server can't take the name of one of Auren's own apps (`slack`, `calendar`, …).
+- **The tap shows what you're approving.** It names the server, the tool and up to four of its arguments, each cut to 60 characters: `Run add_entry in Journal (MCP) · text "Moved office hours to 3:15…" · date "2026-11-03"`. Your device signs that exact text, as for any send.
+- **Secrets stay out of logs.** `mcp.json` can hold tokens (in `env` or `headers`), so it's gitignored, and `mcp.example.json` is the committed template. Env values, header values and URL credentials are scrubbed from anything Auren logs or shows. `/v1/connections` lists names, states, tool counts and trust mode, never commands, URLs, env or headers.
+- **A stdio server gets a minimal environment** (PATH, HOME, USER, SHELL, TERM, LOGNAME) plus its own `env`, so Core's keys never reach it. Plain `http://` is allowed only for a server on this Mac, and redirects are refused, so headers can't follow a redirect to another host.
+- **Every MCP request is one row in the outbound ledger**: the server, `tools/list` or `tools/call <tool>`, where it went (`stdio` or the host), bytes sent and time. Never the arguments or the result.
+- **Auren offers servers nothing back.** No sampling, roots or elicitation, so a server can't ask Muse anything or read your files through Auren. Server `instructions` are never shown to the model.
+- **`mcp.json` is as sensitive as `.env`.** Anything in it runs on your Mac with your user's rights. Only add servers you'd run yourself.
 
 ## Threat model
 | Threat | What stops it |
@@ -50,6 +63,7 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 | A compromised relay (such as the iPhone relaying the watch) changes what the watch shows | The watch signs a hash of the summary it displayed, so Core rejects the mismatch |
 | Someone tunnels into Core and claims to be the Mac | Forwarded traffic is treated as remote and must pair |
 | A secret leaks into logs | Redaction by name and by shape; long strings are cut |
+| A connected MCP server lies about its tools, or hides instructions in them | Its read-only hints count only if you trusted that server; anything else asks for a tap. Names, descriptions and schemas are cleaned and capped, and results arrive as untrusted data |
 | Model provider retention | Out of Auren's control. The ledger shows exactly what was sent and when. |
 
 Found a problem? Open a private security advisory on the repository.

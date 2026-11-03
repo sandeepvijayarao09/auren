@@ -14,7 +14,7 @@ const Case = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   golden_path: z.enum(["GP1", "GP2", "GP3", "GP4", "GP5"]).nullable(),
-  category: z.enum(["fan-out", "tier-gate", "injection", "handoff", "vision", "stop-before-commit", "undo", "recall"]),
+  category: z.enum(["fan-out", "tier-gate", "injection", "handoff", "vision", "stop-before-commit", "undo", "recall", "platform"]),
   surface: SurfaceKind,
   online: z.array(SurfaceKind).min(1),
   commands: z.array(z.string().min(1)).min(1),
@@ -39,12 +39,14 @@ type Case = z.infer<typeof Case>;
 const built = new Map<string, string>();
 // Send-tier tools that ask at their own commit point, so a run that stops first asks nothing.
 const commitPoint = new Set<string>();
-for (const ns of evalWorld({ log: new EventLog(), session: "cases" }).namespaces) {
+const world = await evalWorld({ log: new EventLog(), session: "cases" });
+for (const ns of world.namespaces) {
   for (const t of ns.tools) {
     built.set(`${ns.name}.${t.name}`, t.tier);
     if (t.commitPoint) commitPoint.add(`${ns.name}.${t.name}`);
   }
 }
+await world.close();
 // Matches the presets in apps/web/index.html and AurenKit: only these take a tap.
 const TOUCH = new Set(["watch", "phone", "web"]);
 

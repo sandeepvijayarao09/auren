@@ -24,3 +24,6 @@ apps/apple/*/Info.plist
 # Secure Enclave key files and operational logs
 .auren-keys/
 logs/
+# R11: MCP bridge. Your MCP servers (commands, tokens) and the demo Journal's entries; mcp.example.json is the template
+mcp.json
+journal.json

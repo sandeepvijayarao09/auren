@@ -27,6 +27,8 @@ import { createReceipts } from "./memory/receipts.ts";
 import { sparkOpen } from "./memory/spark.ts";
 import { createBrowser } from "./computer/browser.ts";
 import { DriverHub } from "./computer/hub.ts";
+// R11: MCP bridge
+import { loadMcpConfig, McpBridge } from "./connectors/mcp.ts";
 
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
@@ -81,6 +83,13 @@ tools.add(createGlasses({ broker: frames, reader: sparkReader(muse, config.fastM
 const driver = new DriverHub({ ops });
 tools.add(createBrowser({ hub: driver, muse, model: config.agentModel, log, ops, ledger, approvalTimeoutMs: config.approvalTimeoutMs }));
 
+// R11: MCP bridge. Each server in mcp.json becomes a namespace while it's connected.
+// They connect in the background, so a slow or broken server never holds up Core.
+const mcpConfig = loadMcpConfig(config.mcpConfig || undefined);
+const mcp = new McpBridge({ servers: mcpConfig.servers, ledger, ops });
+tools.add(...mcp.namespaces);
+mcp.start();
+
 const core = createServer(
   {
     muse,
@@ -104,6 +113,7 @@ const core = createServer(
     },
     vision: { frames, crops },
     driver,
+    mcp, // R11: MCP bridge
   },
 );
 
@@ -126,6 +136,10 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   console.log(`  apps: calendar and gmail ${googleState} · slack ${config.slackBotToken ? "live" : "demo"}`);
   console.log(`  time zone: ${config.timeZone}`);
   console.log("  browser: start the computer-use driver with `cd driver && npm start`");
+  // R11: MCP bridge
+  const servers = mcpConfig.servers.map((s) => `${s.namespace} (${s.transport}${s.trust ? ", read-only hints trusted" : ", every tool asks"})`);
+  console.log(`  mcp: ${servers.length ? `${servers.join(", ")}; connecting in the background, see /v1/connections` : mcpConfig.found ? "no servers in mcp.json" : "no mcp.json (see mcp.example.json)"}`);
+  for (const e of mcpConfig.errors) console.warn(`  ⚠ mcp: ${e}`);
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
 });
 server.on("upgrade", core.upgrade);

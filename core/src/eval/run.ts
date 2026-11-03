@@ -224,7 +224,7 @@ const message = (err: unknown) => (err instanceof Error ? err.message : String(e
 /** Everything one case plays in: one world, one log, and the instruments on both. */
 class Bench {
   readonly session = "eval";
-  readonly log = new EventLog();
+  readonly log: EventLog;
   readonly world: EvalWorld;
   readonly tools: ToolRegistry;
   runs: Execution[] = [];
@@ -239,8 +239,15 @@ class Bench {
   #timers: Array<ReturnType<typeof setTimeout>> = [];
   #callTool = new Map<string, string>();
 
-  constructor(opts: EvalOptions) {
-    this.world = evalWorld({ log: this.log, session: this.session });
+  /** The world connects its MCP servers first, so a Bench is opened, not constructed. */
+  static async open(opts: EvalOptions): Promise<Bench> {
+    const log = new EventLog();
+    return new Bench(opts, log, await evalWorld({ log, session: "eval" }));
+  }
+
+  private constructor(opts: EvalOptions, log: EventLog, world: EvalWorld) {
+    this.log = log;
+    this.world = world;
     opts.patchTools?.(this.world.namespaces);
     this.tools = new ToolRegistry().add(...this.world.namespaces.map((ns) => ({ ...ns, tools: ns.tools.map((t) => this.#wrap(ns, t)) })));
     this.log.onEvent((e) => this.eventAt.set(e.id, performance.now()));
@@ -555,7 +562,7 @@ async function runCase(c: Case, all: Map<string, Case>, opts: EvalOptions): Prom
   const setupScript = live || !setupCase ? null : loadScript(setupCase.id);
   if (!live && (!script || (setupCase && !setupScript))) return { ...result, failures: [`no script in eval/scripts for ${!script ? c.id : setupId}`] };
 
-  const bench = new Bench(opts);
+  const bench = await Bench.open(opts);
   try {
     // Skip what isn't built yet: a case lights up as soon as its tools are in the registry.
     const needed = new Set([...c.expect.tools, ...c.expect.approvals.map((a) => a.tool), ...c.expect.must_not]);
@@ -684,6 +691,7 @@ async function runCase(c: Case, all: Map<string, Case>, opts: EvalOptions): Prom
     result.failures.push(`runner error: ${message(err)}`);
   } finally {
     bench.close();
+    await bench.world.close();
   }
   result.status = result.failures.length ? "fail" : "pass";
   return result;
