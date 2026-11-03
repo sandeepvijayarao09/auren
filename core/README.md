@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 120 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
+npm test          # 170 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -34,7 +34,7 @@ npm run typecheck
 | `src/connectors/tape.ts` | Record real API responses once (tokens scrubbed), replay them offline in tests and evals | ✅ |
 | `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe → a command; wake phrase and keywords | ✅ |
 | `src/vision/` | `glasses.look`: a capture request → one blurred frame → Muse Spark reads it, SAM 3.1 outlines it → an encrypted receipt crop | ✅ tested against fake models ([R6](../docs/rounds/R6.md)) |
-| `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/` | ⏳ Day 6 |
+| `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/`, with the tap at the commit | ✅ tested against a fake driver and scripted Muse ([R7](../docs/rounds/R7.md)) |
 | `src/memory/` | Auren Memory: recap and recall over receipts on Muse Spark Open (local fallback), and `receipts.undo` | ✅ |
 
 ## Routes
@@ -61,6 +61,7 @@ npm run typecheck
 | `GET /v1/crops/:id` | token | A receipt's crop: what SAM 3.1 outlined |
 | `WS /v1/surface` | token or paired device | The Surface Protocol ([spec](../spec/surface-protocol.md)) |
 | `WS /v1/voice` | this Mac or paired device | Hold-to-talk audio in, transcripts out ([spec](../spec/surface-protocol.md#voice-v01)) |
+| `WS /v1/driver` | this Mac, or token | The Playwright driver dials in and takes one batch of actions at a time ([driver](../driver/README.md)) |
 
 "token" means `Authorization: Bearer $AUREN_TOKEN` or `?token=`. Without `AUREN_TOKEN`, Core listens on 127.0.0.1 only and needs no token.
 

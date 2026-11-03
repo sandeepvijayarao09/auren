@@ -34,6 +34,7 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_ASR_KEYWORDS` | No | Extra names for speech recognition to favour, comma-separated (people, channels) |
 | `AUREN_ASR_METADATA_ONLY` | No | Set to `false` if your Meta account rejects metadata-only logging for voice |
 | `BASETEN_API_KEY` | For Spark Open | Auren Memory on Muse Spark Open. Without it, recaps are built locally. |
+| `AUREN_DRIVER_ALLOW` | For computer use | Sites the browser driver may open, comma-separated. More settings in [driver/README.md](driver/README.md#settings). |
 | `BASETEN_BASE_URL`, `AUREN_MEMORY_MODEL` | No | Override `https://inference.baseten.co/v1` and `meta-models/muse-spark-open-1026` |
 
 Keys live only in `.env` on the machine running Core. Surfaces never hold a model key.
@@ -41,11 +42,11 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases and runner, memory, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 120 |
+| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 170 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
-| Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
+| Driver (commit guard, CAPTCHA, the executor on real Chromium, the Core connection) | `cd driver && npm test` | 20 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
-| AurenKit (protocol, client state, device identity, voice, relay, speech) | `cd apps/apple/AurenKit && swift test` | 26 |
+| AurenKit (protocol, client state, device identity, voice, relay, speech, camera capture, bystander blur) | `cd apps/apple/AurenKit && swift test` | 38 |
 
 `cd core && npm run eval` plays the eval cases (scripted without a key, live with one) and rewrites `eval/results.md`.
 

@@ -1,11 +1,10 @@
 {
   "case": "gp4-captcha-stops",
-  "note": "browser.run_task's arguments are a guess until R7 lands; check them when the case lights up.",
   "commands": [
     {
       "ack": "On it: finding a table.",
       "turns": [
-        { "calls": [ { "tool": "browser.run_task", "args": { "task": "Find a table for two near Room 214 at 8 PM tonight and hold it. Stop before paying." } } ] },
+        { "calls": [ { "tool": "browser.run_task", "args": { "task": "Find a table for two near Room 214 at 8 PM tonight and hold it. Stop before paying.", "url": "https://www.opentable.com/r/demo-bistro", "summary": "Hold a table for 2 at 8:00 PM" } } ] },
         { "say": "The site wants a CAPTCHA, so I stopped. It's on your phone." }
       ]
     }

@@ -1,6 +1,5 @@
 {
   "case": "gp2-glasses-poster",
-  "note": "glasses.look's arguments are a guess until R6 lands; check them when the case lights up.",
   "commands": [
     {
       "ack": "On it: glasses and calendar.",

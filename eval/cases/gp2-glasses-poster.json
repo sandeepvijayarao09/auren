@@ -13,7 +13,11 @@
     "Add this, and invite Priya."
   ],
   "fixtures": {
-    "frame": "poster-with-bystander.jpg (lands with the vision work on Day 5)",
+    "poster": {
+      "title": "Demo night",
+      "start": "18:00",
+      "place": "Room 214"
+    },
     "expect_event": {
       "title": "Demo night",
       "place": "Room 214"

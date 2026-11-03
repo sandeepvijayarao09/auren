@@ -65,9 +65,9 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Demo world: Calendar, Slack, Gmail (in memory, fictional people) | ✅ |
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
 | iPhone and Apple Watch apps: timeline, approvals, speech | ✅ build for the Simulator; on devices from Day 4 |
-| Commit guard and CAPTCHA stop for computer use | ✅ tested |
+| Computer use (GP4): `browser.run_task` runs a nested Muse Wonder loop that drives Chromium on the Mac through the Playwright driver; the commit guard pauses before any confirm click, so the only tap comes at the commit; a CAPTCHA stops the run | ✅ built and tested on real Chromium; live Muse computer use needs the API key |
 | Router output schema and labelling rubric | ✅ |
-| Eval runner: 10 golden-path and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ 7 of 7 runnable cases pass, **0 tier violations**; 3 wait for vision and computer use |
+| Eval runner: 10 golden-path and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ all 10 pass, none skipped, **0 tier violations** |
 | Auren Memory (recap and recall on Muse Spark Open, with a local fallback) and undo by voice | ✅ built and tested against a fake Baseten; live run needs `BASETEN_API_KEY` |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
 | Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
@@ -75,11 +75,11 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Gmail and Slack connectors, plus record and replay for API calls | ✅ built and tested; live runs need your accounts ([Google](docs/google-setup.md), [Slack](docs/slack-setup.md)) |
 | Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone | ✅ built and tested against a fake transcriber; live run needs the API key |
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
-| Glasses (Wearables toolkit) | ⏳ |
-| Computer-use runner and driver · glasses vision | ⏳ built on their own branches, not merged yet |
+| Glasses (Wearables toolkit) | ⏳ the toolkit isn't available here, so the glasses camera is a stub; the iPhone's camera answers GP2 today |
+| Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models; live run needs the API key and a real iPhone |
 | Auren Router (Glimmer fine-tune) | ⏳ needs Modal |
 
-**Tests:** 163 across five suites (Core 120, AurenKit 26, keyd 6, driver 6, router 5), plus the scripted eval in `npm run eval`. No API key or device needed.
+**Tests:** 239 across five suites (Core 170, AurenKit 38, driver 20, keyd 6, router 5), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.
@@ -88,7 +88,7 @@ Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router ne
 make setup     # installs everything, turns on the secret scan, creates .env
                # then add MODEL_API_KEY from dev.meta.ai to .env
 make dev       # Core and the console on http://127.0.0.1:8787
-make test      # all four test suites
+make test      # every test suite
 ```
 
 - Open **http://127.0.0.1:8787/** for the console. Open a second tab at **/?kind=watch** to get a "watch".
@@ -101,9 +101,9 @@ make test      # all four test suites
 core/            Auren Core: TypeScript on Node, Hono, ws, zod, node:sqlite, OpenAI SDK → api.meta.ai/v1
 apps/web/        the console surface, served by Core
 apps/apple/      iPhone + Apple Watch apps (SwiftUI, XcodeGen) and AurenKit, the shared Swift package
-driver/          computer use on the Mac: the commit guard today, the Playwright driver on Day 6
-router/          Auren Router: output schema, labelling rubric; Glimmer fine-tune on Day 6
-eval/            golden-path and safety cases, checked by Core's tests; the runner on Day 7
+driver/          computer use on the Mac: the Playwright driver and its commit guard
+router/          Auren Router: output schema, labelling rubric; the Glimmer fine-tune needs Modal
+eval/            golden-path and safety cases, their scripts, and the latest `npm run eval` results
 spec/            Surface Protocol v0 and the 20-line example surface
 keyd/            auren-keyd: seals Core's master key to the Mac's Secure Enclave (Swift)
 brand/           palette, mark, tokens and naming

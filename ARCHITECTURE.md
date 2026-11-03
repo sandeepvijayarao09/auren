@@ -118,7 +118,7 @@ A **surface** is any device you talk to Auren through. **Core** is the single br
 
 ```mermaid
 flowchart TB
-  EDGE["Edge · Hono + ws · bearer token<br/>surface · command · approvals · events ✅<br/>voice · frames · driver ⏳"]
+  EDGE["Edge · Hono + ws · bearer token<br/>surface · command · approvals · events ✅<br/>voice · frames · driver ✅"]
   subgraph BRAIN["Brain"]
     direction LR
     FST["Fast lane<br/>Spark ack ✅ · Router ⏳"]
@@ -137,11 +137,11 @@ flowchart TB
   end
   subgraph SVC["Services behind the guard"]
     direction LR
-    CON["Connectors<br/>demo world ✅ · Google, Slack ⏳"]
-    VG["Voice gateway ⏳<br/>Muse Voice Transcribe"]
-    VIS["Vision ⏳<br/>Spark 1.3 + SAM 3.1"]
-    CUR["Computer-use runner ⏳"]
-    MEM["Auren Memory ⏳<br/>Spark Open"]
+    CON["Connectors<br/>demo world · Google · Slack ✅"]
+    VG["Voice gateway ✅<br/>Muse Voice Transcribe"]
+    VIS["Vision ✅<br/>Spark 1.3 + SAM 3.1"]
+    CUR["Computer-use runner ✅"]
+    MEM["Auren Memory ✅<br/>Spark Open"]
   end
   LOG[("Event log ✅ · append-only · node:sqlite<br/>every append is broadcast to every surface")]
   EDGE --> BRAIN
@@ -156,17 +156,17 @@ flowchart TB
 |---|---|---|---|---|
 | **Event log** | Append-only record of the session. Every append is broadcast to every surface. | `append(session, kind, data)`, `since(session, afterId)`, `get(id)`, `onEvent(fn)` | [`eventlog.ts`](core/src/eventlog.ts) | ✅ |
 | **Surface registry** | Holds manifests and presence. A surface is online while heartbeats arrive. | `join`, `leave`, `heartbeat(id, active)`, `touch`, `online()`, `sweep()` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
-| **Device picker** | Chooses the best online surface for each output (rules in [§11](#11-presence-and-handoff-gp3)). | `speak(text, origin)`, `showCard(title, body)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ (capture ⏳ Day 5) |
+| **Device picker** | Chooses the best online surface for each output (rules in [§11](#11-presence-and-handoff-gp3)). | `speak(text, origin)`, `showCard(title, body)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Approval broker** | Turns a send-tier call into a tap. It routes the request, moves it when a device drops, takes the first answer, and expires the request after 60 s, which counts as a decline. | `requestApproval(summary, tier) → Promise<boolean>`, `answer(id, approved, from)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Agent loop** | Runs Muse Wonder on the Responses API: parallel tool calls, up to 8 turns, and the tool inventory rebuilt each turn. | `runCommand(deps, {session, text, originSurfaceId})` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ scripted · live run pending a key |
 | **Fast lane** | Speaks an acknowledgement in under 8 words while Wonder plans. Uses Spark at minimal effort and a 2.5 s timeout; the Router is added later. | `fastAck` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ ack · Router ⏳ Nov 1 gate |
 | **Tool registry** | Turns apps and devices into Muse tool namespaces. Builds the per-turn inventory, adds `tool_search` when tools are deferred, and resolves calls. | `toResponsesTools(ctx)`, `resolve(name, namespace)` | [`tools/registry.ts`](core/src/tools/registry.ts) | ✅ hosted search · client-executed ⏳ Day 2 |
 | **Guard** | Enforces tiers, writes receipts with undo steps, and wraps external results as untrusted data. | inside `executeCall`, `undoReceipt` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ |
-| **Connectors** | App adapters behind stable tool names. Today it's an in-memory demo world with fictional people. | `Namespace` | [`tools/demo-world.ts`](core/src/tools/demo-world.ts) | ✅ demo · Google, Slack ⏳ Day 1–2 |
-| **Voice gateway** | Proxies the device microphone to Muse Voice Transcribe, so keys stay in Core. | `/v1/voice` | `core/src/voice/` | ⏳ Day 3 |
-| **Vision** | Blurred frame in, fields and a SAM crop out. | `glasses.look`, `phone.look` tools | `core/src/vision/` | ⏳ Day 5 |
-| **Computer-use runner** | A nested Wonder loop with the `computer` tool. It drives the Mac browser and holds before any commit. | `browser.run_task` tool | `core/src/computer/`, `driver/` | ⏳ Day 6 |
-| **Auren Memory** | Recaps and recall over the event log, using Spark Open on Baseten. | `memory.recap`, `memory.recall` tools | `core/src/memory/` | ⏳ Day 7 |
+| **Connectors** | App adapters behind stable tool names. Today it's an in-memory demo world with fictional people. | `Namespace` | [`tools/demo-world.ts`](core/src/tools/demo-world.ts) | ✅ demo · Google Calendar, Gmail, Slack ✅ (live runs need your accounts) |
+| **Voice gateway** | Proxies the device microphone to Muse Voice Transcribe, so keys stay in Core. | `/v1/voice` | [`voice/`](core/src/voice/) | ✅ · 🧪 live ASR |
+| **Vision** | Blurred frame in, fields and a SAM crop out. | `glasses.look` tool (glasses first, else the phone camera) | [`vision/`](core/src/vision/) | ✅ · 🧪 live Spark and SAM |
+| **Computer-use runner** | A nested Wonder loop with the `computer` tool. It drives the Mac browser and holds before any commit. | `browser.run_task` tool | [`computer/`](core/src/computer/), [`driver/`](driver/) | ✅ · 🧪 live computer use |
+| **Auren Memory** | Recaps and recall over the event log, using Spark Open on Baseten. | `memory.recap`, `memory.recall` tools | [`memory/`](core/src/memory/) | ✅ · 🧪 live Spark Open |
 
 ## 5. Surfaces
 
@@ -174,9 +174,9 @@ Each device joins with a manifest. Core never special-cases a device kind beyond
 
 | Surface | Manifest (inputs → outputs) | How you start a command | How Auren answers | Transport | Runs on the device | Status |
 |---|---|---|---|---|---|---|
-| **⌚ Watch** | voice, text, touch → voice, haptic, screen | Press to talk. watchOS gives third-party apps no always-on wake word. | Speech on the watch; a haptic plus Approve/Decline for sends | Relayed by the iPhone app (WatchConnectivity), with an HTTPS fallback: upload the clip, poll `/v1/events` | Recording, speech output, approval UI, "active" = wrist raised and app in front | ⏳ Day 4 · 🧪 hello-upload spike, Day 1 |
-| **🕶️ Glasses** | voice, camera → voice | "Hey Muse", heard by the iPhone app on the glasses mic | Speech through the glasses speakers | The iPhone app opens a **separate surface connection** for the glasses, so the router can tell them apart from the phone | Frame grab, through the Meta Wearables Device Access Toolkit | ⏳ Day 5 · 🧪 G1 gate, Wed 6 PM |
-| **📱 iPhone** | voice, text, camera, touch → voice, screen | "Hey Muse" in the app, or hold to talk | Live timeline, receipts with Undo, approvals, live computer-use frames | WebSocket | Wake-phrase check, **person-segmentation blur** (Apple Vision), hosts the glasses and the watch relay | ⏳ Day 3 |
+| **⌚ Watch** | voice, text, touch → voice, haptic, screen | Press to talk. watchOS gives third-party apps no always-on wake word. | Speech on the watch; a haptic plus Approve/Decline for sends | Relayed by the iPhone app (WatchConnectivity), with an HTTPS fallback: upload the clip, poll `/v1/events` | Recording, speech output, approval UI, "active" = wrist raised and app in front | ✅ builds for the Simulator · 🧪 the relay on a real watch |
+| **🕶️ Glasses** | voice, camera → voice | "Hey Muse", heard by the iPhone app on the glasses mic | Speech through the glasses speakers | The iPhone app opens a **separate surface connection** for the glasses, so the router can tell them apart from the phone | Frame grab, through the Meta Wearables Device Access Toolkit | ⏳ toolkit not available here: the glasses camera is a stub, so the iPhone camera answers · 🧪 G1 gate |
+| **📱 iPhone** | voice, text, camera, touch → voice, screen | "Hey Muse" in the app, or hold to talk | Live timeline, receipts with Undo, approvals, live computer-use frames | WebSocket | Wake-phrase check, **person-segmentation blur** (Apple Vision), hosts the glasses and the watch relay | ✅ builds for the Simulator · 🧪 camera and blur on a real phone |
 | **💻 Web / Mac** | text, touch → screen, voice (voice in ⏳ Day 3) | Type, or talk in the browser | Timeline, cards, browser speech | WebSocket | Nothing special; the Mac also hosts the computer-use driver | ✅ [`apps/web`](apps/web/index.html) |
 | **Any device** | whatever it declares | — | — | WebSocket | — | ✅ [20-line example](spec/examples/minimal-surface.html) |
 
@@ -199,11 +199,11 @@ The full spec is in [`spec/surface-protocol.md`](spec/surface-protocol.md). It u
 
 | Message / channel | Why | Lands |
 |---|---|---|
-| `speak {text, reply_id, seq}`, sentence-chunked | When a surface drops mid-reply, the rest of the reply moves to the next voice surface (GP3) | ⏳ Day 4 |
-| `/v1/voice` WebSocket, PCM16 24 kHz mono | Streams the microphone to Core, which proxies it to Muse ASR | ⏳ Day 3 |
-| `capture_request {request_id, purpose}` → `POST /v1/frames/:request_id` | The camera is only ever triggered by Core, and only for a "this" command | ⏳ Day 5 |
-| `browser_frame {jpeg, step}` event | Live computer-use frames on the phone timeline | ⏳ Day 6 |
-| `/v1/driver` WebSocket | The Mac driver dials out to Core and receives `computer_call` actions | ⏳ Day 6 |
+| `speak {text, reply_id, seq}`, sentence-chunked | When a surface drops mid-reply, the rest of the reply moves to the next voice surface (GP3) | ✅ |
+| `/v1/voice` WebSocket, PCM16 24 kHz mono | Streams the microphone to Core, which proxies it to Muse ASR | ✅ |
+| `capture_request {request_id, purpose}` → `POST /v1/frames/:request_id` | The camera is only ever triggered by Core, and only for a "this" command | ✅ |
+| `browser_frame {jpeg, step}` event | Live computer-use frames on the phone timeline | ✅ web console · iPhone ⏳ |
+| `/v1/driver` WebSocket | The Mac driver dials out to Core and receives `computer_call` actions | ✅ |
 
 ## 7. Life of a command (GP1)
 
@@ -299,15 +299,14 @@ The tool inventory is a function of the present moment:
 
 | Namespace | In the inventory when | Tools (tier) | Status |
 |---|---|---|---|
-| `calendar` | Google is connected (the demo world today) | `list_events` (read) · `find_contact` (read) · `move_event` (write, undo) · `create_event` (write, undo) · `invite` (**send**) | ✅ demo · live ⏳ Day 1 |
-| `slack` | Slack is connected | `list_channels` (read) · `post_message` (**send**) | ✅ demo · live ⏳ Day 2 |
-| `gmail` | Google is connected | `search_threads` (read, **external**) · `create_draft` (write, undo) | ✅ demo · live ⏳ Day 2 |
+| `calendar` | Google is connected (the demo world today) | `list_events` (read) · `find_contact` (read) · `move_event` (write, undo) · `create_event` (write, undo) · `invite` (**send**) | ✅ demo · live ✅ (needs your Google client) |
+| `slack` | Slack is connected | `list_channels` (read) · `post_message` (**send**) | ✅ demo · live ✅ (needs the bot token) |
+| `gmail` | Google is connected | `search_threads` (read, **external**) · `create_draft` (write, undo) | ✅ demo · live ✅ (needs your Google client) |
 | `surfaces` | Any surface with a screen is online. Its description lists who's online right now. | `show_card` (read) | ✅ |
-| `glasses` | Glasses with a camera are online | `look(question)` → fields + crop id (read, **external**) | ⏳ Day 5 |
-| `phone` | A phone with a camera is online | `look(question)` (read, **external**) | ⏳ Day 5 |
-| `browser` | The Mac driver is connected | `run_task(goal, stop_before)` (write; the final commit is **send**) | ⏳ Day 6 |
-| `memory` | Spark Open is reachable | `recap(date)` · `recall(query)` (read) | ⏳ Day 7 |
-| `receipts` | Always | `list_recent` (read) · `undo(receipt_id)` (write), which enables "undo that" by voice | ⏳ Day 7 |
+| `glasses` | A surface with a camera is online (glasses first, else the phone) | `look(question)` → fields + crop id (read, **external**) | ✅ |
+| `browser` | The Mac driver is connected | `run_task(task, url, summary)` (**send**, with the tap at the commit point; **external**) | ✅ |
+| `memory` | Always (without Spark Open, recaps are built locally) | `recap(date)` · `recall(query)` (read) | ✅ |
+| `receipts` | Always | `list_recent` (read) · `undo(receipt_id)` (write), which enables "undo that" by voice | ✅ |
 
 Take the glasses off and `glasses.look` is gone from the next turn. The model can't "use the camera" on a device you aren't wearing. This uses Muse namespaces and `tool_search` for something they weren't designed for: **a live map of your devices.**
 
@@ -336,8 +335,8 @@ Keys, encryption, the tamper-evident log and the comparison with iCloud Advanced
 | A device you took off still holds the approval | Handoff: `approval_cancel(moved)` goes to the old surface, and the request is re-offered to the next best one | `SurfaceRegistry` | ✅ tested |
 | An approval sits unanswered | It expires after 60 s and counts as a decline | `requestApproval` | ✅ |
 | A forged approval | Random UUID request ids. Only authenticated surfaces in the session can answer, and the first answer wins. | `server.ts`, `SurfaceRegistry` | ✅ |
-| Computer use clicks Confirm or Pay on its own | A driver-side **commit guard** pauses before clicking a commit-like control; Core turns that into a send-tier approval. The model's safety checks also become approvals. A 25-step cap. A clean browser profile with no saved passwords or cards. A CAPTCHA means stop and hand it to you. | `driver/`, runner | ⏳ Day 6 |
-| Bystanders on camera | The camera captures only on "this". Apple Vision person segmentation blurs people **on the phone before upload**. Frames aren't stored; only the receipt crop is. | iPhone app, `vision/` | ⏳ Day 5 |
+| Computer use clicks Confirm or Pay on its own | A driver-side **commit guard** pauses before clicking a commit-like control; Core turns that into a send-tier approval. The model's safety checks also become approvals. A 25-step cap. A clean browser profile with no saved passwords or cards. A CAPTCHA means stop and hand it to you. | `driver/`, runner | ✅ |
+| Bystanders on camera | The camera captures only on "this". Apple Vision person segmentation blurs people **on the phone before upload**. Frames aren't stored; only the receipt crop is. | iPhone app, `vision/` | ✅ · 🧪 not yet run on a photo of a real person |
 | Always listening | Wake-phrase detection runs on the device. Audio streams to ASR only after the wake phrase, or a press on the watch. | Surfaces | ⏳ Day 3 |
 | Key leakage | Keys live only in Core's `.env`, never on devices. A gitleaks pre-commit hook. Surfaces hold only a session token. | repo, `config.ts` | ✅ |
 | OAuth token theft | Tokens encrypted at rest (AES-256-GCM, key from env), least-privilege scopes | `connectors/` | ⏳ Day 1 |

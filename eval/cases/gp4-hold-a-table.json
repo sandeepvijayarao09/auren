@@ -25,6 +25,8 @@
     "max_steps": 25,
     "max_total_ms": 90000
   },
-  "fixtures": {},
+  "fixtures": {
+    "page": "reservation"
+  },
   "script": []
 }

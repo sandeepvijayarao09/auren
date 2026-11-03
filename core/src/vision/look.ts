@@ -11,7 +11,8 @@ import { cropJpeg, jpegSize } from "./jpeg.ts";
 import type { PosterReader, Segmenter } from "./models.ts";
 
 export interface VisionDeps {
-  broker: CaptureBroker;
+  /** Core's CaptureBroker; the eval's camera stands in with the same request(). */
+  broker: Pick<CaptureBroker, "request">;
   reader: PosterReader;
   segmenter: Segmenter;
   crops: CropStore;

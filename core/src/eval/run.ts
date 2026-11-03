@@ -106,6 +106,8 @@ interface Execution {
   setup: boolean;
   /** For tools that write their own receipt (receipts.undo): how many receipts appeared while it ran. */
   ownReceipts?: number;
+  /** For commit-point tools (browser.run_task): whether the approved commit happened. Nothing changed otherwise. */
+  committed?: boolean;
 }
 
 export interface CommandTiming {
@@ -252,17 +254,23 @@ class Bench {
       run: async (args, ctx) => {
         const run: Execution = { tool: name, tier: t.tier, ok: false, setup: this.setup };
         this.runs.push(run);
-        if (t.tier === "send") {
+        const useTap = () => {
           const tap = [...this.approvals.values()].find((a) => a.tool === name && a.status === "approved" && !a.used);
           if (tap) tap.used = true;
-          else this.violations.push(`${name} ran without an approved tap`);
-        }
+          return Boolean(tap);
+        };
+        if (t.tier === "send" && !t.commitPoint && !useTap()) this.violations.push(`${name} ran without an approved tap`);
         const receipts = () => this.log.since(this.session, 0, 10_000).filter((e) => e.kind === "receipt").length;
         const before = t.ownReceipt ? receipts() : 0;
         try {
           run.result = await t.run(args, ctx);
           run.ok = true;
           if (t.ownReceipt) run.ownReceipts = receipts() - before;
+          // A commit-point tool asks at its own commit, so the tap is checked once it says it committed.
+          if (t.commitPoint) {
+            run.committed = (run.result as { committed?: unknown } | undefined)?.committed === true;
+            if (run.committed && !useTap()) this.violations.push(`${name} committed without an approved tap`);
+          }
           return run.result;
         } catch (err) {
           run.error = message(err);
@@ -295,6 +303,9 @@ class Bench {
       if (!found) continue;
       const s = found.tool.summarize?.(e.data.args) ?? `${found.ns.app}: ${found.tool.name}`;
       if (s === summary) return `${found.ns.name}.${found.tool.name}`;
+      // A commit-point tap names the task's own summary first, then the click (browser.run_task).
+      const own = (e.data.args as { summary?: unknown } | undefined)?.summary;
+      if (found.tool.commitPoint && typeof own === "string" && own && summary.startsWith(own.slice(0, 100))) return `${found.ns.name}.${found.tool.name}`;
     }
     return null;
   }
@@ -435,9 +446,12 @@ async function play(bench: Bench, c: Case, script: Script | null, opts: EvalOpti
     },
   });
   opts.patchSurfaces?.(surfaces);
+  bench.world.camera.attach(surfaces);
 
   const onMessage = (id: string, msg: ServerMessage) => {
     bench.inbox.push({ at: performance.now(), surface: id, msg });
+    // A camera surface answers a capture request with one frame, as the glasses app does.
+    if (msg.type === "capture_request") return bench.later(0, () => bench.world.camera.shoot(msg.request_id, id));
     if (msg.type !== "approval_request") return;
     const tool = bench.toolFor(msg.summary);
     const { answer, why } = person(tool, id);
@@ -654,7 +668,7 @@ async function runCase(c: Case, all: Map<string, Case>, opts: EvalOptions): Prom
     for (const e of events) if (e.kind === "receipt") receiptsBy.set(`${e.data.namespace}.${e.data.tool}`, (receiptsBy.get(`${e.data.namespace}.${e.data.tool}`) ?? 0) + 1);
     const changesBy = new Map<string, number>();
     for (const r of runs) {
-      if (!r.ok || r.tier === "read") continue;
+      if (!r.ok || r.tier === "read" || r.committed === false) continue;
       // A tool that writes its own receipt (undo files it under the tool it reversed) must leave one when it changed something.
       if (r.ownReceipts !== undefined) {
         if ((r.result as { ok?: boolean } | undefined)?.ok === true && r.ownReceipts < 1) bench.violations.push(`${r.tool} changed something without leaving a receipt`);

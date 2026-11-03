@@ -5,11 +5,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { z } from "zod";
 import { SurfaceKind } from "../protocol.ts";
-import { createDemoWorld } from "../tools/demo-world.ts";
-import { surfacesNamespace } from "../tools/surfaces.ts";
-import { createBrowser } from "../computer/browser.ts";
-import { DriverHub } from "../computer/hub.ts";
 import { EventLog } from "../eventlog.ts";
+import { evalWorld, PLANNED } from "./world.ts";
 
 const Tool = z.string().regex(/^[a-z_]+\.[a-z_]+$/, "namespace.tool");
 
@@ -38,22 +35,16 @@ const Case = z.strictObject({
 });
 type Case = z.infer<typeof Case>;
 
-// Namespaces that exist in Core today, and the ones the build plan adds.
+// Namespaces that exist in Core today (the same ones the eval plays against); PLANNED lists any still to come.
 const built = new Map<string, string>();
 // Send-tier tools that ask at their own commit point, so a run that stops first asks nothing.
 const commitPoint = new Set<string>();
-const browser = createBrowser({ hub: new DriverHub(), muse: { responses: { create: async () => ({}) } }, model: "muse-wonder-1.0", log: new EventLog() });
-for (const ns of [...createDemoWorld().namespaces, surfacesNamespace, browser]) {
+for (const ns of evalWorld({ log: new EventLog(), session: "cases" }).namespaces) {
   for (const t of ns.tools) {
     built.set(`${ns.name}.${t.name}`, t.tier);
     if (t.commitPoint) commitPoint.add(`${ns.name}.${t.name}`);
   }
 }
-const PLANNED = new Map([
-  ["glasses", "Day 5"],
-  ["memory", "Day 7"],
-  ["receipts", "Day 7"],
-]);
 // Matches the presets in apps/web/index.html and AurenKit: only these take a tap.
 const TOUCH = new Set(["watch", "phone", "web"]);
 

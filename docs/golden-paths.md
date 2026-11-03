@@ -23,7 +23,7 @@ Five commands are the whole product. Everything is built to make these pass on c
 | Path | Code | Status |
 |---|---|---|
 | GP1 | `core/src/agent/loop.ts`, `core/src/connectors/`, `apps/apple/Watch/` | Loop ✅, Calendar, Gmail and Slack connectors ✅ (need accounts), watch voice ⏳ |
-| GP2 | `core/src/vision/`, `apps/apple/iOS/` (glasses surface) | ⏳ Day 5 |
+| GP2 | `core/src/vision/`, `AurenKit` (`Capture.swift`, `BystanderBlur.swift`) | ✅ passes in the scripted eval; live Spark and SAM, a real iPhone camera and the glasses toolkit pending |
 | GP3 | `core/src/surfaces.ts` (`#pick`, `sweep`, handoff), `AurenKit/Transport.swift` (watch relay) | Approval and mid-reply speech handoff ✅, timed under 2 s in tests |
-| GP4 | `core/src/computer/`, `driver/` | Commit guard ✅, runner ⏳ Day 6 |
+| GP4 | `core/src/computer/`, `driver/` | ✅ passes in the scripted eval (the hold, and the CAPTCHA stop); live Muse computer use pending the API key |
 | GP5 | `core/src/memory/` (`memory.recap`, `memory.recall`, `receipts.undo`) | ✅ passes in the scripted eval; Spark Open live run pending |

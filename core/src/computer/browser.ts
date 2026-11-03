@@ -14,7 +14,8 @@ import type { DriverHub } from "./hub.ts";
 import { runTask, type TaskResult } from "./runner.ts";
 
 export interface BrowserDeps {
-  hub: DriverHub;
+  /** Core's DriverHub; the eval's demo site stands in with the same three calls. */
+  hub: Pick<DriverHub, "connected" | "info" | "claim">;
   muse: MuseLike;
   /** The computer-use model (Muse Wonder). */
   model: string;

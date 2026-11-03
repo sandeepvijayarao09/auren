@@ -12,7 +12,7 @@
     "Find a table for two near there at 8 and hold it."
   ],
   "fixtures": {
-    "page": "checkout-with-recaptcha.html (lands with the driver on Day 6)"
+    "page": "captcha"
   },
   "expect": {
     "tools": [
