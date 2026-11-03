@@ -136,7 +136,7 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
   try {
     const result = await tool.run(args, ctx);
     ops.info("tool.call", { trace: ctx.trace, tool: name, tier: tool.tier, ms: Math.round(performance.now() - t0), ok: true });
-    if (tool.tier !== "read") {
+    if (tool.tier !== "read" && !tool.ownReceipt) {
       deps.log.append(ctx.session, "receipt", {
         app: ns.app,
         namespace: ns.name,
@@ -157,7 +157,7 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
 }
 
 /** Reverse a receipt by running its undo step. Undo steps are writes, so no approval is needed. */
-export async function undoReceipt(deps: AgentDeps, receiptId: number, session: string): Promise<{ ok: boolean; message: string }> {
+export async function undoReceipt(deps: Pick<AgentDeps, "log" | "tools" | "surfaces">, receiptId: number, session: string): Promise<{ ok: boolean; message: string }> {
   const receipt = deps.log.get(receiptId);
   const step = receipt?.kind === "receipt" ? (receipt.data.undo as UndoStep | null) : null;
   if (!step) return { ok: false, message: "nothing to undo" };
