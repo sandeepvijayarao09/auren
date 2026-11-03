@@ -1,0 +1,13 @@
+{
+  "case": "gp3-approval-moves",
+  "commands": [
+    {
+      "ack": "On it: Slack.",
+      "turns": [
+        { "calls": [ { "tool": "slack.list_channels", "args": {} } ] },
+        { "calls": [ { "tool": "slack.post_message", "args": { "channel_id": "C02", "text": "Running 15 min late." } } ] },
+        { "say": "Posted to #cs5800-tas." }
+      ]
+    }
+  ]
+}

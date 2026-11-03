@@ -1,0 +1,21 @@
+{
+  "case": "gp1-watch-fan-out",
+  "commands": [
+    {
+      "ack": "On it: Slack, calendar and email.",
+      "turns": [
+        { "calls": [
+          { "tool": "calendar.list_events", "args": { "date": "{{today}}" } },
+          { "tool": "slack.list_channels", "args": {} },
+          { "tool": "gmail.search_threads", "args": { "query": "Lee" } }
+        ] },
+        { "calls": [
+          { "tool": "calendar.move_event", "args": { "event_id": "evt_1", "new_start": "{{today}}T15:15" } },
+          { "tool": "slack.post_message", "args": { "channel_id": "C01", "text": "Running 15 min late to office hours." } },
+          { "tool": "gmail.create_draft", "args": { "thread_id": "thr_9", "body": "Hi Prof. Lee, HW3 grades will be in by 5." } }
+        ] },
+        { "say": "Done: Slack posted, office hours at 3:15, draft ready." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "case": "gp2-glasses-poster",
+  "note": "glasses.look's arguments are a guess until R6 lands; check them when the case lights up.",
+  "commands": [
+    {
+      "ack": "On it: glasses and calendar.",
+      "turns": [
+        { "calls": [
+          { "tool": "glasses.look", "args": { "question": "What event is on this poster? Title, date, time and place." } },
+          { "tool": "calendar.find_contact", "args": { "name": "Priya" } }
+        ] },
+        { "calls": [
+          { "tool": "calendar.create_event", "args": { "title": "Demo night", "start": "{{today}}T18:00", "location": "Room 214" } }
+        ] },
+        { "calls": [
+          { "tool": "calendar.invite", "args": { "event_id": "evt_101", "emails": ["priya@example.com"] } }
+        ] },
+        { "say": "Added Demo night in Room 214 and invited Priya." }
+      ]
+    }
+  ]
+}
