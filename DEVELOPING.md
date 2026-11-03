@@ -33,18 +33,21 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_TZ` | No | Your time zone, if this Mac's is wrong |
 | `AUREN_ASR_KEYWORDS` | No | Extra names for speech recognition to favour, comma-separated (people, channels) |
 | `AUREN_ASR_METADATA_ONLY` | No | Set to `false` if your Meta account rejects metadata-only logging for voice |
-| `BASETEN_API_KEY` | Day 7 | Auren Memory on Muse Spark Open |
+| `BASETEN_API_KEY` | For Spark Open | Auren Memory on Muse Spark Open. Without it, recaps are built locally. |
+| `BASETEN_BASE_URL`, `AUREN_MEMORY_MODEL` | No | Override `https://inference.baseten.co/v1` and `meta-models/muse-spark-open-1026` |
 
 Keys live only in `.env` on the machine running Core. Surfaces never hold a model key.
 
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 99 |
+| Core (scripted Muse, surfaces, eval cases and runner, memory, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 120 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
 | AurenKit (protocol, client state, device identity, voice, relay, speech) | `cd apps/apple/AurenKit && swift test` | 26 |
+
+`cd core && npm run eval` plays the eval cases (scripted without a key, live with one) and rewrites `eval/results.md`.
 
 `make check` runs all of them, both type checks and the secret scan, which is the same as CI minus the Swift suite.
 

@@ -11,7 +11,7 @@ Each row is one Meta model or Muse feature: what Auren uses it for, where it liv
 | **Computer use** (`{"type":"computer"}`) | Apps with no API; the driver runs on your Mac and stops before any commit | [`driver/src/guard.ts`](driver/src/guard.ts), `core/src/computer/` | ✅ commit guard · ⏳ runner Day 6 |
 | **Muse Voice Transcribe** (realtime WebSocket, keyword biasing) | Ears on every surface, proxied through Core. Keyword biasing boosts the wake phrase "Hey Muse" and your contacts' and channels' names. | [`core/src/voice/`](core/src/voice/), [`AurenKit/Voice.swift`](apps/apple/AurenKit/Sources/AurenKit/Voice.swift) | ✅ gateway and iPhone hold-to-talk · live run pending the key |
 | **SAM 3.1** (point prompt) | Grounds "this" in the glasses view: mask → crop → receipt outline | `core/src/vision/` | ⏳ Day 5 |
-| **Muse Spark Open** (Baseten, `meta-models/muse-spark-open-1026`) | Auren Memory: recall and the day's recap over receipts | `core/src/memory/` | ⏳ Day 7 |
+| **Muse Spark Open** (Baseten, `meta-models/muse-spark-open-1026`) | Auren Memory: recall and the day's recap over receipts | [`core/src/memory/`](core/src/memory/) | ✅ built, local fallback when Baseten is off · live run pending `BASETEN_API_KEY` |
 | **Muse Glimmer** (LoRA fine-tune on Modal) | Auren Router: intent, risk tier and reply surface in one fast call | [`router/`](router/) | ✅ schema + rubric · ⏳ training, gated on Nov 1 |
 | **Meta Wearables Device Access Toolkit** | Ray-Ban Meta glasses as a surface: camera frames on request, mic and speakers | [`apps/apple/`](apps/apple/) | ⏳ Day 5 |
 | **Muse Code** | Used for part of the build | — | noted per commit |

@@ -66,7 +66,9 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
 | iPhone and Apple Watch apps: timeline, approvals, speech | ✅ build for the Simulator; on devices from Day 4 |
 | Commit guard and CAPTCHA stop for computer use | ✅ tested |
-| Router output schema and labelling rubric · 10 eval cases, checked in CI | ✅ |
+| Router output schema and labelling rubric | ✅ |
+| Eval runner: 10 golden-path and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ 7 of 7 runnable cases pass, **0 tier violations**; 3 wait for vision and computer use |
+| Auren Memory (recap and recall on Muse Spark Open, with a local fallback) and undo by voice | ✅ built and tested against a fake Baseten; live run needs `BASETEN_API_KEY` |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
 | Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
 | Device pairing and Secure Enclave-signed approvals: one-time codes, challenge on connect, revoke | ✅ built and tested, Swift ↔ Node signatures verified |
@@ -74,9 +76,10 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone | ✅ built and tested against a fake transcriber; live run needs the API key |
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
 | Glasses (Wearables toolkit) | ⏳ |
-| Computer-use runner and driver · Auren Memory (Spark Open) · Auren Router (Glimmer) | ⏳ Days 6–7 |
+| Computer-use runner and driver · glasses vision | ⏳ built on their own branches, not merged yet |
+| Auren Router (Glimmer fine-tune) | ⏳ needs Modal |
 
-**Tests:** 142 across five suites (Core 99, AurenKit 26, keyd 6, driver 6, router 5). No API key or device needed.
+**Tests:** 163 across five suites (Core 120, AurenKit 26, keyd 6, driver 6, router 5), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

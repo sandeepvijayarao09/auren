@@ -19,6 +19,11 @@ test("secrets are scrubbed by name and by shape", () => {
   assert.equal(out.trace, "ab12cd34");
 });
 
+test("token counts are kept; tokens are not", () => {
+  const out = redact({ input_tokens: 1200, output_tokens: 80, max_tokens: 40, refresh_token: "1//x", authToken: "a" }) as Record<string, unknown>;
+  assert.deepEqual(out, { input_tokens: 1200, output_tokens: 80, max_tokens: 40, refresh_token: "[redacted]", authToken: "[redacted]" });
+});
+
 test("long strings are cut so message bodies can't spill into the log", () => {
   const out = redact({ message: "x".repeat(500) }) as { message: string };
   assert.match(out.message, /… \(500 chars\)$/);

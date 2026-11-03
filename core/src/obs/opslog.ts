@@ -3,7 +3,8 @@
 // message bodies; `redact` scrubs anything that slips in.
 import { appendFileSync } from "node:fs";
 
-const SENSITIVE_KEY = /token|secret|password|passwd|authorization|api[_-]?key|cookie|verifier|credential/i;
+// "token" but not "tokens": input_tokens and output_tokens are counts, not credentials.
+const SENSITIVE_KEY = /token(?!s\b)|secret|password|passwd|authorization|api[_-]?key|cookie|verifier|credential/i;
 const SENSITIVE_VALUE: RegExp[] = [
   /\bBearer\s+[A-Za-z0-9._~+/=-]+/g,
   /\bya29\.[A-Za-z0-9._-]+/g,

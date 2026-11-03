@@ -57,6 +57,9 @@ test("a skipped case lights up once its tool is in the registry", async () => {
     mode: "scripted",
     filter: ["undo-a-draft"],
     patchTools: (ns) => {
+      // R8's real receipts namespace is registered now; swap in a stand-in that records what it's asked.
+      const real = ns.findIndex((n) => n.name === "receipts");
+      if (real >= 0) ns.splice(real, 1);
       ns.push({
         name: "receipts",
         app: "Auren",

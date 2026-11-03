@@ -3,7 +3,10 @@
 // memory and receipts in R8) add it to `namespaces` below, and the cases that
 // need it stop being skipped on the next run.
 import type { EventLog } from "../eventlog.ts";
+import { createMemory } from "../memory/memory.ts";
+import { createReceipts } from "../memory/receipts.ts";
 import { createDemoWorld } from "../tools/demo-world.ts";
+import { ToolRegistry } from "../tools/registry.ts";
 import { surfacesNamespace } from "../tools/surfaces.ts";
 import type { Namespace } from "../tools/types.ts";
 
@@ -11,8 +14,6 @@ import type { Namespace } from "../tools/types.ts";
 export const PLANNED = new Map([
   ["glasses", "R6"],
   ["browser", "R7"],
-  ["memory", "R8"],
-  ["receipts", "R8"],
 ]);
 
 export interface WorldDeps {
@@ -20,10 +21,15 @@ export interface WorldDeps {
   session: string;
 }
 
-export function evalWorld(_deps: WorldDeps) {
+export function evalWorld(deps: WorldDeps) {
   const world = createDemoWorld();
-  const namespaces: Namespace[] = [...world.namespaces, surfacesNamespace];
-  return { state: world.state, namespaces };
+  const base: Namespace[] = [...world.namespaces, surfacesNamespace];
+  // R8: Auren Memory answers from its local fallback here (no Baseten in the eval), and
+  // receipts.undo resolves undo steps against the same tools the case runs.
+  const registry = new ToolRegistry().add(...base);
+  const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry })];
+  registry.add(...memory);
+  return { state: world.state, namespaces: [...base, ...memory] };
 }
 
 export type EvalWorld = ReturnType<typeof evalWorld>;
