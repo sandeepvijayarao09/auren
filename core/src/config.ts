@@ -20,6 +20,8 @@ export const config = {
   // A Google "Desktop app" OAuth client. Setting both swaps the demo calendar for the real one.
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  // The Slack bot token (xoxb-…) for the demo workspace. Setting it swaps the demo Slack for the real one.
+  slackBotToken: process.env.SLACK_BOT_TOKEN ?? "",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

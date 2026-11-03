@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 69 tests, no API key needed (scripted Muse, fake Google)
+npm test          # 80 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -28,8 +28,9 @@ npm run typecheck
 | `src/tools/` | Apps and devices as Muse tool namespaces, plus the in-memory demo world | ✅ |
 | `src/eval/cases.test.ts` | Checks every case in `eval/cases` against the real tools | ✅ |
 | `src/connectors/secrets.ts` | Encrypted token store (AES-256-GCM in SQLite) | ✅ |
-| `src/connectors/google/` | Google sign-in (Desktop client, PKCE, refresh) and the live `calendar` namespace | ✅ Calendar · ⏳ Gmail Day 2 |
-| `src/connectors/slack/` | Slack, demo workspace | ⏳ Day 2 |
+| `src/connectors/google/` | Google sign-in (Desktop client, PKCE, refresh) and the live `calendar` and `gmail` namespaces | ✅ |
+| `src/connectors/slack.ts` | Slack through a bot in the demo workspace | ✅ |
+| `src/connectors/tape.ts` | Record real API responses once (tokens scrubbed), replay them offline in tests and evals | ✅ |
 | `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe | ⏳ Day 3 |
 | `src/vision/` | `glasses.look`: frames → Muse Spark → SAM 3.1 outline | ⏳ Day 5 |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/` | ⏳ Day 6 |

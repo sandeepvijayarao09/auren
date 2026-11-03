@@ -26,7 +26,7 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_AGENT_MODEL`, `AUREN_FAST_MODEL` | No | Override `muse-wonder-1.0` and `muse-spark-1.3` |
 | `AUREN_DB` | No | SQLite path for the event log (default `auren.db`) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | For real Google | A Desktop OAuth client; swaps the demo calendar for the real one. Setup: [docs/google-setup.md](docs/google-setup.md) |
-| `SLACK_BOT_TOKEN` | Day 2 | Slack demo workspace |
+| `SLACK_BOT_TOKEN` | For real Slack | The demo workspace's bot token; swaps the demo Slack for the real one. Setup: [docs/slack-setup.md](docs/slack-setup.md) |
 | `AUREN_SECRET` | No | A 64-hex-character master key. On a Mac, leave it empty and `auren-keyd` seals one to the Secure Enclave. Elsewhere, set it, or Core falls back to a key file and warns you. |
 | `AUREN_KEYD` | No | Path to the `auren-keyd` binary, if not `keyd/.build/release/auren-keyd` |
 | `AUREN_LOG_FILE` | No | Also append the JSON operational log to this file |
@@ -38,7 +38,7 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases, Google, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 69 |
+| Core (scripted Muse, surfaces, eval cases, Google, Slack, Gmail, tape, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 80 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA) | `cd driver && npm test` | 6 |
 | Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |

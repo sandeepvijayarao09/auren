@@ -6,6 +6,8 @@ import { createServer, SESSION } from "./server.ts";
 import { SurfaceRegistry } from "./surfaces.ts";
 import { GoogleAuth } from "./connectors/google/auth.ts";
 import { createGoogleCalendar } from "./connectors/google/calendar.ts";
+import { createGmail } from "./connectors/google/gmail.ts";
+import { createSlack } from "./connectors/slack.ts";
 import { SecretStore } from "./connectors/secrets.ts";
 import { OpsLog } from "./obs/opslog.ts";
 import { DeviceRegistry } from "./security/devices.ts";
@@ -40,8 +42,15 @@ const google =
       })
     : undefined;
 // Live connectors replace demo namespaces one by one; the rest stay in the demo world.
-const demo = createDemoWorld().namespaces;
-const namespaces = google ? [createGoogleCalendar(google, { timeZone: config.timeZone }), ...demo.filter((ns) => ns.name !== "calendar")] : demo;
+const live = new Map<string, ReturnType<typeof createSlack>>();
+if (google) {
+  live.set("calendar", createGoogleCalendar(google, { timeZone: config.timeZone }));
+  live.set("gmail", createGmail(google));
+}
+if (config.slackBotToken) {
+  live.set("slack", createSlack({ token: config.slackBotToken, onCall: (c) => ledger.record({ service: "Slack", ...c }) }));
+}
+const namespaces = createDemoWorld().namespaces.map((ns) => live.get(ns.name) ?? ns);
 const tools = new ToolRegistry().add(...namespaces, surfacesNamespace);
 const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger);
 
@@ -76,11 +85,8 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   const paired = devices.list().filter((d) => !d.revoked);
   console.log(`  devices: ${paired.length ? paired.map((d) => `${d.name} (${d.hardware ? "Secure Enclave" : "software key"})`).join(", ") : "none paired yet. Pair one from the console."}`);
   const g = google?.status();
-  console.log(
-    !google ? "  calendar: demo world (set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET for the real one)"
-      : g?.connected ? `  calendar: Google, connected as ${g.email ?? "your account"}`
-      : `  calendar: Google, not connected yet. Open ${local}/connect/google`,
-  );
+  const googleState = !google ? "demo" : g?.connected ? `Google (${g.email ?? "connected"})` : `Google, not connected: open ${local}/connect/google`;
+  console.log(`  apps: calendar and gmail ${googleState} · slack ${config.slackBotToken ? "live" : "demo"}`);
   console.log(`  time zone: ${config.timeZone}`);
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
 });
