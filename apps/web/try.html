@@ -278,9 +278,8 @@ function devices(list) {
   $("glasses").textContent = lastSaid.glasses ? `Glasses said: “${lastSaid.glasses}”` : "";
 }
 
-// The action verb names the tap: Post, Send, Hold. Never OK or Yes.
-const VERBS = ["Post", "Send", "Hold", "Book", "Reserve", "Invite", "Pay"];
-const verb = (summary) => { const w = String(summary).split(/\s+/)[0]; return VERBS.includes(w) ? w : "Approve"; };
+// The action verb names the tap: Post, Invite, Confirm. Never OK or Yes. It comes from the tool (R12).
+const verb = (tap) => esc(tap.verb || "Approve");
 
 function render() {
   const btns = document.querySelectorAll(".chip, #send, .sugg button");
@@ -290,10 +289,10 @@ function render() {
   const clock = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/i, "");
   $("face").className = `face${onWatch ? " ask" : ""}`;
   $("face").innerHTML = onWatch
-    ? `<div class="what">Your move</div><div class="sum">${esc(onWatch.summary)}</div><div class="row"><button class="go" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="1">${verb(onWatch.summary)}</button><button class="no" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="0">Not now</button></div>`
+    ? `<div class="what">Your move</div><div class="sum">${esc(onWatch.summary)}</div><div class="row"><button class="go" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="1">${verb(onWatch)}</button><button class="no" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="0">Not now</button></div>`
     : `<div class="clock">${esc(clock)}</div>${lastSaid.watch ? `<div class="said">${esc(lastSaid.watch)}</div>` : ""}<div class="idle">${busy ? "Working…" : "Nothing waiting for you."}</div>`;
   // A tap that moved to the phone
-  $("ptaps").innerHTML = taps.filter((t) => t.surface === "phone").map((t) => `<div class="ptap"><div class="why">Your move · the watch came off, so the tap followed you here</div><div>${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="phone" data-v="1">${verb(t.summary)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="phone" data-v="0">Not now</button></div></div>`).join("");
+  $("ptaps").innerHTML = taps.filter((t) => t.surface === "phone").map((t) => `<div class="ptap"><div class="why">Your move · the watch came off, so the tap followed you here</div><div>${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="phone" data-v="1">${verb(t)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="phone" data-v="0">Not now</button></div></div>`).join("");
   timeline();
   trail();
 }

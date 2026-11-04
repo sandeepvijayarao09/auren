@@ -38,6 +38,8 @@ export interface PendingTap {
   summary: string;
   tier: Tier;
   surface: DeviceId;
+  /** The button's word from the tool (R12), such as Post or Confirm. */
+  verb?: string;
 }
 
 const MAX_OUTPUTS = 200;
@@ -139,7 +141,7 @@ export class Visitor {
   #receive(id: DeviceId, msg: ServerMessage): void {
     if (this.closed) return;
     if (msg.type === "approval_request") {
-      this.taps.set(msg.request_id, { request_id: msg.request_id, summary: msg.summary, tier: msg.tier, surface: id });
+      this.taps.set(msg.request_id, { request_id: msg.request_id, summary: msg.summary, tier: msg.tier, surface: id, ...(msg.verb ? { verb: msg.verb } : {}) });
     } else if (msg.type === "approval_cancel") {
       if (this.taps.get(msg.request_id)?.surface === id) this.taps.delete(msg.request_id);
     } else if (msg.type === "speak") {
