@@ -48,6 +48,11 @@
   input[type=text]:focus { outline:none; border-color:var(--dim); }
   .tools { max-width:760px; margin:8px auto 0; display:flex; gap:14px; color:var(--dim); font-size:12px; }
   @media (max-width:520px) { .ev .k { width:64px; } .chips, .me { display:none; } .trust { margin-left:auto; } }
+  /* R13: the token alarm and limit banner */
+  .spend { margin:12px 0; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--panel); font-size:14px; }
+  .spend.limit { border-color:var(--bad); }
+  .spend b::before { content:"■ "; color:var(--bad); }
+  .ev.usage .k { color:var(--bad); }
 </style>
 </head>
 <body>
@@ -57,7 +62,7 @@
   <div class="chips" id="chips"></div>
   <span class="trust" id="trust" title="Checks the log's hash chain every 15 seconds">checking the log…</span>
 </header>
-<main><div id="pair" class="card pair" hidden></div><div id="pending"></div><div id="cards"></div><div id="timeline"></div></main>
+<main><div id="spend" class="spend" role="status" hidden></div><div id="pair" class="card pair" hidden></div><div id="pending"></div><div id="cards"></div><div id="timeline"></div></main>
 <form id="f">
   <div class="bar"><input type="text" id="q" placeholder="Say it once…" autocomplete="off"><button>Say it</button></div>
   <div class="tools">
@@ -102,7 +107,9 @@ function line(e) {
     error: () => esc(d.message),
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
     browser_frame: () => `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}`,
+    usage: () => esc(d.message), // R13
   }[e.kind] || (() => esc(JSON.stringify(d)));
+  if (e.kind === "usage") spendBanner(d); // R13
   if (e.kind === "surface") { d.status === "online" ? online.set(d.surface_id, { id: d.surface_id, kind: d.kind }) : online.delete(d.surface_id); chips(); }
   const el = document.createElement("div");
   el.className = `ev ${e.kind}`;
@@ -190,6 +197,19 @@ async function trust() {
   } catch { /* Core restarting */ }
 }
 trust(); setInterval(trust, 15000);
+
+// R13: a banner when model tokens pass AUREN_TOKEN_ALARM or reach AUREN_TOKEN_LIMIT. It comes from the
+// event stream as it happens, and from /v1/trust on load, in case the event is older than the timeline.
+function spendBanner(u) {
+  const box = $("spend");
+  const limit = u.level === "limit" || u.limited;
+  if (box.classList.contains("limit") && !limit) return;
+  box.hidden = false;
+  box.className = `spend${limit ? " limit" : ""}`;
+  box.innerHTML = u.message ? `<b>${limit ? "Token limit" : "Token alarm"}</b> ${esc(u.message)}`
+    : `<b>${limit ? "Token limit" : "Token alarm"}</b> ${esc(Number(u.total).toLocaleString())} model tokens used${limit ? `, at AUREN_TOKEN_LIMIT (${esc(Number(u.limit).toLocaleString())}). New commands are refused until you raise it.` : `, past AUREN_TOKEN_ALARM (${esc(Number(u.alarm).toLocaleString())}).`}`;
+}
+fetch(`/v1/trust`, { headers: auth }).then((r) => r.json()).then((t) => { if (t.usage?.alarmed || t.usage?.limited) spendBanner(t.usage); }).catch(() => {});
 
 fetch(`/v1/events`, { headers: auth }).then((r) => r.json()).then(({ events }) => { events.forEach(line); connect(); }).catch(connect);
 </script>

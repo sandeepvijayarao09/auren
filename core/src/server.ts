@@ -20,6 +20,7 @@ import type { AsrConnector } from "./voice/asr.ts";
 import { handleVoice } from "./voice/gateway.ts";
 import { silentOps } from "./obs/opslog.ts";
 import type { DriverHub } from "./computer/hub.ts";
+import type { SpendGuard } from "./obs/spend.ts"; // R13
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -45,6 +46,8 @@ export interface ServerOptions {
   voice?: { asr?: AsrConnector; keywords: () => string[] };
   /** R7: the computer-use driver's socket, /v1/driver. */
   driver?: DriverHub;
+  /** R13: the token alarm and limit. At the limit, new commands are refused; approvals still resolve. */
+  spend?: SpendGuard;
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -62,6 +65,13 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     !opts.token || header === `Bearer ${opts.token}` || query === opts.token;
 
   const start = (text: string, surfaceId?: string) => {
+    // R13: past AUREN_TOKEN_LIMIT, say so instead of starting. Approvals already waiting are untouched.
+    const refused = opts.spend?.refusal();
+    if (refused) {
+      log.append(SESSION, "utterance", { text, surface_id: surfaceId ?? null });
+      log.append(SESSION, "error", { message: refused });
+      return;
+    }
     if (!opts.museReady) {
       log.append(SESSION, "utterance", { text, surface_id: surfaceId ?? null });
       log.append(SESSION, "error", { message: "MODEL_API_KEY is not set. Add it to .env and restart Core." });
@@ -133,6 +143,8 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
       outbound: opts.ledger?.summary() ?? [],
       surfaces: surfaces.online().map((s) => ({ id: s.id, kind: s.kind })),
       devices: opts.devices?.list().map((d) => ({ id: d.id, kind: d.kind, hardware: d.hardware, revoked: d.revoked })) ?? [],
+      // R13: model tokens, overall and per model, with the alarm and limit.
+      usage: opts.spend?.status() ?? opts.ledger?.usage() ?? null,
     }),
   );
   // Pairing starts on the Mac only: you have to be at the Mac to let a new device in.
@@ -157,6 +169,12 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
   app.post("/v1/command", async (c) => {
     const body = await c.req.json().catch(() => ({}));
     if (typeof body.text !== "string" || !body.text.trim()) return c.json({ error: "text required" }, 400);
+    // R13: the limit is also an HTTP answer, so a script sees it.
+    const refused = opts.spend?.refusal();
+    if (refused) {
+      start(body.text.trim(), typeof body.surface_id === "string" ? body.surface_id : undefined);
+      return c.json({ error: refused }, 429);
+    }
     start(body.text.trim(), typeof body.surface_id === "string" ? body.surface_id : undefined);
     return c.json({ accepted: true }, 202);
   });

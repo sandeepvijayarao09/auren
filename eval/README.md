@@ -46,7 +46,7 @@ Scripted mode reads one file per case from `scripts/`: the model's turns for eac
   ]
 }
 ```
-`ms` stands in for model time on that turn. In `args`, `{{today}}` is the local date, and a value of `{{receipt:gmail.create_draft}}` becomes the id of that tool's latest receipt. If the loop asks for more turns than the script has, or leaves some unplayed, the case fails.
+`ms` stands in for model time on that turn. In `args`, `{{today}}` is the local date, a value of `{{receipt:gmail.create_draft}}` becomes the id of that tool's latest receipt, and a value of `{{output:event_id}}` becomes `event_id` from the tool results that turn was handed, the way a model reads an id it was just given. The scripted model lives in `core/src/eval/scripted.ts`; the public sandbox's replay engine plays the same scripts. If the loop asks for more turns than the script has, or leaves some unplayed, the case fails.
 
 ## Case format
 ```json

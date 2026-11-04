@@ -1,6 +1,6 @@
 # One entry point for every part of Auren. Run `make` to list targets.
 .DEFAULT_GOAL := help
-.PHONY: help setup dev test check typecheck secrets keyd apple apple-build icon clean
+.PHONY: help setup dev sandbox test check typecheck secrets keyd apple apple-build icon clean
 
 APPLE_FLAGS = -project apps/apple/Auren.xcodeproj -derivedDataPath .build/apple CODE_SIGNING_ALLOWED=NO
 
@@ -17,6 +17,9 @@ setup: ## Install dependencies and turn on the secret scan
 
 dev: ## Run Core on http://127.0.0.1:8787, reloading on save
 	cd core && npm run dev
+
+sandbox: ## Run the public sandbox on http://127.0.0.1:8787/try (replays without a key)
+	cd core && npm run sandbox
 
 test: ## Every test that needs no API key or device
 	cd core && npm test

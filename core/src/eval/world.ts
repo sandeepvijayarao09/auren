@@ -122,10 +122,11 @@ export function evalWorld(deps: WorldDeps) {
   const world = createDemoWorld();
   const camera = new EvalCamera();
   const site = new EvalSite();
+  const crops = new CropStore();
   const base: Namespace[] = [
     ...world.namespaces,
     surfacesNamespace,
-    createGlasses({ broker: camera, reader: camera.reader, segmenter: camera.segmenter, crops: new CropStore() }),
+    createGlasses({ broker: camera, reader: camera.reader, segmenter: camera.segmenter, crops }),
     createBrowser({ hub: site, muse: site.model, model: "scripted-computer-use", log: deps.log }),
   ];
   // R8: Auren Memory answers from its local fallback here (no Baseten in the eval), and
@@ -133,7 +134,7 @@ export function evalWorld(deps: WorldDeps) {
   const registry = new ToolRegistry().add(...base);
   const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry })];
   registry.add(...memory);
-  return { state: world.state, camera, site, namespaces: [...base, ...memory] };
+  return { state: world.state, camera, site, crops, namespaces: [...base, ...memory] };
 }
 
 export type EvalWorld = ReturnType<typeof evalWorld>;
