@@ -35,6 +35,10 @@ Open http://127.0.0.1:8787 for the console. Open a second tab at `/?kind=watch` 
 | `AUREN_ASR_METADATA_ONLY` | No | Set to `false` if your Meta account rejects metadata-only logging for voice |
 | `BASETEN_API_KEY` | For Spark Open | Auren Memory on Muse Spark Open. Without it, recaps are built locally. |
 | `AUREN_DRIVER_ALLOW` | For computer use | Sites the browser driver may open, comma-separated. More settings in [driver/README.md](driver/README.md#settings). |
+| `AUREN_MCP_CONFIG` | No | The MCP servers to connect; default `mcp.json` at the repo root. Setup: [docs/mcp-setup.md](docs/mcp-setup.md) |
+| `AUREN_ROUTER_URL`, `AUREN_ROUTER_KEY`, `AUREN_ROUTER_MODEL`, `AUREN_ROUTER_BUDGET_MS` | No | The Glimmer router on Modal (OpenAI-compatible). Without it, Muse Spark routes when there's a key, else rules. Default budget 300 ms. [router/README.md](router/README.md) |
+| `AUREN_TOKEN_ALARM`, `AUREN_TOKEN_LIMIT` | No | Spend limits in model tokens: a one-time warning, and a hard stop for new commands |
+| `AUREN_SANDBOX` and `AUREN_SANDBOX_*`, `AUREN_TRUST_PROXY` | For `make sandbox` | The public `/try` sandbox: token budget, commands per minute and day, visitors at once, and how many proxies to trust. See [docs/runbook.md](docs/runbook.md) |
 | `BASETEN_BASE_URL`, `AUREN_MEMORY_MODEL` | No | Override `https://inference.baseten.co/v1` and `meta-models/muse-spark-open-1026` |
 
 Keys live only in `.env` on the machine running Core. Surfaces never hold a model key.
@@ -42,11 +46,11 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, Google, Slack, Gmail, tape, voice, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 170 |
+| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, router, MCP bridge, sandbox, spend limits, Google, Slack, Gmail, tape, voice and watch clips, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 256 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA, the executor on real Chromium, the Core connection) | `cd driver && npm test` | 20 |
-| Router (output schema) | `cd router && uv run python -m unittest discover -s tests -t .` | 5 |
-| AurenKit (protocol, client state, device identity, voice, relay, speech, camera capture, bystander blur) | `cd apps/apple/AurenKit && swift test` | 38 |
+| Router (schema, prompt, data, evaluate) | `cd router && uv run python -m unittest discover -s tests -t .` | 34 |
+| AurenKit (protocol, client state, device identity, voice, relay, speech, camera capture, bystander blur, watch clips, timeline media, approval verbs) | `cd apps/apple/AurenKit && swift test` | 54 |
 
 `cd core && npm run eval` plays the eval cases (scripted without a key, live with one) and rewrites `eval/results.md`.
 

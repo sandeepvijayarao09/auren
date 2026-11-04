@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 170 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
+npm test          # 256 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
@@ -32,10 +32,15 @@ npm run typecheck
 | `src/connectors/google/` | Google sign-in (Desktop client, PKCE, refresh) and the live `calendar` and `gmail` namespaces | ✅ |
 | `src/connectors/slack.ts` | Slack through a bot in the demo workspace | ✅ |
 | `src/connectors/tape.ts` | Record real API responses once (tokens scrubbed), replay them offline in tests and evals | ✅ |
-| `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe → a command; wake phrase and keywords | ✅ |
+| `src/voice/` | `/v1/voice`: microphone audio → Muse Voice Transcribe → a command; wake phrase and keywords. `clip.ts`: the watch's signed hold-to-talk clips | ✅ ([R12](../docs/rounds/R12.md)) |
 | `src/vision/` | `glasses.look`: a capture request → one blurred frame → Muse Spark reads it, SAM 3.1 outlines it → an encrypted receipt crop | ✅ tested against fake models ([R6](../docs/rounds/R6.md)) |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/`, with the tap at the commit | ✅ tested against a fake driver and scripted Muse ([R7](../docs/rounds/R7.md)) |
 | `src/memory/` | Auren Memory: recap and recall over receipts on Muse Spark Open (local fallback), and `receipts.undo` | ✅ |
+| `src/router/` | Auren Router: Glimmer, then Muse Spark, then rules; preloads namespaces, starts the camera early, shapes the ack; advisory only. `examples.ts` exports labelled examples from the log | ✅ ([R9](../docs/rounds/R9.md)) |
+| `src/connectors/mcp.ts` | The MCP bridge: servers from `mcp.json` as namespaces; every tool asks unless the server is trusted. `mcp-journal.ts` is the demo server | ✅ ([R11](../docs/rounds/R11.md)) |
+| `src/sandbox/` | The judges' sandbox at `/try`: isolated visitors, limits, live and replay engines | ✅ ([R13](../docs/rounds/R13.md)) |
+| `src/obs/spend.ts` | Token alarm and limit, fed by the outbound ledger | ✅ |
+| `src/eval/scripted.ts` | The scripted model shared by the eval and the sandbox's replay | ✅ |
 
 ## Routes
 | Route | Auth | What it does |
@@ -46,10 +51,10 @@ npm run typecheck
 | `GET /health` | — | `{ ok, muse, google, surfaces }` |
 | `GET /connect/google` | this Mac, or token | Starts the Google sign-in ([setup](../docs/google-setup.md)) |
 | `GET /connect/google/callback` | — | Where Google sends the browser back |
-| `GET /v1/connections` | token | Which accounts are connected |
+| `GET /v1/connections` | token | Which accounts and MCP servers are connected |
 | `GET /v1/audit/verify` | token | Walks the log's hash chain: `{ ok, count, head, brokenAt? }` |
 | `GET /v1/outbound` | token | The outbound ledger |
-| `GET /v1/trust` | token | Log integrity, key source, outbound summary, devices online and paired |
+| `GET /v1/trust` | token | Log integrity, key source, outbound summary, token usage, devices online and paired |
 | `POST /v1/pair/start` | this Mac only | A one-time six-digit pairing code |
 | `POST /pair/finish` | the pairing code | A device registers its Secure Enclave public key |
 | `GET /v1/devices` · `DELETE /v1/devices/:id` | token · this Mac only | List and revoke paired devices |
@@ -61,6 +66,8 @@ npm run typecheck
 | `GET /v1/crops/:id` | token | A receipt's crop: what SAM 3.1 outlined |
 | `WS /v1/surface` | token or paired device | The Surface Protocol ([spec](../spec/surface-protocol.md)) |
 | `WS /v1/voice` | this Mac or paired device | Hold-to-talk audio in, transcripts out ([spec](../spec/surface-protocol.md#voice-v01)) |
+| `POST /v1/voice/clip` | this Mac, or a paired device's signature over the clip | One hold-to-talk clip from the watch, possibly relayed by the iPhone → `{text}` |
+| `GET /v1/router/examples` | this Mac only | Labelled router examples derived from the log, as JSONL (contains command text) |
 | `WS /v1/driver` | this Mac, or token | The Playwright driver dials in and takes one batch of actions at a time ([driver](../driver/README.md)) |
 
 "token" means `Authorization: Bearer $AUREN_TOKEN` or `?token=`. Without `AUREN_TOKEN`, Core listens on 127.0.0.1 only and needs no token.

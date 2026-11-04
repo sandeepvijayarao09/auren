@@ -64,22 +64,24 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Agent loop: Muse Wonder, parallel tool calls, namespaces + `tool_search`, tier gate, receipts, undo | ✅ working against scripted turns; live Muse run pending an API key |
 | Demo world: Calendar, Slack, Gmail (in memory, fictional people) | ✅ |
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
-| iPhone and Apple Watch apps: timeline, approvals, speech | ✅ build for the Simulator; on devices from Day 4 |
+| iPhone and Apple Watch apps: timeline with receipt crops and live computer-use frames, approvals that name the action (Post, Invite, Confirm), speech, hold to talk on the watch | ✅ build for the Simulator; untested on real devices |
 | Computer use (GP4): `browser.run_task` runs a nested Muse Wonder loop that drives Chromium on the Mac through the Playwright driver; the commit guard pauses before any confirm click, so the only tap comes at the commit; a CAPTCHA stops the run | ✅ built and tested on real Chromium; live Muse computer use needs the API key |
-| Router output schema and labelling rubric | ✅ |
-| Eval runner: 10 golden-path and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ all 10 pass, none skipped, **0 tier violations** |
+| Eval runner: 11 golden-path, platform and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ all 11 pass, none skipped, **0 tier violations** |
 | Auren Memory (recap and recall on Muse Spark Open, with a local fallback) and undo by voice | ✅ built and tested against a fake Baseten; live run needs `BASETEN_API_KEY` |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
 | Security: master key sealed to the Secure Enclave, encrypted hash-chained log, redacted ops log, outbound ledger, `/v1/trust` | ✅ built and tested ([SECURITY.md](SECURITY.md)) |
 | Device pairing and Secure Enclave-signed approvals: one-time codes, challenge on connect, revoke | ✅ built and tested, Swift ↔ Node signatures verified |
 | Gmail and Slack connectors, plus record and replay for API calls | ✅ built and tested; live runs need your accounts ([Google](docs/google-setup.md), [Slack](docs/slack-setup.md)) |
-| Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone | ✅ built and tested against a fake transcriber; live run needs the API key |
+| Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone; the watch uploads signed hold-to-talk clips to `/v1/voice/clip`, relayed through the iPhone when needed | ✅ built and tested against a fake transcriber; live run needs the API key, and the watch mic a real watch |
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
 | Glasses (Wearables toolkit) | ⏳ the toolkit isn't available here, so the glasses camera is a stub; the iPhone's camera answers GP2 today |
 | Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models; live run needs the API key and a real iPhone |
-| Auren Router (Glimmer fine-tune) | ⏳ needs Modal |
+| Auren Router: reads a command and the devices around you, preloads the right tools, starts the camera early for "this" and shapes the ack; advisory only, never changes a tier ([router](router/README.md)) | ✅ routing with rules, or Muse Spark with a key · Glimmer fine-tune: data, training, serving and eval code ready, ⏳ needs Modal credits |
+| MCP bridge: any MCP server in `mcp.json` becomes a Muse tool namespace; every tool asks for a tap unless you trust that server's read-only hints; never a write ([setup](docs/mcp-setup.md)) | ✅ built and tested with a demo Journal server; live Muse run pending |
+| Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses; isolated visitors and rate limits; live Muse with a key, golden-path replays without one | ✅ built and tested; not deployed |
+| Token usage and spend limits: every Muse call's tokens in the outbound ledger and `/v1/trust`; `AUREN_TOKEN_ALARM` warns, `AUREN_TOKEN_LIMIT` refuses new commands | ✅ built and tested |
 
-**Tests:** 239 across five suites (Core 170, AurenKit 38, driver 20, keyd 6, router 5), plus the scripted eval in `npm run eval`. No API key or device needed.
+**Tests:** 370 across five suites (Core 256, AurenKit 54, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.
@@ -102,7 +104,7 @@ core/            Auren Core: TypeScript on Node, Hono, ws, zod, node:sqlite, Ope
 apps/web/        the console surface, served by Core
 apps/apple/      iPhone + Apple Watch apps (SwiftUI, XcodeGen) and AurenKit, the shared Swift package
 driver/          computer use on the Mac: the Playwright driver and its commit guard
-router/          Auren Router: output schema, labelling rubric; the Glimmer fine-tune needs Modal
+router/          Auren Router: schema, rubric, seed data, and the Glimmer data, training, serving and eval code (training needs Modal)
 eval/            golden-path and safety cases, their scripts, and the latest `npm run eval` results
 spec/            Surface Protocol v0 and the 20-line example surface
 keyd/            auren-keyd: seals Core's master key to the Mac's Secure Enclave (Swift)

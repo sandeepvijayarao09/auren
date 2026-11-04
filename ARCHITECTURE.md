@@ -121,7 +121,7 @@ flowchart TB
   EDGE["Edge · Hono + ws · bearer token<br/>surface · command · approvals · events ✅<br/>voice · frames · driver ✅"]
   subgraph BRAIN["Brain"]
     direction LR
-    FST["Fast lane<br/>Spark ack ✅ · Router ⏳"]
+    FST["Fast lane<br/>Spark ack ✅ · Router ✅"]
     LOOP["Agent loop ✅<br/>Muse Wonder"]
     TRG["Tool registry ✅<br/>namespaces · tool_search"]
     GRD["Guard ✅<br/>tier gate · untrusted wrap · receipts"]
@@ -159,7 +159,7 @@ flowchart TB
 | **Device picker** | Chooses the best online surface for each output (rules in [§11](#11-presence-and-handoff-gp3)). | `speak(text, origin)`, `showCard(title, body)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Approval broker** | Turns a send-tier call into a tap. It routes the request, moves it when a device drops, takes the first answer, and expires the request after 60 s, which counts as a decline. | `requestApproval(summary, tier) → Promise<boolean>`, `answer(id, approved, from)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Agent loop** | Runs Muse Wonder on the Responses API: parallel tool calls, up to 8 turns, and the tool inventory rebuilt each turn. | `runCommand(deps, {session, text, originSurfaceId})` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ scripted · live run pending a key |
-| **Fast lane** | Speaks an acknowledgement in under 8 words while Wonder plans. Uses Spark at minimal effort and a 2.5 s timeout; the Router is added later. | `fastAck` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ ack · Router ⏳ Nov 1 gate |
+| **Fast lane** | Speaks an acknowledgement in under 8 words while Wonder plans. Uses Spark at minimal effort and a 2.5 s timeout; the Router is added later. | `fastAck` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ ack · Router ✅ (rules, Spark) · Glimmer ⏳ Modal |
 | **Tool registry** | Turns apps and devices into Muse tool namespaces. Builds the per-turn inventory, adds `tool_search` when tools are deferred, and resolves calls. | `toResponsesTools(ctx)`, `resolve(name, namespace)` | [`tools/registry.ts`](core/src/tools/registry.ts) | ✅ hosted search · client-executed ⏳ Day 2 |
 | **Guard** | Enforces tiers, writes receipts with undo steps, and wraps external results as untrusted data. | inside `executeCall`, `undoReceipt` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ |
 | **Connectors** | App adapters behind stable tool names. Today it's an in-memory demo world with fictional people. | `Namespace` | [`tools/demo-world.ts`](core/src/tools/demo-world.ts) | ✅ demo · Google Calendar, Gmail, Slack ✅ (live runs need your accounts) |
@@ -202,7 +202,9 @@ The full spec is in [`spec/surface-protocol.md`](spec/surface-protocol.md). It u
 | `speak {text, reply_id, seq}`, sentence-chunked | When a surface drops mid-reply, the rest of the reply moves to the next voice surface (GP3) | ✅ |
 | `/v1/voice` WebSocket, PCM16 24 kHz mono | Streams the microphone to Core, which proxies it to Muse ASR | ✅ |
 | `capture_request {request_id, purpose}` → `POST /v1/frames/:request_id` | The camera is only ever triggered by Core, and only for a "this" command | ✅ |
-| `browser_frame {jpeg, step}` event | Live computer-use frames on the phone timeline | ✅ web console · iPhone ⏳ |
+| `browser_frame {step, status, host, title, frame}` event | Live computer-use frames on the phone timeline | ✅ web console and iPhone |
+| `approval_request {…, verb}` | The tap says what it does: Post, Invite, Confirm. Display-only; the signed payload is unchanged | ✅ |
+| `POST /v1/voice/clip`, signed `auren-clip` payload | The watch's hold-to-talk clip, sent directly or relayed unchanged through the iPhone | ✅ |
 | `/v1/driver` WebSocket | The Mac driver dials out to Core and receives `computer_call` actions | ✅ |
 
 ## 7. Life of a command (GP1)
@@ -307,6 +309,7 @@ The tool inventory is a function of the present moment:
 | `browser` | The Mac driver is connected | `run_task(task, url, summary)` (**send**, with the tap at the commit point; **external**) | ✅ |
 | `memory` | Always (without Spark Open, recaps are built locally) | `recap(date)` · `recall(query)` (read) | ✅ |
 | `receipts` | Always | `list_recent` (read) · `undo(receipt_id)` (write), which enables "undo that" by voice | ✅ |
+| *any MCP server* | It's in `mcp.json` and connected | Its tools: **send** (ask for a tap), or read when the user trusts the server and the tool says `readOnlyHint`; never write; **external** | ✅ |
 
 Take the glasses off and `glasses.look` is gone from the next turn. The model can't "use the camera" on a device you aren't wearing. This uses Muse namespaces and `tool_search` for something they weren't designed for: **a live map of your devices.**
 
@@ -330,18 +333,21 @@ Keys, encryption, the tamper-evident log and the comparison with iCloud Advanced
 
 | Threat | Mitigation | Where | Status |
 |---|---|---|---|
-| Prompt injection in email, Slack, web pages, or text on a poster | External results are wrapped as untrusted data. Tiers live on the tool spec, so injected text can't change them. Injection cases are in the eval. | `executeCall` | ✅ wrap · eval ⏳ Day 7 |
+| Prompt injection in email, Slack, web pages, or text on a poster | External results are wrapped as untrusted data. Tiers live on the tool spec, so injected text can't change them. Injection cases are in the eval. | `executeCall` | ✅ wrap · ✅ eval |
 | Model sends without asking | The send gate runs in Core before `run()`. It's tested by the decline test. | `executeCall` | ✅ |
 | A device you took off still holds the approval | Handoff: `approval_cancel(moved)` goes to the old surface, and the request is re-offered to the next best one | `SurfaceRegistry` | ✅ tested |
 | An approval sits unanswered | It expires after 60 s and counts as a decline | `requestApproval` | ✅ |
 | A forged approval | Random UUID request ids. Only authenticated surfaces in the session can answer, and the first answer wins. | `server.ts`, `SurfaceRegistry` | ✅ |
 | Computer use clicks Confirm or Pay on its own | A driver-side **commit guard** pauses before clicking a commit-like control; Core turns that into a send-tier approval. The model's safety checks also become approvals. A 25-step cap. A clean browser profile with no saved passwords or cards. A CAPTCHA means stop and hand it to you. | `driver/`, runner | ✅ |
 | Bystanders on camera | The camera captures only on "this". Apple Vision person segmentation blurs people **on the phone before upload**. Frames aren't stored; only the receipt crop is. | iPhone app, `vision/` | ✅ · 🧪 not yet run on a photo of a real person |
-| Always listening | Wake-phrase detection runs on the device. Audio streams to ASR only after the wake phrase, or a press on the watch. | Surfaces | ⏳ Day 3 |
+| Always listening | Wake-phrase detection runs on the device. Audio streams to ASR only after the wake phrase, or a press on the watch. | Surfaces | ✅ hold-to-talk everywhere today; wake phrase removed in Core |
 | Key leakage | Keys live only in Core's `.env`, never on devices. A gitleaks pre-commit hook. Surfaces hold only a session token. | repo, `config.ts` | ✅ |
-| OAuth token theft | Tokens encrypted at rest (AES-256-GCM, key from env), least-privilege scopes | `connectors/` | ⏳ Day 1 |
+| OAuth token theft | Tokens encrypted at rest (AES-256-GCM, key from env), least-privilege scopes | `connectors/` | ✅ |
 | Core exposed on the network | Binds to 127.0.0.1 by default and to 0.0.0.0 only when `AUREN_TOKEN` is set. Bearer auth on `/v1/*` and on the WebSocket upgrade. | `config.ts`, `server.ts` | ✅ |
 | Real student data in the demo | A fictional demo workspace and people. No FERPA data ever touches Auren. | demo world, demo accounts | ✅ |
+| A connected MCP server lies about its tools or hides instructions in them | Annotations count only from servers you trust; otherwise every tool asks. Names and descriptions are cleaned and capped, results are untrusted data | `connectors/mcp.ts` | ✅ |
+| Someone abuses the public sandbox | Each visitor gets an isolated, expiring demo world; rate limits per address and overall; no real route, key, log or device exists in sandbox mode | `sandbox/` | ✅ |
+| Runaway model spend | Every call's tokens are counted in one wrapper; an alarm and a hard limit | `security/ledger.ts`, `obs/spend.ts` | ✅ |
 
 ## 11. Presence and handoff (GP3)
 
@@ -558,11 +564,11 @@ The model API terms on training with model outputs are checked before the run.
 
 | Table / kind | Holds | Lands |
 |---|---|---|
-| `connectors` | provider, account, scopes, encrypted token + IV, updated_at | ⏳ Day 1 |
-| `crops` | receipt crops only, never full frames | ⏳ Day 5 |
-| `router_examples` | text, device context, label, source (real / synthetic), split | ⏳ Day 1 (logging), Day 3 (synthetic) |
-| `eval_runs` | case, pass, metrics | ⏳ Day 7 |
-| `usage` event kind | model, input and output tokens, per command | ⏳ Day 2 |
+| `connectors` | provider, account, scopes, encrypted token + IV, updated_at | ✅ |
+| `crops` | receipt crops only, never full frames | ✅ |
+| `router_examples` | Not a table: `GET /v1/router/examples` derives labelled examples from the log (`utterance` events carry the devices online) | ✅ |
+| `eval_runs` | Files, not a table: `eval/results.md` and `eval/out/*.json` | ✅ |
+| `usage` event kind | model, input and output tokens, per model call (also in the outbound ledger) | ✅ |
 
 ## 18. API reference
 
@@ -576,11 +582,12 @@ The model API terms on training with model outputs are checked before the run.
 | POST | `/v1/approvals/:id` | `{approved, surface_id?}` | `{ok}` | ✅ |
 | POST | `/v1/receipts/:id/undo` | — | `{ok, message}` | ✅ |
 | WS | `/v1/surface` | Surface Protocol | — | ✅ |
-| WS | `/v1/voice` | `?surface_id`, PCM16 24 kHz | partial / final transcripts | ⏳ Day 3 |
-| POST | `/v1/voice/clip` | audio clip (watch) | `202` | ⏳ Day 4 |
-| POST | `/v1/frames/:request_id` | blurred JPEG | `202` | ⏳ Day 5 |
-| WS | `/v1/driver` | `computer_call` actions ↔ screenshots | — | ⏳ Day 6 |
-| GET | `/v1/connectors/google/start`, `/callback` | OAuth | — | ⏳ Day 1 |
+| WS | `/v1/voice` | `?surface_id`, PCM16 24 kHz | partial / final transcripts | ✅ |
+| POST | `/v1/voice/clip` | signed PCM16 clip (watch) | `200 {text}` | ✅ |
+| POST | `/v1/frames/:request_id` | blurred JPEG | `202` | ✅ |
+| WS | `/v1/driver` | `computer_call` actions ↔ screenshots | — | ✅ |
+| GET | `/v1/router/examples` | this Mac only | labelled examples, JSONL | ✅ |
+| GET | `/connect/google`, `/connect/google/callback` | OAuth | — | ✅ |
 
 Everything under `/v1/*`, including WebSocket upgrades, needs `Authorization: Bearer <AUREN_TOKEN>` or `?token=` when a token is set.
 
@@ -621,7 +628,8 @@ flowchart LR
 |---|---|---|
 | **Local** ✅ | On the Mac, at `127.0.0.1:8787` | Development and the console demo |
 | **LAN** ✅ | On the Mac at `0.0.0.0`, with `AUREN_TOKEN` | Phone and watch on the same Wi-Fi |
-| **Roaming** ⏳ Day 4 | Any Node host (for example Fly.io, with a volume for SQLite). The driver dials out, so the Mac can be anywhere. | Walking shots for the film, on cellular |
+| **Roaming** ⏳ | Any Node host (for example Fly.io, with a volume for SQLite), or a tunnel to the Mac with `AUREN_TOKEN`. The driver dials out, so the Mac can be anywhere. | Walking shots for the film, on cellular |
+| **Sandbox** ✅ built, not deployed | `make sandbox`: only `/try`, on fictional demo worlds, with no key, log or device behind it | Judges trying Auren without accounts |
 
 ## 20. Failure modes
 
@@ -668,9 +676,9 @@ auren/
     src/           server.ts · surfaces.ts · eventlog.ts · protocol.ts · config.ts · index.ts
   apps/web/        console surface ✅
   apps/apple/      project.yml (XcodeGen) · AurenKit (protocol, SurfaceClient, brand) · iOS · Watch ✅ Simulator · glasses via the Wearables toolkit ⏳
-  driver/          commit guard + CAPTCHA stop ✅ · Playwright driver ⏳
-  router/          output schema + labelling rubric ✅ · dataset · Modal QLoRA training · vLLM serving · eval ⏳
-  eval/            10 seed cases ✅ · runner, record/replay fixtures, results.md ⏳
+  driver/          commit guard + CAPTCHA stop · Playwright driver ✅
+  router/          schema · rubric · seed data · dataset, Modal QLoRA training, vLLM serving and eval code ✅ · training run ⏳ Modal
+  eval/            11 cases · scripts · runner · results.md ✅
   spec/            surface-protocol.md · examples/minimal-surface.html ✅
   brand/           tokens.css · mark.svg · make-icon.swift · README (palette, naming) ✅
   docs/            golden-paths.md · runbook.md ✅

@@ -22,7 +22,7 @@ Five commands are the whole product. Everything is built to make these pass on c
 ## Where the code is
 | Path | Code | Status |
 |---|---|---|
-| GP1 | `core/src/agent/loop.ts`, `core/src/connectors/`, `apps/apple/Watch/` | Loop ✅, Calendar, Gmail and Slack connectors ✅ (need accounts), watch voice ⏳ |
+| GP1 | `core/src/agent/loop.ts`, `core/src/connectors/`, `apps/apple/Watch/` | Loop ✅, Calendar, Gmail and Slack connectors ✅ (need accounts), watch voice ✅ (signed hold-to-talk clips, relayed through the iPhone; real watch pending) |
 | GP2 | `core/src/vision/`, `AurenKit` (`Capture.swift`, `BystanderBlur.swift`) | ✅ passes in the scripted eval; live Spark and SAM, a real iPhone camera and the glasses toolkit pending |
 | GP3 | `core/src/surfaces.ts` (`#pick`, `sweep`, handoff), `AurenKit/Transport.swift` (watch relay) | Approval and mid-reply speech handoff ✅, timed under 2 s in tests |
 | GP4 | `core/src/computer/`, `driver/` | ✅ passes in the scripted eval (the hold, and the CAPTCHA stop); live Muse computer use pending the API key |
