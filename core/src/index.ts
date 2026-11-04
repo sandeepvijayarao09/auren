@@ -30,6 +30,14 @@ import { DriverHub } from "./computer/hub.ts";
 // R11: MCP bridge
 import { loadMcpConfig, McpBridge } from "./connectors/mcp.ts";
 import { createRouter } from "./router/router.ts";
+import { SpendGuard } from "./obs/spend.ts"; // R13
+
+// R13: AUREN_SANDBOX=true serves only the public sandbox (core/src/sandbox/) until it's stopped, then
+// exits. Nothing below runs: no master key, no auren.db, no connectors, devices, camera or driver.
+if (config.sandbox) {
+  await (await import("./sandbox/main.ts")).runSandbox();
+  process.exit(0);
+}
 
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
@@ -72,7 +80,9 @@ const spark = config.basetenApiKey
   ? sparkOpen({ client: new OpenAI({ baseURL: config.basetenBaseUrl, apiKey: config.basetenApiKey, maxRetries: 1 }), model: config.memoryModel, ledger, ops })
   : undefined;
 tools.add(createMemory({ log, spark, timeZone: config.timeZone, ops }), createReceipts({ log, tools, timeZone: config.timeZone }));
-const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger);
+// R13: ops too, for one `usage` line per model call. The spend guard watches the ledger's token total.
+const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger, ops);
+const spend = new SpendGuard(ledger, { alarm: config.tokenAlarm, limit: config.tokenLimit, ops, onCross: (e) => log.append(SESSION, "usage", { ...e }) });
 
 // Vision: glasses.look asks a camera surface for one blurred frame; Muse Spark reads it,
 // SAM 3.1 outlines what's at the centre, and only that crop is kept (encrypted) for the receipt.
@@ -131,6 +141,7 @@ const core = createServer(
     vision: { frames, crops },
     driver,
     mcp, // R11: MCP bridge
+    spend, // R13
   },
 );
 
@@ -159,5 +170,8 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   for (const e of mcpConfig.errors) console.warn(`  ⚠ mcp: ${e}`);
   console.log(`  router: ${config.routerUrl ? `Glimmer at ${new URL(config.routerUrl).host}, then Spark, then rules` : config.museApiKey ? "Muse Spark, then rules (set AUREN_ROUTER_URL for Glimmer)" : "rules"}`);
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
+  // R13
+  const used = ledger.totals().total;
+  if (config.tokenAlarm || config.tokenLimit || used) console.log(`  tokens: ${used.toLocaleString("en-US")} used${config.tokenAlarm ? ` · alarm ${config.tokenAlarm.toLocaleString("en-US")}` : ""}${config.tokenLimit ? ` · limit ${config.tokenLimit.toLocaleString("en-US")}` : ""}`);
 });
 server.on("upgrade", core.upgrade);

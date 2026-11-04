@@ -18,9 +18,8 @@ import { SurfaceKind, type Manifest, type ServerMessage } from "../protocol.ts";
 import { SurfaceRegistry } from "../surfaces.ts";
 import { ToolRegistry } from "../tools/registry.ts";
 import type { Namespace, ToolSpec } from "../tools/types.ts";
+import { EVAL_DIR, loadScript, ScriptedMuse, type Script } from "./scripted.ts";
 import { applyFixtures, evalWorld, PLANNED, type EvalWorld } from "./world.ts";
-
-const EVAL_DIR = new URL("../../../eval/", import.meta.url);
 
 // ── cases and scripts ─────────────────────────────────────────────────────
 
@@ -50,32 +49,10 @@ const Case = z.object({
 });
 export type Case = z.infer<typeof Case>;
 
-/** One scripted model turn: some tool calls, or the final spoken sentence. `ms` stands in for model time. */
-const Turn = z.strictObject({
-  ms: z.number().min(0).optional(),
-  calls: z.array(z.strictObject({ tool: z.string(), args: z.record(z.string(), z.unknown()) })).optional(),
-  say: z.string().optional(),
-});
-const Script = z.strictObject({
-  case: z.string(),
-  note: z.string().optional(),
-  commands: z.array(z.strictObject({ ack: z.string().optional(), turns: z.array(Turn).min(1) })),
-});
-type Script = z.infer<typeof Script>;
-
 export function loadCases(): Case[] {
   const dir = new URL("cases/", EVAL_DIR);
   return readdirSync(dir).filter((f) => f.endsWith(".json")).sort()
     .map((f) => Case.parse(JSON.parse(readFileSync(new URL(f, dir), "utf8"))));
-}
-
-function loadScript(id: string): Script | null {
-  try {
-    return Script.parse(JSON.parse(readFileSync(new URL(`scripts/${id}.json`, EVAL_DIR), "utf8")));
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw err;
-  }
 }
 
 // ── results ───────────────────────────────────────────────────────────────
@@ -218,7 +195,6 @@ export interface EvalOptions {
   patchSurfaces?: (surfaces: SurfaceRegistry) => void;
 }
 
-const today = () => new Intl.DateTimeFormat("en-CA").format(new Date());
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 /** Everything one case plays in: one world, one log, and the instruments on both. */
@@ -355,66 +331,6 @@ class Bench {
     }
     const wrapped = value && typeof value === "object" && ("untrusted_data" in value || "error" in value);
     if (!wrapped) this.leaks.push(`${tool} result reached the model without the untrusted-data wrapper`);
-  }
-}
-
-/** Serves a case's scripted turns, one command at a time. */
-class ScriptedMuse implements MuseLike {
-  #turns: z.infer<typeof Turn>[] = [];
-  #ack: string | undefined;
-  #i = 0;
-  #n = 0;
-  readonly bench: Bench;
-  readonly fastModel: string;
-
-  constructor(bench: Bench, fastModel: string) {
-    this.bench = bench;
-    this.fastModel = fastModel;
-  }
-
-  load(cmd: Script["commands"][number]) {
-    this.#turns = cmd.turns;
-    this.#ack = cmd.ack;
-    this.#i = 0;
-  }
-
-  get unused() {
-    return this.#turns.length - this.#i;
-  }
-
-  responses = {
-    create: async (params: Record<string, unknown>) => {
-      const id = `resp_${++this.#n}`;
-      if (params.model === this.fastModel) return { id, output: [], output_text: this.#ack ?? "" };
-      const turn = this.#turns[this.#i++];
-      if (!turn) throw new Error("the script ran out of turns: the loop asked the model again");
-      if (turn.ms) await new Promise((r) => this.bench.later(turn.ms!, () => r(null)));
-      if (turn.say !== undefined) return { id, output: [], output_text: turn.say };
-      return {
-        id,
-        output_text: "",
-        output: (turn.calls ?? []).map((c, k) => {
-          const [namespace, name] = c.tool.split(".");
-          return { type: "function_call", call_id: `call_${this.#n}_${k}`, namespace, name, arguments: JSON.stringify(this.#fill(c.args)) };
-        }),
-      };
-    },
-  };
-
-  /** `{{today}}` is the local date; a value of `{{receipt:ns.tool}}` is the id of that tool's latest receipt. */
-  #fill(value: unknown): unknown {
-    if (typeof value === "string") {
-      const receipt = value.match(/^\{\{receipt:([a-z_]+)\.([a-z_]+)\}\}$/);
-      if (receipt) {
-        const hit = this.bench.log.since(this.bench.session, 0, 10_000).reverse()
-          .find((e) => e.kind === "receipt" && e.data.namespace === receipt[1] && e.data.tool === receipt[2]);
-        return hit?.id ?? null;
-      }
-      return value.replaceAll("{{today}}", today());
-    }
-    if (Array.isArray(value)) return value.map((v) => this.#fill(v));
-    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, this.#fill(v)]));
-    return value;
   }
 }
 

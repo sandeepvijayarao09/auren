@@ -31,8 +31,22 @@ Apple describes Advanced Data Protection like this: your trusted devices "retain
 | Log | Contents | Never contains |
 |---|---|---|
 | Audit log (`auren.db`) | Every utterance, tool call, approval, receipt and reply: encrypted and chained | — |
-| Operational log (stdout, plus `AUREN_LOG_FILE`) | Trace id, latency, model, token counts, tool name, tier, outcome | Tokens, keys or message bodies. Anything shaped like a secret is scrubbed, and long strings are cut. |
-| Outbound ledger (`/v1/outbound`) | Service, operation (ids removed from paths; for MCP, the tool and `stdio` or the host), bytes sent, time, status | Contents |
+| Operational log (stdout, plus `AUREN_LOG_FILE`) | Trace id, latency, model, token counts (one `usage` line per model call), tool name, tier, outcome | Tokens, keys or message bodies. Anything shaped like a secret is scrubbed, and long strings are cut. |
+| Outbound ledger (`/v1/outbound`) | Service, operation (ids removed from paths; for MCP, the tool and `stdio` or the host), bytes sent, time, status, and for model calls the model and its input and output token counts | Contents |
+
+## Spend limits
+Every model call goes through one wrapper (`ledgerMuse`), so the agent loop, the fast ack, vision, computer use and Auren Memory's Spark Open calls all land in the outbound ledger with their token counts. `/v1/trust` shows the totals, per model. Muse prices aren't published, so the limits are in tokens, not money:
+- `AUREN_TOKEN_ALARM`: once the total passes it, Core logs one warning event and the console shows a banner.
+- `AUREN_TOKEN_LIMIT`: once the total reaches it, Core refuses new commands with a clear error (HTTP 429 on `/v1/command`). Approvals already waiting still resolve, so nothing is left half-asked.
+
+## The public sandbox
+`make sandbox` (`AUREN_SANDBOX=true`) serves `/try` for people who can't connect their own accounts, such as judges. It treats every visitor as hostile.
+- **Nothing real exists in it.** Sandbox mode starts before Core opens `auren.db`, the master key, the connector tokens, paired devices, the camera or the driver, and never creates them, whatever `.env` says. Only `/try`, `/try/api/*`, `/health` and the brand assets answer; every other route, `/v1/*` included, is a 404, and every WebSocket upgrade is dropped. A test enumerates the real Core's routes and checks each one.
+- **Each visitor is isolated.** A visitor is a 128-bit random id held in the page's session storage. Each gets their own fictional demo world, in-memory event log and simulated phone, watch and glasses. A tap or an undo only reaches that visitor's own world. Worlds expire after 30 minutes without a command, tap or undo.
+- **Limits.** Per address: commands a minute and a day, requests a minute and three sessions. Overall: visitors at once and commands at once. Commands are at most 280 characters. The live engine spends at most `AUREN_SANDBOX_TOKEN_BUDGET` tokens, then replays.
+- **Addresses.** `X-Forwarded-For` is ignored unless `AUREN_TRUST_PROXY` says how many proxies are in front, and then only the entry those proxies added is believed. IPv6 addresses are limited per /64.
+- **The page** is served with a strict Content-Security-Policy (a per-response script nonce, no outside origins, no framing), and it escapes everything it shows.
+- **The tier gate is unchanged.** A send still waits for a tap, now on the simulated watch, and the planted-email case shows Core holding the post.
 
 ## Safety in the agent
 - **Tiers are enforced by Core, not the model.** Reads run on their own. Writes leave a receipt and an Undo. Sends wait for a tap ([ARCHITECTURE.md §10](ARCHITECTURE.md#10-safety-model)).
@@ -65,5 +79,9 @@ You can connect MCP servers you already use ([docs/mcp-setup.md](docs/mcp-setup.
 | A secret leaks into logs | Redaction by name and by shape; long strings are cut |
 | A connected MCP server lies about its tools, or hides instructions in them | Its read-only hints count only if you trusted that server; anything else asks for a tap. Names, descriptions and schemas are cleaned and capped, and results arrive as untrusted data |
 | Model provider retention | Out of Auren's control. The ledger shows exactly what was sent and when. |
+| A runaway loop or a leaked key burns the credits | Token counts in the ledger; `AUREN_TOKEN_ALARM` warns and `AUREN_TOKEN_LIMIT` stops new commands |
+| A sandbox visitor tries to reach the real Core | Sandbox mode never creates it: no log, keys, connectors, devices, camera or driver, and every other route is a 404 |
+| One visitor sees or changes another's world | A world per visitor, named only by a 128-bit secret; taps and undo resolve within it |
+| A visitor floods the sandbox or forges their address | Per-address and global limits; `X-Forwarded-For` trusted only through `AUREN_TRUST_PROXY` hops; a visitor cap that one address can't fill |
 
 Found a problem? Open a private security advisory on the repository.

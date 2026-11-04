@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Try Auren</title>
+<meta name="description" content="Try Auren's five golden paths on a fictional workspace, with a simulated phone, watch and glasses.">
+<link rel="icon" href="/brand/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+  /* Brand tokens come from brand/tokens.css. Gold means you: only the mark and what waits for your tap are gold. */
+  :root { --bg:var(--auren-onyx); --panel:var(--auren-graphite); --raised:var(--auren-raised); --line:var(--auren-seam); --text:var(--auren-halo); --dim:var(--auren-ash); --gold:var(--auren-aurum); --gold-hi:var(--auren-aurum-hi); --done:var(--auren-done); --bad:var(--auren-stopped); --proof:var(--auren-proof); }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 var(--auren-text); overflow-x:hidden; }
+  button, input { font:inherit; color:inherit; }
+  button { cursor:pointer; }
+  :focus-visible { outline:2px solid var(--text); outline-offset:2px; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 16px; }
+
+  /* header */
+  .top { display:flex; align-items:center; gap:10px; padding:18px 0 6px; }
+  .wordmark { font-family:var(--auren-display); letter-spacing:.32em; font-size:20px; }
+  .tag { font-size:12px; color:var(--dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
+  .engine { margin-left:auto; display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:5px 12px; border:1px solid var(--line); border-radius:999px; background:var(--panel); white-space:nowrap; }
+  .engine i { width:8px; height:8px; border-radius:50%; border:1.5px solid var(--dim); flex:none; }
+  .engine.live i { background:var(--text); border-color:var(--text); }
+  .engine.replay b { color:var(--text); font-weight:600; }
+
+  .hero { padding:22px 0 8px; max-width:760px; }
+  .hero h1 { font:400 32px/1.15 var(--auren-display); margin:0 0 10px; letter-spacing:.01em; }
+  .hero p { margin:0; color:var(--dim); }
+
+  /* asking */
+  .ask { padding:18px 0 8px; }
+  .chips { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
+  .chip { text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); transition:border-color .15s, background .15s; min-width:0; }
+  .chip:hover:not(:disabled) { border-color:var(--dim); background:var(--raised); }
+  .chip:disabled { opacity:.45; cursor:default; }
+  .chip small { display:block; font:11px/1.3 var(--auren-mono); color:var(--dim); letter-spacing:.02em; }
+  .chip span { display:block; margin-top:3px; font-size:14px; }
+  form.say { display:flex; gap:8px; margin-top:12px; }
+  form.say input { flex:1; min-width:0; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); }
+  form.say input:focus { outline:none; border-color:var(--dim); }
+  form.say button { padding:0 18px; border-radius:12px; border:1px solid var(--line); background:var(--raised); }
+  form.say button:disabled { opacity:.5; cursor:default; }
+  .note { margin:10px 0 0; font-size:13px; color:var(--dim); min-height:1.5em; }
+  .note.bad { color:var(--bad); }
+  .note.bad::before { content:"■ "; }
+  .opts { display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--dim); }
+
+  /* the stage: phone, watch, trail. Stacked on a phone: watch, trail, then the timeline. */
+  .stage { display:grid; gap:20px; padding:18px 0 32px; grid-template-columns:minmax(0, 1.25fr) 248px minmax(0, 1fr); grid-template-areas:"phone watch trail"; align-items:start; }
+  @media (max-width:1020px) { .stage { grid-template-columns:minmax(0, 1fr) 248px; grid-template-areas:"phone watch" "phone trail"; } }
+  @media (max-width:700px) { .stage { grid-template-columns:minmax(0, 1fr); grid-template-areas:"watch" "trail" "phone"; } .hero h1 { font-size:27px; } }
+  .col-phone { grid-area:phone; min-width:0; }
+  .col-watch { grid-area:watch; min-width:0; }
+  .col-trail { grid-area:trail; min-width:0; }
+  .label { font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin:0 0 10px 2px; }
+
+  /* phone */
+  .phone { border:1px solid var(--line); border-radius:30px; background:var(--panel); padding:14px; max-height:min(720px, 78vh); overflow:auto; overscroll-behavior:contain; }
+  @media (max-width:700px) { .phone { max-height:none; border-radius:24px; } }
+  .phone .empty { color:var(--dim); font-size:14px; padding:18px 6px; }
+  .ev { display:flex; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line); }
+  .ev:last-child { border-bottom:0; }
+  .ev .k { width:68px; flex:none; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); padding-top:2px; }
+  .ev.receipt .k { color:var(--done); }
+  .ev.receipt .k::before { content:"✓ "; }
+  .ev.error .k { color:var(--bad); }
+  .ev.error .k::before { content:"■ "; }
+  .ev .b { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .t { color:var(--dim); font:11px var(--auren-mono); margin-left:6px; white-space:nowrap; }
+  .tier { font:11px var(--auren-mono); color:var(--dim); border:1px solid var(--line); border-radius:6px; padding:0 5px; margin-left:6px; }
+  .replayed { font-size:11px; color:var(--dim); font-style:italic; margin-left:6px; }
+  .undo { margin-left:8px; font-size:12px; padding:3px 10px; border-radius:8px; border:1px solid var(--line); background:var(--raised); }
+  .undone { margin-left:8px; font-size:12px; color:var(--dim); }
+  .seen { display:flex; align-items:center; gap:8px; margin:8px 0 0; font-size:12px; color:var(--dim); }
+  .seen img { width:28px; height:28px; flex:none; border-radius:6px; border:1px solid var(--line); object-fit:cover; opacity:.85; }
+  .frame { display:block; width:28px; height:28px; object-fit:cover; margin-bottom:6px; border-radius:6px; border:1px solid var(--line); opacity:.85; }
+  .sugg { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .sugg button { font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:var(--raised); }
+  .card { margin:0 0 10px; padding:12px 14px; border:1px solid var(--line); border-radius:16px; background:var(--raised); }
+  .card b { display:block; margin-bottom:4px; }
+  .card div { white-space:pre-line; font-size:14px; color:var(--dim); }
+  .ptap { margin:0 0 12px; padding:14px; border:1px solid var(--gold); border-radius:16px; background:var(--raised); }
+  .ptap .why { font-size:12px; color:var(--dim); margin-bottom:6px; }
+
+  /* the tap: gold fills the button, and the label names the action */
+  .row { display:flex; gap:8px; margin-top:12px; }
+  .go { flex:1; padding:9px 12px; border-radius:999px; border:0; background:var(--gold); color:var(--auren-onyx); font-weight:650; }
+  .go:hover { background:var(--gold-hi); }
+  .no { padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--text); }
+
+  /* watch */
+  .watch { position:relative; width:212px; height:252px; margin:0 auto; border-radius:54px; padding:11px; background:#161618; border:1px solid var(--line); box-shadow:0 18px 50px rgba(0,0,0,.55); }
+  .watch::after { content:""; position:absolute; right:-6px; top:66px; width:6px; height:36px; border-radius:0 4px 4px 0; background:#26262a; border:1px solid var(--line); border-left:0; }
+  .face { height:100%; border-radius:44px; background:#000; padding:20px 16px 16px; display:flex; flex-direction:column; overflow:hidden; transition:background .25s; }
+  .face .clock { font:600 30px/1 var(--auren-text); letter-spacing:-.01em; text-align:right; }
+  .face .idle { margin-top:auto; font-size:13px; color:var(--dim); }
+  .face .said { margin-top:8px; font-size:13px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  .face.ask { background:radial-gradient(120% 70% at 50% 0%, rgba(212,171,84,.34), rgba(212,171,84,.06) 60%, #000 100%); }
+  .face .what { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-hi); }
+  .face .sum { margin-top:6px; font-size:13.5px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+  .face .row { margin-top:auto; flex-direction:column; gap:6px; }
+  .face .go, .face .no { width:100%; padding:7px; font-size:14px; }
+  .face .no { border:0; background:#1c1c1e; }
+  .watch.off { opacity:.4; }
+  .watch.off .face .idle::before { content:"Off your wrist. "; color:var(--text); }
+  .devices { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:16px; }
+  .dev { font-size:12px; color:var(--dim); border:1px solid var(--line); border-radius:999px; padding:3px 10px; }
+  .dev::before { content:"○ "; }
+  .dev.on { color:var(--text); }
+  .dev.on::before { content:"● "; }
+  .glasses { margin-top:12px; font-size:12.5px; color:var(--dim); text-align:center; min-height:1.4em; overflow-wrap:anywhere; }
+
+  /* trail */
+  .trail { list-style:none; margin:0; padding:0 0 0 4px; }
+  .trail .none { color:var(--dim); font-size:14px; }
+  .step { position:relative; padding:0 0 14px 22px; font-size:14px; overflow-wrap:anywhere; }
+  .step::before { content:""; position:absolute; left:4px; top:7px; width:7px; height:7px; border-radius:50%; background:var(--dim); }
+  .step::after { content:""; position:absolute; left:7px; top:18px; bottom:0; width:1px; background:var(--line); }
+  .step:last-child::after { display:none; }
+  .step b { font-weight:600; }
+  .step .sub { display:block; color:var(--dim); font-size:12.5px; }
+  .step.write::before, .step.receipt::before { background:var(--done); }
+  .step.send::before, .step.tap::before { background:transparent; border:1.5px solid var(--gold); width:6px; height:6px; }
+  .step.tap.waiting::before { background:var(--gold); }
+  .step.stop::before { background:var(--bad); border-radius:1px; }
+  .step.eng::before { background:transparent; border:1.5px solid var(--text); width:6px; height:6px; }
+
+  footer { border-top:1px solid var(--line); padding:18px 0 28px; color:var(--dim); font-size:12.5px; display:flex; flex-wrap:wrap; gap:8px 18px; }
+  footer a { color:var(--dim); }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
+    <span class="wordmark" aria-label="Auren">AUREN</span><span class="tag">Sandbox</span>
+    <span class="engine replay" id="engine" role="status"><i></i><b>Replay</b></span>
+  </header>
+
+  <section class="hero">
+    <h1>Say it once. On anything.</h1>
+    <p>Try Auren on a fictional workspace: a calendar, Slack and Gmail with made-up people, and a simulated iPhone, Apple Watch and glasses. Nothing here reaches a real account or device. Sends still wait for your tap on the watch.</p>
+  </section>
+
+  <section class="ask" aria-label="Try a command">
+    <div class="chips" id="chips"></div>
+    <form class="say" id="f">
+      <label class="sr" for="q">Say something to Auren</label>
+      <input id="q" type="text" placeholder="Say it once…" autocomplete="off" maxlength="280" enterkeyhint="send">
+      <button id="send">Say it</button>
+    </form>
+    <p class="note" id="note" role="status" aria-live="polite"></p>
+    <div class="opts"><label><input type="checkbox" id="voice"> Read replies aloud</label></div>
+  </section>
+
+  <main class="stage">
+    <section class="col-phone" aria-label="iPhone">
+      <div class="label">iPhone · timeline</div>
+      <div class="phone"><div id="ptaps"></div><div id="cards"></div><div id="timeline"><div class="empty">Tap a golden path above. Every step lands here, with a receipt and Undo.</div></div></div>
+    </section>
+    <section class="col-watch" aria-label="Apple Watch">
+      <div class="label">Apple Watch</div>
+      <div class="watch" id="watch"><div class="face" id="face" aria-live="polite"></div></div>
+      <div class="devices" id="devices"></div>
+      <div class="glasses" id="glasses"></div>
+    </section>
+    <section class="col-trail" aria-label="What Auren just did">
+      <div class="label">What Auren just did</div>
+      <ol class="trail" id="trail"><li class="none">Nothing yet.</li></ol>
+    </section>
+  </main>
+
+  <footer>
+    <span>Uses Muse models from Meta.</span>
+    <span id="foot">Replay plays the model's turns from the eval's scripts; the tier gate, the tap, receipts and Undo are Auren Core itself.</span>
+    <a href="https://github.com/sandeepvijayarao09/auren" rel="noopener">Source</a>
+  </footer>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const NAME = { phone: "iPhone", watch: "Watch", glasses: "Glasses" };
+const KEY = "auren.try.visitor";
+const store = { get() { try { return sessionStorage.getItem(KEY); } catch { return null; } }, set(v) { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch {} } };
+
+let visitor = null, examples = [], events = [], since = 0, outSince = 0, taps = [], busy = false, engine = null, lastSaid = {}, timer = null, undone = new Set(), drawn = "";
+
+async function api(path, opts = {}) {
+  const r = await fetch(`/try/api/${path}`, { ...opts, headers: { "content-type": "application/json", ...(visitor ? { "x-auren-visitor": visitor } : {}) } });
+  const body = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, body };
+}
+
+// The status line under the box: an error when there is one, otherwise what the engine is doing.
+let noted = false;
+function note(text, bad = false) { const n = $("note"); noted = Boolean(text); n.textContent = text || engineLine(); n.className = `note${bad ? " bad" : ""}`; }
+const engineLine = () => !engine ? "" : engine.mode === "live"
+  ? `${engine.label}: Muse plans each command on this fictional workspace. Vision and the booking site are replayed.`
+  : `Replay: ${(WHY[engine.reason] || "").replace(/^./, (c) => c.toLowerCase())} Core is real: the tier gate, your tap, receipts and Undo.`;
+
+async function open(fresh) {
+  if (fresh) { visitor = null; store.set(null); events = []; since = 0; outSince = 0; taps = []; lastSaid = {}; undone = new Set(); render(); }
+  else visitor = store.get();
+  const r = await api("session", { method: "POST", body: "{}" });
+  if (!r.ok) { note(r.body.error || "The sandbox isn't answering. Try again in a moment.", true); setTimeout(() => open(true), 15000); return; }
+  visitor = r.body.visitor; store.set(visitor); examples = r.body.examples; engine = r.body.engine;
+  chips(); badge(); poll();
+}
+
+function chips() {
+  $("chips").innerHTML = examples.map((e) => `<button class="chip" type="button" data-text="${esc(e.text)}" title="${esc(e.text)}"><small>${esc(e.golden)} · ${esc(NAME[e.where] || e.where)}</small><span>${esc(e.label)}</span></button>`).join("");
+}
+
+const WHY = { no_key: "The live model isn't connected here, so the golden paths replay.", replay_only: "This sandbox is set to replay.", budget: "The live model's budget for this sandbox is spent, so the golden paths replay now.", limit: "Auren's token limit is reached, so the golden paths replay now.", failing: "The live model isn't answering right now, so the golden paths replay." };
+function badge() {
+  if (!engine) return;
+  const el = $("engine");
+  el.className = `engine ${engine.mode}`;
+  el.innerHTML = `<i aria-hidden="true"></i><b>${esc(engine.label)}</b>`;
+  el.title = engine.mode === "live" ? "Muse Wonder plans each command live on this fictional workspace." : (WHY[engine.reason] || "");
+  if (!noted) $("note").textContent = engineLine();
+  $("foot").textContent = engine.mode === "live"
+    ? `${engine.label}: Muse plans each command on this fictional workspace. Vision and the booking site are replayed: a synthetic poster and a demo page.`
+    : `${WHY[engine.reason] || ""} The model's turns come from the eval's scripts; the tier gate, the tap, receipts and Undo are Auren Core itself.`;
+}
+
+// One poll at a time: a call while one is in flight asks for another as soon as it lands.
+let polling = false, again = false;
+async function poll() {
+  clearTimeout(timer);
+  if (polling) { again = true; return; }
+  if (!visitor) return;
+  // A hidden tab polls slowly instead of stopping, so a missed visibility event can't freeze the page.
+  if (document.hidden) { timer = setTimeout(poll, 5000); return; }
+  polling = true;
+  const r = await api(`state?since=${since}&outputs=${outSince}`).catch(() => null);
+  polling = false;
+  if (r && r.status === 401) { note("Your session expired after 30 minutes idle, so this is a fresh workspace."); return open(true); }
+  if (r && r.ok) {
+    const s = r.body;
+    if (s.events.length) { events.push(...s.events); since = s.events.at(-1).id; }
+    for (const o of s.outputs) { outSince = o.id; output(o); }
+    // On a phone, a new tap scrolls the device that holds it into view: it's your move.
+    const fresh = s.taps.find((t) => !taps.some((x) => x.request_id === t.request_id));
+    taps = s.taps; busy = s.busy; engine = s.engine; devices(s.devices);
+    if (fresh && matchMedia("(max-width:700px)").matches) {
+      const el = fresh.surface === "watch" ? $("watch") : $("ptaps");
+      const box = el.getBoundingClientRect();
+      if (box.top < 0 || box.bottom > innerHeight) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+    }
+    // Only redraw when something changed, so hover and focus survive the poll.
+    const sig = JSON.stringify([since, taps, busy, engine, lastSaid, undone.size, s.devices]);
+    if (sig !== drawn) { drawn = sig; badge(); render(); }
+  }
+  if (again) { again = false; return poll(); }
+  timer = setTimeout(poll, busy || taps.length ? 400 : 1500);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+
+function output(o) {
+  if (o.type === "speak") {
+    lastSaid[o.surface] = o.text;
+    if ($("voice").checked && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(o.text));
+  }
+  if (o.type === "card") $("cards").innerHTML = `<div class="card"><b>${esc(o.title)}</b><div>${esc(o.body)}</div></div>`;
+}
+
+function devices(list) {
+  $("devices").innerHTML = list.map((d) => `<span class="dev ${d.online ? "on" : ""}">${esc(NAME[d.id] || d.name)} <span class="sr">${d.online ? "online" : "offline"}</span></span>`).join("");
+  $("watch").classList.toggle("off", !list.find((d) => d.id === "watch")?.online);
+  $("glasses").textContent = lastSaid.glasses ? `Glasses said: “${lastSaid.glasses}”` : "";
+}
+
+// The action verb names the tap: Post, Send, Hold. Never OK or Yes.
+const VERBS = ["Post", "Send", "Hold", "Book", "Reserve", "Invite", "Pay"];
+const verb = (summary) => { const w = String(summary).split(/\s+/)[0]; return VERBS.includes(w) ? w : "Approve"; };
+
+function render() {
+  const btns = document.querySelectorAll(".chip, #send, .sugg button");
+  btns.forEach((b) => (b.disabled = busy));
+  // Watch
+  const onWatch = taps.find((t) => t.surface === "watch");
+  const clock = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/i, "");
+  $("face").className = `face${onWatch ? " ask" : ""}`;
+  $("face").innerHTML = onWatch
+    ? `<div class="what">Your move</div><div class="sum">${esc(onWatch.summary)}</div><div class="row"><button class="go" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="1">${verb(onWatch.summary)}</button><button class="no" data-tap="${esc(onWatch.request_id)}" data-on="watch" data-v="0">Not now</button></div>`
+    : `<div class="clock">${esc(clock)}</div>${lastSaid.watch ? `<div class="said">${esc(lastSaid.watch)}</div>` : ""}<div class="idle">${busy ? "Working…" : "Nothing waiting for you."}</div>`;
+  // A tap that moved to the phone
+  $("ptaps").innerHTML = taps.filter((t) => t.surface === "phone").map((t) => `<div class="ptap"><div class="why">Your move · the watch came off, so the tap followed you here</div><div>${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="phone" data-v="1">${verb(t.summary)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="phone" data-v="0">Not now</button></div></div>`).join("");
+  timeline();
+  trail();
+}
+
+const time = (at) => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+const REPLAYED = { "glasses.look": "replayed: the eval's synthetic poster", "browser.run_task": "replayed: a demo booking page, not a real site" };
+const undoneIds = () => new Set([...undone, ...events.filter((e) => e.kind === "receipt" && e.data.undoes).map((e) => e.data.undoes)]);
+
+function body(e, gone) {
+  const d = e.data;
+  switch (e.kind) {
+    case "utterance": return [`You said`, `“${esc(d.text)}” <span class="t">on ${esc(NAME[d.surface_id] || d.surface_id)}</span>`];
+    case "ack": return ["Ack", esc(d.text)];
+    case "tool_call": { const k = `${d.namespace}.${d.tool}`; return [esc(d.tier), `${esc(d.app)} · ${esc(d.tool)}${REPLAYED[k] ? `<span class="replayed">${REPLAYED[k]}</span>` : ""}`]; }
+    case "receipt": return ["Receipt", `${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a href="${esc(d.link)}" style="color:var(--proof)" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? `<span class="undone">Undone</span>` : `<button class="undo" data-undo="${e.id}">Undo</button>`) : ""}${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.crop ?? "") ? `<figure class="seen"><img src="${d.crop}" alt=""><figcaption>What the glasses saw: the eval's synthetic poster, cropped where SAM outlined it</figcaption></figure>` : ""}`];
+    case "approval": return ["Tap", d.status === "requested" ? `Asked on ${esc(NAME[d.surface_id] || "no device yet")}: ${esc(d.summary)}` : `${esc(d.status === "approved" ? "Approved" : d.status === "declined" ? "Declined" : "Expired")}${d.surface_id ? ` on ${esc(NAME[d.surface_id] || d.surface_id)}` : ""}`];
+    case "handoff": return ["Moved", `${d.what === "speech" ? "The reply" : "The tap"} moved ${esc(NAME[d.from] || d.from)} → ${esc(NAME[d.to] || d.to || "nowhere yet")}`];
+    case "reply": return ["Reply", `${esc(d.text)}${d.spoken_on ? ` <span class="t">on ${esc(NAME[d.spoken_on] || d.spoken_on)}</span>` : ""}${Array.isArray(d.suggestions) ? `<div class="sugg">${examples.filter((x) => d.suggestions.includes(x.id)).map((x) => `<button type="button" data-text="${esc(x.text)}">${esc(x.golden)} · ${esc(x.label)}</button>`).join("")}</div>` : ""}`];
+    case "error": return ["Stopped", esc(d.message)];
+    case "browser_frame": return ["Browser", `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="The demo booking page">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}<span class="replayed">replayed</span>`];
+    case "usage": return ["Usage", esc(d.message)];
+    default: return null;
+  }
+}
+
+function timeline() {
+  const gone = undoneIds();
+  const rows = events.slice().reverse().map((e) => { const b = body(e, gone); return b && `<div class="ev ${esc(e.kind)}"><div class="k">${b[0]}</div><div class="b">${b[1]}<span class="t">${time(e.at)}</span></div></div>`; }).filter(Boolean);
+  $("timeline").innerHTML = rows.length ? rows.join("") : `<div class="empty">Tap a golden path above. Every step lands here, with a receipt and Undo.</div>`;
+}
+
+// What Auren just did: the last command, step by step.
+function trail() {
+  let i = events.length - 1;
+  while (i >= 0 && events[i].kind !== "utterance") i--;
+  if (i < 0) { $("trail").innerHTML = `<li class="none">Nothing yet.</li>`; return; }
+  const steps = [], gone = undoneIds();
+  const u = events[i].data;
+  steps.push(["", `<b>Heard on ${esc(NAME[u.surface_id] || "iPhone")}</b><span class="sub">“${esc(u.text)}”</span>`]);
+  const scripted = events.slice(i).some((e) => e.kind === "ack" || e.kind === "tool_call");
+  if (scripted) {
+    steps.push(["eng", engine?.mode === "live" ? `<b>${esc(engine.label)}</b><span class="sub">Muse planned this on the fictional workspace.</span>` : `<b>Replay</b><span class="sub">The model's turns come from the eval's scripts. Core ran everything else.</span>`]);
+  }
+  for (const e of events.slice(i + 1)) {
+    const d = e.data;
+    if (e.kind === "ack") steps.push(["", `<b>Ack</b> <span class="sub">${esc(d.text)}</span>`]);
+    if (e.kind === "tool_call") {
+      const k = `${d.namespace}.${d.tool}`;
+      const what = { read: "Read: ran on its own", write: "Write: ran on its own, with a receipt and Undo", send: "Send: waits for your tap" }[d.tier] || d.tier;
+      steps.push([d.tier, `<b>${esc(d.app)} · ${esc(d.tool)}</b><span class="sub">${esc(what)}${REPLAYED[k] ? ` · ${REPLAYED[k]}` : ""}</span>`]);
+    }
+    if (e.kind === "approval") {
+      if (d.status === "requested") steps.push([`tap${taps.some((t) => t.request_id === d.request_id) ? " waiting" : ""}`, `<b>Asked for your tap on the ${esc(NAME[d.surface_id] || "first device to join")}</b><span class="sub">${esc(d.summary)}</span>`]);
+      else steps.push(["tap", `<b>${d.status === "approved" ? "You approved" : d.status === "declined" ? "You declined" : "Nobody tapped; it expired"}${d.surface_id ? ` on the ${esc(NAME[d.surface_id] || d.surface_id)}` : ""}</b>${d.status === "approved" ? "" : `<span class="sub">So it didn't go out.</span>`}`]);
+    }
+    if (e.kind === "handoff" && d.what === "approval") steps.push(["tap", `<b>The tap moved to the ${esc(NAME[d.to] || d.to || "next device")}</b><span class="sub">The ${esc(NAME[d.from] || d.from)} came off, so the task followed you.</span>`]);
+    if (e.kind === "receipt") steps.push(["receipt", `<b>Receipt</b><span class="sub">${esc(d.summary)}${d.undo && !gone.has(e.id) ? " · Undo on the timeline" : gone.has(e.id) ? " · undone" : ""}</span>`]);
+    if (e.kind === "error") steps.push(["stop", `<b>Stopped</b><span class="sub">${esc(d.message)}</span>`]);
+    if (e.kind === "reply") steps.push(["", `<b>Said on the ${esc(NAME[d.spoken_on] || "iPhone")}</b><span class="sub">${esc(d.text)}</span>`]);
+  }
+  $("trail").innerHTML = steps.map(([cls, html]) => `<li class="step ${esc(cls)}">${html}</li>`).join("");
+}
+
+async function say(text) {
+  text = text.trim();
+  if (!text || busy) return;
+  note("");
+  busy = true; render();
+  const r = await api("command", { method: "POST", body: JSON.stringify({ text }) }).catch(() => null);
+  if (!r) { busy = false; render(); return note("The sandbox isn't answering. Try again in a moment.", true); }
+  if (r.status === 401) { await open(true); return say(text); }
+  if (!r.ok) { busy = false; render(); return note(r.body.error || "That didn't go through.", true); }
+  engine = r.body.engine; badge();
+  poll();
+}
+
+$("f").addEventListener("submit", (ev) => { ev.preventDefault(); const t = $("q").value; $("q").value = ""; say(t); });
+document.addEventListener("click", async (ev) => {
+  const el = ev.target.closest("button");
+  if (!el) return;
+  if (el.dataset.text) return say(el.dataset.text);
+  if (el.dataset.tap) {
+    el.disabled = true;
+    const r = await api(`taps/${encodeURIComponent(el.dataset.tap)}`, { method: "POST", body: JSON.stringify({ approved: el.dataset.v === "1", surface: el.dataset.on }) });
+    if (!r.ok) note(r.body.error || "That tap didn't go through.", true);
+    return poll();
+  }
+  if (el.dataset.undo) {
+    el.disabled = true;
+    const r = await api(`receipts/${encodeURIComponent(el.dataset.undo)}/undo`, { method: "POST", body: "{}" });
+    if (r.ok && r.body.ok) undone.add(Number(el.dataset.undo)); else note(r.body.message || "Couldn't undo that.", true);
+    return poll();
+  }
+});
+setInterval(() => { if (!taps.some((t) => t.surface === "watch")) render(); }, 30000);
+open(false);
+</script>
+</body>
+</html>

@@ -68,8 +68,9 @@ export function sparkOpen(o: SparkOptions): Spark {
         throw err;
       }
       const ms = performance.now() - t0;
-      o.ledger?.record({ ...call, status: "ok", ms });
       const parsed = Completion.safeParse(raw);
+      // R13: Spark Open's tokens count toward usage and the spend limits too.
+      o.ledger?.record({ ...call, status: "ok", ms, model, tokensIn: parsed.data?.usage?.prompt_tokens ?? null, tokensOut: parsed.data?.usage?.completion_tokens ?? null });
       const text = parsed.success ? stripThinking(parsed.data.choices[0].message.content ?? "") : "";
       ops.info("memory.call", {
         trace: trace ?? null,

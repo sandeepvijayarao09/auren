@@ -33,7 +33,9 @@ export type EventKind =
   | "utterance" | "ack" | "tool_call" | "receipt" | "approval"
   | "handoff" | "reply" | "error" | "surface" | "device"
   // R7: a small JPEG of the browser after each computer-use step.
-  | "browser_frame";
+  | "browser_frame"
+  // R13: the token alarm or limit was crossed (data: level, tokens, alarm, limit, message).
+  | "usage";
 
 export interface AurenEvent {
   id: number;

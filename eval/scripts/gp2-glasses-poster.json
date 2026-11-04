@@ -12,7 +12,7 @@
           { "tool": "calendar.create_event", "args": { "title": "Demo night", "start": "{{today}}T18:00", "location": "Room 214" } }
         ] },
         { "calls": [
-          { "tool": "calendar.invite", "args": { "event_id": "evt_101", "emails": ["priya@example.com"] } }
+          { "tool": "calendar.invite", "args": { "event_id": "{{output:event_id}}", "emails": ["priya@example.com"] } }
         ] },
         { "say": "Added Demo night in Room 214 and invited Priya." }
       ]

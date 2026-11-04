@@ -121,15 +121,19 @@ export class EvalSite {
   };
 }
 
-/** Async because MCP servers connect before a case starts (R11). Call `close()` when the case ends. */
-export async function evalWorld(deps: WorldDeps) {
+/**
+ * Everything but MCP: the demo world, devices, vision, computer use and memory. The
+ * public sandbox (R13) builds each visitor's world from this, so it never gets MCP.
+ */
+export function baseWorld(deps: WorldDeps) {
   const world = createDemoWorld();
   const camera = new EvalCamera();
   const site = new EvalSite();
+  const crops = new CropStore();
   const base: Namespace[] = [
     ...world.namespaces,
     surfacesNamespace,
-    createGlasses({ broker: camera, reader: camera.reader, segmenter: camera.segmenter, crops: new CropStore() }),
+    createGlasses({ broker: camera, reader: camera.reader, segmenter: camera.segmenter, crops }),
     createBrowser({ hub: site, muse: site.model, model: "scripted-computer-use", log: deps.log }),
   ];
   // R8: Auren Memory answers from its local fallback here (no Baseten in the eval), and
@@ -137,19 +141,27 @@ export async function evalWorld(deps: WorldDeps) {
   const registry = new ToolRegistry().add(...base);
   const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry })];
   registry.add(...memory);
+  return { state: world.state, camera, site, crops, namespaces: [...base, ...memory] };
+}
+
+export type BaseWorld = ReturnType<typeof baseWorld>;
+
+/** Async because MCP servers connect before a case starts (R11). Call `close()` when the case ends. */
+export async function evalWorld(deps: WorldDeps) {
+  const world = baseWorld(deps);
   // R11: MCP bridge. The fictional Journal server over an in-memory transport, trusted as
   // in mcp.example.json: list_entries (read-only) runs on its own, add_entry asks for a tap.
   const journal = journalInMemory();
   const mcp = new McpBridge({ servers: [memoryServer("journal", () => journal.connect(), { trust: true })] });
   mcp.start();
   await mcp.ready();
-  return { state: world.state, camera, site, journal, namespaces: [...base, ...memory, ...mcp.namespaces], close: () => mcp.close() };
+  return { ...world, journal, namespaces: [...world.namespaces, ...mcp.namespaces], close: () => mcp.close() };
 }
 
 export type EvalWorld = Awaited<ReturnType<typeof evalWorld>>;
 
 /** Seeds a case's fixtures. Returns the keys it doesn't know, so the runner can fail loudly. */
-export function applyFixtures(world: EvalWorld, fixtures: Record<string, unknown>): string[] {
+export function applyFixtures(world: BaseWorld, fixtures: Record<string, unknown>): string[] {
   const unknown: string[] = [];
   for (const [key, value] of Object.entries(fixtures)) {
     if (key === "after" || key === "expect_event") continue; // the runner plays that case first, or checks this event after

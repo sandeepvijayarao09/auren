@@ -41,6 +41,30 @@ export const config = {
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,
+  // R13: spend limits in model tokens (Muse prices aren't published). 0 turns either off.
+  tokenAlarm: count(process.env.AUREN_TOKEN_ALARM, 0),
+  tokenLimit: count(process.env.AUREN_TOKEN_LIMIT, 0),
+  // R13: the public sandbox. Serves only /try on a fictional demo world, never live connectors or devices.
+  sandbox: process.env.AUREN_SANDBOX === "true",
+  // AUREN_TOKEN means nothing to the sandbox, so it binds to 127.0.0.1 unless HOST says otherwise (a tunnel or a Node host).
+  sandboxHost: process.env.HOST ?? "127.0.0.1",
+  sandboxTokenBudget: count(process.env.AUREN_SANDBOX_TOKEN_BUDGET, 200_000),
+  sandboxRpm: count(process.env.AUREN_SANDBOX_RPM, 6),
+  sandboxDaily: count(process.env.AUREN_SANDBOX_DAILY, 60),
+  sandboxMaxVisitors: count(process.env.AUREN_SANDBOX_MAX_VISITORS, 50),
+  // Trust X-Forwarded-For only when set: "true" (one proxy in front) or the number of proxies.
+  trustProxy: proxyHops(process.env.AUREN_TRUST_PROXY),
 };
+
+// R13: whole numbers from the environment, with a default for anything unset or unreadable.
+function count(raw: string | undefined, fallback: number): number {
+  const v = Number(raw);
+  return raw?.trim() && Number.isInteger(v) && v >= 0 ? v : fallback;
+}
+
+function proxyHops(raw: string | undefined): number {
+  if (raw === "true") return 1;
+  return count(raw, 0);
+}
 
 export type Config = typeof config;
