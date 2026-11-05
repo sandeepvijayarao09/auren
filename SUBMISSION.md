@@ -1,5 +1,5 @@
 Build for Your World. Auren is one agent on Muse, one live session across your Apple Watch, Ray-Ban Meta glasses, iPhone and Mac, that turns one sentence into a finished task across your apps.
-Uses Muse models from Meta: Muse Wonder (`muse-wonder-1.0`) and Muse Spark (`muse-spark-1.3`, including reading a real poster photo) run live; SAM 3.1 outlines it live (a box in 0.86 s on the same photo); Muse Voice Transcribe and Muse Spark Open (Baseten) are integrated and tested against fakes, not yet run live; the Muse Glimmer decision model is code ready, not trained.
+Uses Muse models from Meta: Muse Wonder (`muse-wonder-1.0`) and Muse Spark (`muse-spark-1.3`, including reading a real poster photo) run live; SAM 3.1 outlines it live (a box in 0.86 s on the same photo); Muse Voice Transcribe runs live (final transcript 161 ms after the audio); Muse Spark drives computer use live; Muse Spark Open (Baseten) is integrated and tested against a fake, not yet run live; the Muse Glimmer decision model is code ready, not trained.
 
 # Auren: submission
 
