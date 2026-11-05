@@ -1,11 +1,11 @@
 # One entry point for every part of Auren. Run `make` to list targets.
 .DEFAULT_GOAL := help
-.PHONY: help setup dev sandbox test check typecheck secrets keyd apple apple-build icon cert clean
+.PHONY: help setup dev sandbox sandbox-image tunnel deploy-aws teardown-aws test check typecheck secrets keyd apple apple-build icon cert clean
 
 APPLE_FLAGS = -project apps/apple/Auren.xcodeproj -derivedDataPath .build/apple CODE_SIGNING_ALLOWED=NO
 
 help: ## List targets
-	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-12s %s\n", $$1, $$2}'
+	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
 
 setup: ## Install dependencies and turn on the secret scan
 	git config core.hooksPath .githooks
@@ -20,6 +20,18 @@ dev: ## Run Core on http://127.0.0.1:8787, reloading on save
 
 sandbox: ## Run the public sandbox on http://127.0.0.1:8787/try (replays without a key)
 	cd core && npm run sandbox
+
+sandbox-image: ## Build the sandbox container image (auren-sandbox:local; see docs/deploy.md)
+	docker build -t auren-sandbox:local .
+
+tunnel: ## Run the sandbox container and share it through a Cloudflare quick tunnel (free)
+	deploy/tunnel.sh
+
+deploy-aws: ## Deploy the sandbox to Lightsail in us-east-2 and print its HTTPS URL (asks first)
+	deploy/aws/deploy.sh
+
+teardown-aws: ## Delete the Lightsail service, the SSM key and the budget (asks first)
+	deploy/aws/teardown.sh
 
 test: ## Every test that needs no API key or device
 	cd core && npm test
