@@ -4,7 +4,7 @@ import { silentOps, type OpsLog } from "../obs/opslog.ts";
 import type { SurfaceRegistry } from "../surfaces.ts";
 import type { ToolRegistry } from "../tools/registry.ts";
 import type { ToolContext, UndoStep } from "../tools/types.ts";
-import { contextOf, liveDevices, startHints, type RouterLike } from "../router/router.ts";
+import { contextOf, liveDevices, RouteContext, rulesRoute, startHints, type RouterLike } from "../router/router.ts";
 
 /** The slice of the OpenAI-compatible client Auren uses (Meta Model API is drop-in). */
 export interface MuseLike {
@@ -90,19 +90,35 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
     };
     let turns = 0;
     // R9: the route's namespaces skip tool_search, if it came back within the router's hold.
-    const preload = { preload: await hints?.preload };
-    let resp = await model(deps, ops, trace, turns, { ...base, input: cmd.text, tools: deps.tools.toResponsesTools(ctx, preload) });
+    const loaded = new Set(await hints?.preload);
+    // The rules route is local and instant, so its namespaces can go in from the first turn
+    // without holding Wonder for Spark. A hint only, like any route: tiers don't change.
+    if (deps.router) {
+      try {
+        for (const a of rulesRoute(cmd.text, RouteContext.parse(contextOf(devices, cmd.originSurfaceId)), deps.tools.names()).apps) loaded.add(a);
+      } catch {
+        // No rules hint; tool_search still finds the tools.
+      }
+    }
+    // Later turns don't wait on the route: whatever it named by then, and every namespace the
+    // model has already called, go in the inventory, so a write after a lookup skips a second tool_search.
+    void hints?.apps.then((apps) => apps?.forEach((a) => loaded.add(a)));
+    let resp = await model(deps, ops, trace, turns, { ...base, input: cmd.text, tools: deps.tools.toResponsesTools(ctx, { preload: [...loaded] }) });
     planned = true;
 
     for (let turn = 0; turn < (deps.maxTurns ?? 8); turn++) {
       const calls = (resp.output ?? []).filter((o: { type?: string }) => o.type === "function_call") as FunctionCall[];
       if (!calls.length) break;
+      for (const c of calls) {
+        const ns = deps.tools.resolve(c.name, c.namespace)?.ns.name;
+        if (ns) loaded.add(ns);
+      }
       const outputs = await Promise.all(calls.map((c) => executeCall(deps, ctx, c)));
       resp = await model(deps, ops, trace, ++turns, {
         ...base,
         previous_response_id: resp.id,
         input: outputs,
-        tools: deps.tools.toResponsesTools(ctx, preload),
+        tools: deps.tools.toResponsesTools(ctx, { preload: [...loaded] }),
       });
     }
 

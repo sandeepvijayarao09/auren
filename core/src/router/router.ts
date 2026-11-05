@@ -292,6 +292,8 @@ export interface RouteHints {
   ack: Promise<string | null>;
   /** The namespaces to preload, if the route came back within the router's hold. */
   preload: Promise<string[] | undefined>;
+  /** The route's namespaces whenever it arrives, for later turns (undefined if it failed). */
+  apps: Promise<string[] | undefined>;
 }
 
 /**
@@ -327,5 +329,5 @@ export function startHints(
       timer = setTimeout(() => resolve(undefined), deps.router.holdMs);
     }),
   ]).finally(() => clearTimeout(timer));
-  return { ack, preload };
+  return { ack, preload, apps: routed.then((r) => r?.route.apps) };
 }
