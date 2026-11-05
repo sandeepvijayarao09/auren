@@ -41,7 +41,7 @@ Full map of every capability and where it lives in the code: [MUSE.md](MUSE.md).
 
 **Scripted eval:** 11 of 11 in CI (`npm run eval`), no key needed.
 
-**Tests:** 370 across five suites: Core 256, AurenKit 54, router 34, driver 20, keyd 6.
+**Tests:** 387 across five suites: Core 272, AurenKit 55, router 34, driver 20, keyd 6.
 
 **A day with Auren** ([docs/day-with-auren.md](docs/day-with-auren.md)): one fictional person's day, 7 moments from 8:05 AM to 10:47 PM, played through the real Core on live Muse Wonder and Muse Spark with synthetic data. 88,394 model tokens (81,589 in, 6,805 out). Every send waited for a watch tap; every write left an undoable receipt; the planted instruction in an email was summarized, not obeyed. The poster reader, segmenter, browser and memory backend were the same fixtures and fallback as the eval.
 
@@ -87,8 +87,8 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 ## Links
 - Repo: https://github.com/sandeepvijayarao09/auren
 - A day with Auren (Apple edition): https://claude.ai/artifact/65ycJFhiE1tidNqk12fzP6 (share publicly before submitting)
-- Video: TODO
-- X post: TODO
+- Video: TODO (paste the YouTube link for `film/auren-demo-v10.mp4`, 2:45)
+- X post: not posted
 - Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
 
 ## Not verified yet
@@ -112,8 +112,8 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 |---|---|
 | **Open-weight** | Auren Memory is wired to Muse Spark Open with a local fallback, but has not run live. Glimmer distillation code is ready, untrained. No numbers yet. |
 | **Agentic** | One sentence → parallel actions across Slack, Calendar and Gmail, live on Muse Wonder (GP1, 6 tool calls, 3 receipts). Computer use behind a commit guard is built and tested on real Chromium, not yet driven by live Muse. |
-| **Viral on X** | TODO: the 40 s cut, tagging Meta AI and Cerebral Valley. |
+| **Viral on X** | Not posted yet; a 45 s cut is ready (`film/auren-ad-playful.mp4`). |
 | **Community vote** | The sandbox `/try` is built and hardened for public visitors; it needs hosting for Nov 9 to 16. |
-| **Creative** | TODO: the ad-style film. |
+| **Creative** | A 2:45 ad-style film: 2:00 of live product at ad pace with spoken "Hey Muse" commands, then 0:45 on the technology. Original score; Mixkit sound effects under their free license. |
 
 All people, messages, events and sites in the demos are fictional.

@@ -107,7 +107,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 - **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
 - **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
 
-**Tests:** 370 across five suites (Core 256, AurenKit 54, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
+**Tests:** 387 across five suites (Core 272, AurenKit 55, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

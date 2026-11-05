@@ -46,11 +46,11 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, router, MCP bridge, sandbox, spend limits, Google, Slack, Gmail, tape, voice and watch clips, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 256 |
+| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, router, MCP bridge, sandbox, spend limits, Google, Slack, Gmail, tape, voice and watch clips, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 272 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA, the executor on real Chromium, the Core connection) | `cd driver && npm test` | 20 |
 | Router (schema, prompt, data, evaluate) | `cd router && uv run python -m unittest discover -s tests -t .` | 34 |
-| AurenKit (protocol, client state, device identity, voice, relay, speech, camera capture, bystander blur, watch clips, timeline media, approval verbs) | `cd apps/apple/AurenKit && swift test` | 54 |
+| AurenKit (protocol, client state, device identity, voice, relay, speech, camera capture, bystander blur, watch clips, timeline media, approval verbs) | `cd apps/apple/AurenKit && swift test` | 55 |
 
 `cd core && npm run eval` plays the eval cases (scripted without a key, live with one) and rewrites `eval/results.md`.
 
