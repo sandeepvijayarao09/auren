@@ -102,7 +102,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 
 ## Demo honesty and known limits
 - **Ran live on Muse:** Wonder planning and acting (eval and the day demo); Spark decisions and spoken acks; Spark reading a real poster photo.
-- **Live on Nov 4:** Muse Voice Transcribe turned a recorded GP1 command into the right transcript 161 ms after the audio ended, and Core ran it across Slack, Calendar and Gmail. SAM 3.1 outlined a real poster in 0.86 s.
+- **Live on Nov 4:** Muse Voice Transcribe turned a recorded GP1 command into the right transcript 161 ms after the audio ended, and Core ran it across Slack, Calendar and Gmail. SAM 3.1 outlined a real poster in 0.86 s, and tracked it across a moving clip in video mode. Muse Image 1.0 made a clean invite card in about 7 s. A bake-off moved Muse decisions to Wonder (80% exact, p50 2.1 s, against Spark 1.3's 65% and 3.2 s). Spark 1.3-contributor and Wonder produced the decision model's first synthetic training set (300 commands).
 - **Computer use, live:** Muse Spark drove a real Chromium on a local demo bistro page in 2 steps (25.7 s of browsing). The driver paused before "Complete reservation", the tap was asked, and only after it did the click land and a receipt appear. (Muse Wonder 1.0 rejects the computer tool, so `AUREN_COMPUTER_MODEL` defaults to Spark.)
 - **Not live yet:** any run on a real Apple Watch, iPhone or glasses, and a real booking site.
 - **Also new on Nov 4:** a Simple view (a consumer timeline by default, Details on demand), HTTPS and WSS for LAN devices (`make cert`), tool arguments checked against each tool's schema before it runs, and short approval lines on the watch.
