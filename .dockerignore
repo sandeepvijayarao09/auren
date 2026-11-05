@@ -1,0 +1,29 @@
+# Allow-list: the build context holds only what the sandbox image needs (see Dockerfile).
+# Everything else, .env, keys, certs, databases, film/ and node_modules included, never
+# reaches the Docker daemon, so it can't be baked into a layer by accident.
+*
+!core/package.json
+!core/package-lock.json
+!core/src/
+!apps/web/try.html
+!brand/tokens.css
+!brand/mark.svg
+!eval/cases/
+!eval/scripts/
+!router/auren_router/system_prompt.txt
+
+# Belt and braces: never these, even inside an allowed directory.
+**/.env
+**/.env.*
+**/node_modules
+**/*.db
+**/*.db-*
+**/*.key
+**/*.pem
+**/*.p12
+**/.auren-keys
+**/certs
+**/film
+**/mcp.json
+**/journal.json
+**/*.test.ts
