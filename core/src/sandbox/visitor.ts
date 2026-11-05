@@ -1,16 +1,18 @@
-// One sandbox visitor: their own demo world, in-memory event log and simulated
-// phone, watch and glasses. Nothing is shared between visitors, and nothing here
-// can reach a live connector, a paired device, the camera, the driver, or the
-// Mac's log and keys: those objects are never created in sandbox mode.
+// One sandbox visitor: their own demo worlds (scenes.ts), in-memory event log and
+// simulated phone, watch and glasses. Nothing is shared between visitors, and
+// nothing here can reach a live connector, a paired device, the camera, the
+// driver, or the Mac's log and keys: those objects are never created in sandbox mode.
 import { randomBytes } from "node:crypto";
 import { EventLog } from "../eventlog.ts";
-import { baseWorld, type BaseWorld } from "../eval/world.ts";
+import type { BaseWorld } from "../eval/world.ts";
+import type { Preferences } from "../memory/preferences.ts";
 import type { Manifest, ServerMessage, Tier } from "../protocol.ts";
 import { SurfaceRegistry } from "../surfaces.ts";
-import { ToolRegistry } from "../tools/registry.ts";
+import type { ToolRegistry } from "../tools/registry.ts";
+import { buildScene, SCENES, type Scene, type SceneId } from "./scenes.ts";
 
-/** Every visitor's log uses this one session name; each log is its own in-memory database. */
-export const SESSION = "sandbox";
+/** The demo scene's session name. Every visitor's log is its own in-memory database; Maya's scene has its own session in it. */
+export const SESSION = SCENES.demo.session;
 
 export type DeviceId = "phone" | "watch" | "glasses";
 
@@ -47,17 +49,18 @@ const MAX_OUTPUTS = 200;
 export class Visitor {
   /** A 128-bit bearer secret: the only thing that names this visitor. */
   readonly id = randomBytes(16).toString("base64url");
-  readonly session = SESSION;
   readonly ip: string;
   readonly createdAt: number;
   lastActive: number;
   readonly log = new EventLog();
-  readonly world: BaseWorld;
-  readonly tools: ToolRegistry;
   readonly surfaces: SurfaceRegistry;
   readonly outputs: Output[] = [];
   readonly taps = new Map<string, PendingTap>();
-  /** Cases played to the end, so GP5 can ask for GP1 first. */
+  /** The worlds built so far. Maya's is built the first time one of her examples plays. */
+  readonly scenes = new Map<SceneId, Scene>();
+  /** The world commands run in now. It changes only between commands. */
+  scene: Scene;
+  /** Cases and examples played to the end, so GP5 can ask for GP1 first. */
   readonly played = new Set<string>();
   /** Cases whose fixtures are seeded (the planted email goes in once). */
   readonly seeded = new Set<string>();
@@ -72,20 +75,51 @@ export class Visitor {
   constructor(ip: string, now: number) {
     this.ip = ip;
     this.createdAt = this.lastActive = now;
-    // No MCP here: the sandbox's tools are the demo world's and nothing else (R11's bridge stays out).
-    this.world = baseWorld({ log: this.log, session: SESSION });
-    this.tools = new ToolRegistry().add(...this.world.namespaces);
     this.surfaces = new SurfaceRegistry({
       onEvent: (kind, data) => {
-        this.log.append(SESSION, kind, data);
+        // Taps and handoffs belong to the command that's running, so to the current scene.
+        this.log.append(this.session, kind, data);
         if (kind === "approval" && data.status !== "requested") {
           this.taps.delete(String(data.request_id));
           if (data.status === "declined" || data.status === "expired") this.declined = true;
         }
       },
     });
-    this.world.camera.attach(this.surfaces);
+    this.scene = this.enter("demo");
     for (const d of DEVICES) this.up(d.id);
+  }
+
+  get session(): string {
+    return this.scene.session;
+  }
+
+  get world(): BaseWorld {
+    return this.scene.world;
+  }
+
+  get tools(): ToolRegistry {
+    return this.scene.tools;
+  }
+
+  get prefs(): Preferences {
+    return this.scene.prefs;
+  }
+
+  /** Switches to a scene, building it the first time. Only between commands: the sandbox never calls it mid-command. */
+  enter(id: SceneId): Scene {
+    let s = this.scenes.get(id);
+    if (!s) {
+      s = buildScene(id, this.log);
+      s.world.camera.attach(this.surfaces);
+      this.scenes.set(id, s);
+    }
+    this.scene = s;
+    return s;
+  }
+
+  /** The scene a session belongs to. */
+  sceneOf(session: string): Scene | undefined {
+    return [...this.scenes.values()].find((s) => s.session === session);
   }
 
   /** A timer the visitor owns, cleared when it expires. Scripted model time and script actions use it. */
@@ -134,6 +168,7 @@ export class Visitor {
 
   close(): void {
     this.closed = true;
+    for (const s of this.scenes.values()) s.prefs.close();
     for (const t of this.#timers) clearTimeout(t);
     this.#timers.clear();
   }

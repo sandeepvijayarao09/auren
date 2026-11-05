@@ -58,16 +58,28 @@ export function createSandboxServer(sandbox: Sandbox, opts: SandboxServerOptions
   });
 
   // ── the page ───────────────────────────────────────────────────────────
+  /**
+   * The page's own origin, for the absolute URLs link previews need (og:url, og:image). The Host header is
+   * the visitor's to set, so only a plain host[:port] is used (anything else becomes localhost), and
+   * X-Forwarded-Proto counts only behind a trusted proxy. It's only ever echoed back to the same visitor.
+   */
+  const originOf = (c: Context) => {
+    const host = c.req.header("host") ?? "";
+    const forwarded = opts.trustProxy ? c.req.header("x-forwarded-proto")?.split(",").at(-1)?.trim() : undefined;
+    const proto = forwarded === "https" || forwarded === "http" ? forwarded : new URL(c.req.url).protocol.replace(":", "");
+    return `${proto === "https" ? "https" : "http"}://${/^[a-z0-9.-]{1,253}(:\d{1,5})?$/i.test(host) ? host : "localhost"}`;
+  };
   const page = (c: Context) => {
     const nonce = randomBytes(16).toString("base64");
     c.header("content-security-policy", `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`);
     c.header("cache-control", "no-store");
-    return c.html(file("../../../apps/web/try.html").replace("<script>", `<script nonce="${nonce}">`));
+    return c.html(file("../../../apps/web/try.html").replace("<script>", `<script nonce="${nonce}">`).replaceAll("{{origin}}", originOf(c)));
   };
   app.get("/", (c) => c.redirect("/try", 302));
   app.get("/try", page);
   app.get("/try/", page);
   app.get("/brand/tokens.css", (c) => c.body(file("../../../brand/tokens.css"), 200, { "content-type": "text/css; charset=utf-8", "cache-control": "public, max-age=3600" }));
+  app.get("/brand/og.png", (c) => c.body(new Uint8Array(readFileSync(new URL("../../../brand/og.png", import.meta.url))), 200, { "content-type": "image/png", "cache-control": "public, max-age=3600" }));
   app.get("/brand/mark.svg", (c) => c.body(file("../../../brand/mark.svg"), 200, { "content-type": "image/svg+xml", "cache-control": "public, max-age=3600" }));
   app.get("/health", (c) => c.json({ ok: true, sandbox: true, engine: sandbox.engine().mode, visitors: sandbox.visitors.size }));
 
@@ -113,6 +125,12 @@ export function createSandboxServer(sandbox: Sandbox, opts: SandboxServerOptions
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) return c.json({ ok: false, message: "No such receipt." }, 404);
     return reply(c, await sandbox.undo(v, id));
+  });
+  // "What Auren knows": Forget one learned preference in the visitor's current world. The list itself comes with /state.
+  app.post("/try/api/preferences/:key/forget", (c) => {
+    const v = visitorOf(c);
+    if (!v) return gone(c);
+    return reply(c, sandbox.forget(v, c.req.param("key")));
   });
 
   // Everything else, on every method: the real Core's routes are not here.

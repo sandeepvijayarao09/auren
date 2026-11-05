@@ -147,7 +147,9 @@ export function baseWorld(deps: WorldDeps) {
   // The proactive day's planner reads and writes through the same registry, so its blocks undo like any receipt.
   const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry }), createPlanner({ log: deps.log, tools: registry })];
   registry.add(...memory);
-  return { state: world.state, camera, site, crops, namespaces: [...base, ...memory] };
+  // `registry` is what the planner and receipts.undo resolve against: a world that adds namespaces later
+  // (Maya's MCP servers, the sandbox's task list) adds them here too, so the planner can read them.
+  return { state: world.state, camera, site, crops, registry, namespaces: [...base, ...memory] };
 }
 
 export type BaseWorld = ReturnType<typeof baseWorld>;

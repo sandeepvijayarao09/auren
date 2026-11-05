@@ -1,0 +1,13 @@
+{
+  "case": "sandbox-maya-late-no-preference",
+  "note": "The without-preferences run from docs/personalization.md: with no usual channel to go on, Auren lists the channels and asks. The sandbox plays this after the visitor forgets the status channel.",
+  "commands": [
+    {
+      "ack": "On it: Slack.",
+      "turns": [
+        { "calls": [ { "tool": "slack.list_channels", "args": {} } ] },
+        { "ms": 200, "say": "Which team should I tell, design-team or checkout-squad?" }
+      ]
+    }
+  ]
+}
