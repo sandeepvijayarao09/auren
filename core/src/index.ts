@@ -117,7 +117,7 @@ const router = createRouter({
   model: config.routerModel,
   budgetMs: config.routerBudgetMs,
   muse: config.museApiKey ? muse : undefined,
-  sparkModel: config.fastModel,
+  sparkModel: config.decisionModel,
   namespaces: () => tools.names(),
   ledger,
   ops,

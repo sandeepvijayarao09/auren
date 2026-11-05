@@ -69,7 +69,7 @@ export interface RouterDeps {
 }
 
 export const ROUTER_BUDGET_MS = 300;
-// Long enough for Muse Spark to make the decision live (about 1.7 s measured); the rules answer only if it doesn't.
+// The Muse decision budget. Bake-off (router/results/bakeoff.md): Wonder 1.0 p50 2.1 s, p95 2.8 s, 90% inside it; the rules answer otherwise.
 export const SPARK_BUDGET_MS = 2_500;
 
 class RouteFailure extends Error {}

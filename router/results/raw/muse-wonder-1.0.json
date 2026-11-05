@@ -1,0 +1,796 @@
+[
+  {
+    "model": "muse-wonder-1.0",
+    "mode": "minimal",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 0,
+    "acc": {
+      "apps": 0.8333333333333334,
+      "risk_tier": 0.9666666666666667,
+      "reply_surface": 0.9666666666666667,
+      "needs_vision": 1
+    },
+    "exact": 0.8,
+    "under_budget": 0.9,
+    "p50": 2065.5832920000003,
+    "p95": 2780.555708,
+    "mean_out": 138.3,
+    "mean_reasoning": 103.43333333333334,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 2214.972416,
+        "ok": true,
+        "out": 60,
+        "reasoning": 29,
+        "input": 318,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 1,
+        "ms": 1808.620583,
+        "ok": true,
+        "out": 122,
+        "reasoning": 91,
+        "input": 284,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 2,
+        "ms": 1755.434375,
+        "ok": true,
+        "out": 79,
+        "reasoning": 42,
+        "input": 322,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 3,
+        "ms": 1586.9627500000001,
+        "ok": true,
+        "out": 87,
+        "reasoning": 50,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 4,
+        "ms": 1216.793125,
+        "ok": true,
+        "out": 96,
+        "reasoning": 59,
+        "input": 307,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 5,
+        "ms": 2272.2780000000002,
+        "ok": true,
+        "out": 140,
+        "reasoning": 103,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 6,
+        "ms": 2349.6577909999996,
+        "ok": true,
+        "out": 68,
+        "reasoning": 35,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 7,
+        "ms": 1981.6294579999999,
+        "ok": true,
+        "out": 86,
+        "reasoning": 47,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 8,
+        "ms": 2265.568083,
+        "ok": true,
+        "out": 88,
+        "reasoning": 50,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 9,
+        "ms": 2008.4805420000002,
+        "ok": true,
+        "out": 110,
+        "reasoning": 79,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 10,
+        "ms": 2304.300375,
+        "ok": true,
+        "out": 152,
+        "reasoning": 120,
+        "input": 282,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 11,
+        "ms": 1952.897583,
+        "ok": true,
+        "out": 144,
+        "reasoning": 106,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 12,
+        "ms": 2416.998291,
+        "ok": true,
+        "out": 122,
+        "reasoning": 91,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 13,
+        "ms": 2065.5832920000003,
+        "ok": true,
+        "out": 145,
+        "reasoning": 114,
+        "input": 288,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 14,
+        "ms": 2396.9498329999997,
+        "ok": true,
+        "out": 161,
+        "reasoning": 126,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 15,
+        "ms": 2281.6393750000007,
+        "ok": true,
+        "out": 176,
+        "reasoning": 141,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 16,
+        "ms": 2421.5572919999995,
+        "ok": true,
+        "out": 170,
+        "reasoning": 136,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 17,
+        "ms": 2061.515834,
+        "ok": true,
+        "out": 194,
+        "reasoning": 159,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 18,
+        "ms": 2162.5809169999993,
+        "ok": true,
+        "out": 140,
+        "reasoning": 107,
+        "input": 295,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 19,
+        "ms": 1941.5172079999993,
+        "ok": true,
+        "out": 179,
+        "reasoning": 145,
+        "input": 310,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 20,
+        "ms": 3026.1371249999993,
+        "ok": true,
+        "out": 273,
+        "reasoning": 237,
+        "input": 305,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 21,
+        "ms": 2393.595041999999,
+        "ok": true,
+        "out": 190,
+        "reasoning": 153,
+        "input": 285,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 22,
+        "ms": 1597.926458,
+        "ok": true,
+        "out": 114,
+        "reasoning": 83,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 23,
+        "ms": 2308.3389160000006,
+        "ok": true,
+        "out": 160,
+        "reasoning": 128,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 24,
+        "ms": 2780.555708,
+        "ok": true,
+        "out": 224,
+        "reasoning": 187,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": false,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 25,
+        "ms": 2654.0127919999995,
+        "ok": true,
+        "out": 118,
+        "reasoning": 77,
+        "input": 294,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 26,
+        "ms": 1649.1153750000012,
+        "ok": true,
+        "out": 113,
+        "reasoning": 80,
+        "input": 315,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 27,
+        "ms": 1360.7563329999994,
+        "ok": true,
+        "out": 119,
+        "reasoning": 78,
+        "input": 289,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 28,
+        "ms": 1958.1201249999995,
+        "ok": true,
+        "out": 191,
+        "reasoning": 153,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 29,
+        "ms": 1343.0402080000003,
+        "ok": true,
+        "out": 128,
+        "reasoning": 97,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      }
+    ]
+  },
+  {
+    "model": "muse-wonder-1.0",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 1,
+    "acc": {
+      "apps": 0,
+      "risk_tier": 0,
+      "reply_surface": 0,
+      "needs_vision": 0
+    },
+    "exact": 0,
+    "under_budget": 0,
+    "p50": 2419.3688749999997,
+    "p95": 3340.426583,
+    "mean_out": 400,
+    "mean_reasoning": 397.53333333333336,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 3315.409458,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 318,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 1,
+        "ms": 2520.445709,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 2338.4005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 2789.424917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 2471.892292,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 1576.2306669999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 2419.3688749999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 3340.426583,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 2608.445208,
+        "ok": false,
+        "out": 400,
+        "reasoning": 384,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 3106.602583,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 2379.4562080000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 2742.1527080000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 2153.248584000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 2400.7246670000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 2769.2994579999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 2310.513084,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 2159.749708000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 2424.357082999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 2508.796875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 1767.9929170000014,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 4701.815707999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 2622.9918749999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 2314.5389159999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 2710.8796249999996,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 2529.7344169999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 2192.687249999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 2285.044750000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 2199.642291999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 2188.6332919999986,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 1989.7125839999972,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  }
+]

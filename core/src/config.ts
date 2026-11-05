@@ -13,6 +13,9 @@ export const config = {
   museApiKey: process.env.MODEL_API_KEY ?? "",
   agentModel: process.env.AUREN_AGENT_MODEL ?? "muse-wonder-1.0",
   fastModel: process.env.AUREN_FAST_MODEL ?? "muse-spark-1.3",
+  // Muse decisions (the router): bake-off Nov 4 2026 (router/results/bakeoff.md). Wonder 1.0 at minimal effort
+  // answered 90% inside the 2.5 s budget at 80% exact; Spark 1.3 managed 20% in budget, 70% exact, on the same 30.
+  decisionModel: process.env.AUREN_DECISION_MODEL ?? "muse-wonder-1.0",
   // Live check (CU-live): Muse Wonder 1.0 answers 400 "Unsupported tool type: 'computer'"; Spark 1.3 takes it.
   computerModel: process.env.AUREN_COMPUTER_MODEL ?? "muse-spark-1.3",
   dbPath: process.env.AUREN_DB ?? "auren.db",

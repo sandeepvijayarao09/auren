@@ -1,0 +1,1323 @@
+[
+  {
+    "model": "muse-spark-1.1",
+    "mode": "minimal",
+    "n": 129,
+    "http_errors": 97,
+    "first_error": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+    "parse_fail": 0.34375,
+    "acc": {
+      "apps": 0.16279069767441862,
+      "risk_tier": 0.16279069767441862,
+      "reply_surface": 0.16279069767441862,
+      "needs_vision": 0.16279069767441862
+    },
+    "exact": 0.16279069767441862,
+    "under_budget": 0.15503875968992248,
+    "p50": 1270.5831670000007,
+    "p95": 2247.4625000000005,
+    "mean_out": 277.25,
+    "mean_reasoning": 255.0625,
+    "mean_in": 298.875,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 809.856709,
+        "ok": true,
+        "out": 208,
+        "reasoning": 177,
+        "input": 318,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 1,
+        "ms": 855.398458,
+        "ok": true,
+        "out": 185,
+        "reasoning": 153,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 2,
+        "ms": 1585.832791,
+        "ok": true,
+        "out": 153,
+        "reasoning": 122,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 3,
+        "ms": 1207.729209,
+        "ok": true,
+        "out": 306,
+        "reasoning": 275,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 4,
+        "ms": 2059.266916,
+        "ok": true,
+        "out": 269,
+        "reasoning": 238,
+        "input": 284,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 5,
+        "ms": 685.943583,
+        "ok": true,
+        "out": 126,
+        "reasoning": 95,
+        "input": 288,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 6,
+        "ms": 1350.27175,
+        "ok": true,
+        "out": 349,
+        "reasoning": 317,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 7,
+        "ms": 1023.7593750000001,
+        "ok": true,
+        "out": 214,
+        "reasoning": 182,
+        "input": 283,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 8,
+        "ms": 1060.700833,
+        "ok": true,
+        "out": 205,
+        "reasoning": 174,
+        "input": 322,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 9,
+        "ms": 819.68775,
+        "ok": true,
+        "out": 133,
+        "reasoning": 102,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 10,
+        "ms": 1333.0374579999998,
+        "ok": true,
+        "out": 218,
+        "reasoning": 186,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 11,
+        "ms": 991.5580830000004,
+        "ok": true,
+        "out": 232,
+        "reasoning": 201,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 12,
+        "ms": 1064.874417,
+        "ok": true,
+        "out": 193,
+        "reasoning": 162,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 13,
+        "ms": 487.19174999999996,
+        "ok": true,
+        "out": 148,
+        "reasoning": 117,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 14,
+        "ms": 1968.430958,
+        "ok": false,
+        "out": 400,
+        "reasoning": 395,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 1052.812625,
+        "ok": true,
+        "out": 209,
+        "reasoning": 178,
+        "input": 307,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 16,
+        "ms": 2644.334958,
+        "ok": true,
+        "out": 375,
+        "reasoning": 344,
+        "input": 285,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 17,
+        "ms": 1868.381375,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 2180.4049999999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 2083.7974169999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 2071.2503339999994,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 2231.487833,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 2247.4625000000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 1673.0391250000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 819.00875,
+        "ok": true,
+        "out": 192,
+        "reasoning": 160,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 25,
+        "ms": 895.5639580000006,
+        "ok": true,
+        "out": 209,
+        "reasoning": 176,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 26,
+        "ms": 801.0632090000017,
+        "ok": true,
+        "out": 144,
+        "reasoning": 112,
+        "input": 287,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 27,
+        "ms": 1931.8072499999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 321,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 746.9840000000004,
+        "ok": true,
+        "out": 145,
+        "reasoning": 113,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 29,
+        "ms": 2003.410833,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 30,
+        "ms": 1270.5831670000007,
+        "ok": true,
+        "out": 259,
+        "reasoning": 226,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 31,
+        "ms": 1731.2823749999989,
+        "ok": false,
+        "out": 400,
+        "reasoning": 375,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 32,
+        "ms": 427.7350000000006,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 33,
+        "ms": 91.75287500000013,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 34,
+        "ms": 99.61970800000017,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 35,
+        "ms": 77.3624579999996,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 36,
+        "ms": 71.61395799999991,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 37,
+        "ms": 60.41666699999951,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 38,
+        "ms": 94.21795900000143,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 39,
+        "ms": 68.96966699999939,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 40,
+        "ms": 125.9310000000005,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 41,
+        "ms": 108.3804170000003,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 42,
+        "ms": 94.96508300000096,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 43,
+        "ms": 61.805583999999726,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 44,
+        "ms": 53.00758400000086,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 45,
+        "ms": 52.02391700000044,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 46,
+        "ms": 98.68483299999934,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 47,
+        "ms": 99.33616699999948,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 48,
+        "ms": 117.79045799999949,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 49,
+        "ms": 109.0122909999991,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 50,
+        "ms": 94.50812500000029,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 51,
+        "ms": 195.14066699999967,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 52,
+        "ms": 69.99108299999898,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 53,
+        "ms": 171.44920900000034,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 54,
+        "ms": 90.98325000000114,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 55,
+        "ms": 64.87504199999967,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 56,
+        "ms": 94.52674999999908,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 57,
+        "ms": 69.66779099999985,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 58,
+        "ms": 60.576584000000366,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 59,
+        "ms": 108.22504200000003,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 60,
+        "ms": 100.00487500000054,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 61,
+        "ms": 99.37529200000063,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 62,
+        "ms": 99.00875000000087,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 63,
+        "ms": 92.61704100000134,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 64,
+        "ms": 98.94837499999994,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 65,
+        "ms": 93.94966600000043,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 66,
+        "ms": 53.11079100000097,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 67,
+        "ms": 53.20499999999993,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 68,
+        "ms": 95.66141699999935,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 69,
+        "ms": 96.67291699999987,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 70,
+        "ms": 110.66570799999863,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 71,
+        "ms": 83.2474170000005,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 72,
+        "ms": 55.396082999999635,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 73,
+        "ms": 98.40166599999975,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 74,
+        "ms": 54.25683300000128,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 75,
+        "ms": 153.86833399999887,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 76,
+        "ms": 94.10920799999985,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 77,
+        "ms": 99.61395900000025,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 78,
+        "ms": 236.00175000000127,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 79,
+        "ms": 72.58062500000051,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 80,
+        "ms": 95.57558299999982,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 81,
+        "ms": 158.11633400000028,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 82,
+        "ms": 113.77191599999969,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 83,
+        "ms": 80.36516699999993,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 84,
+        "ms": 113.07741700000042,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 85,
+        "ms": 50.6924999999992,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 86,
+        "ms": 154.22033399999964,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 87,
+        "ms": 66.36958300000151,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 88,
+        "ms": 102.15104200000133,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 89,
+        "ms": 63.64075000000048,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 90,
+        "ms": 109.77516599999944,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 91,
+        "ms": 417.70387499999924,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 92,
+        "ms": 84.66300000000047,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 93,
+        "ms": 124.79516700000022,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 94,
+        "ms": 84.1430419999997,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 95,
+        "ms": 70.81804100000045,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 96,
+        "ms": 52.14970800000083,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 97,
+        "ms": 95.39779099999942,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 98,
+        "ms": 90.0432090000013,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 99,
+        "ms": 91.97074999999859,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 100,
+        "ms": 46.5054999999993,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 101,
+        "ms": 120.79058299999997,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 102,
+        "ms": 216.02195800000118,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 103,
+        "ms": 93.81729199999972,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 104,
+        "ms": 177.56783299999915,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 105,
+        "ms": 157.85699999999997,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 106,
+        "ms": 92.82999999999993,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 107,
+        "ms": 103.53904200000034,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 108,
+        "ms": 89.4206669999985,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 109,
+        "ms": 67.56125000000065,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 110,
+        "ms": 51.663666000000376,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 111,
+        "ms": 163.8538750000007,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 112,
+        "ms": 165.48429100000067,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 113,
+        "ms": 153.88954100000046,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 114,
+        "ms": 54.15862500000003,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 115,
+        "ms": 102.08208300000115,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 116,
+        "ms": 147.87629200000083,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 117,
+        "ms": 141.541792,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 118,
+        "ms": 135.93766700000015,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 119,
+        "ms": 125.98770800000057,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 120,
+        "ms": 93.18833300000006,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 121,
+        "ms": 164.66908400000102,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 122,
+        "ms": 95.61304199999904,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 123,
+        "ms": 85.85129199999938,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 124,
+        "ms": 97.84250000000065,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 125,
+        "ms": 77.83283300000039,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 126,
+        "ms": 66.0966669999998,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 127,
+        "ms": 67.50875000000087,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      },
+      {
+        "i": 128,
+        "ms": 103.24983299999985,
+        "ok": false,
+        "err": "http 429: Rate limit exceeded. Please retry after a brief wait.",
+        "out": 0,
+        "reasoning": 0,
+        "input": 0
+      }
+    ]
+  }
+]

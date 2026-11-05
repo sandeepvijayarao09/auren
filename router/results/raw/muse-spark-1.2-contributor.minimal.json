@@ -1,0 +1,1774 @@
+[
+  {
+    "model": "muse-spark-1.2-contributor",
+    "mode": "minimal",
+    "n": 129,
+    "http_errors": 0,
+    "parse_fail": 0.2868217054263566,
+    "acc": {
+      "apps": 0.5891472868217055,
+      "risk_tier": 0.7131782945736435,
+      "reply_surface": 0.6744186046511628,
+      "needs_vision": 0.7131782945736435
+    },
+    "exact": 0.5581395348837209,
+    "under_budget": 0.6201550387596899,
+    "p50": 1801.1338329999999,
+    "p95": 3408.179583000001,
+    "mean_out": 271.6589147286822,
+    "mean_reasoning": 247.8372093023256,
+    "mean_in": 298.6356589147287,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 1960.3627499999998,
+        "ok": true,
+        "out": 167,
+        "reasoning": 136,
+        "input": 318,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 1,
+        "ms": 2257.3962500000002,
+        "ok": true,
+        "out": 155,
+        "reasoning": 123,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 2,
+        "ms": 1519.3975830000002,
+        "ok": true,
+        "out": 139,
+        "reasoning": 108,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 3,
+        "ms": 2430.040125,
+        "ok": true,
+        "out": 262,
+        "reasoning": 231,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 4,
+        "ms": 1296.358042,
+        "ok": true,
+        "out": 153,
+        "reasoning": 122,
+        "input": 284,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 5,
+        "ms": 842.878416,
+        "ok": true,
+        "out": 70,
+        "reasoning": 39,
+        "input": 288,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 6,
+        "ms": 2812.9733749999996,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 621.6414580000001,
+        "ok": true,
+        "out": 57,
+        "reasoning": 25,
+        "input": 283,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 8,
+        "ms": 1345.0298329999996,
+        "ok": true,
+        "out": 123,
+        "reasoning": 92,
+        "input": 322,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 9,
+        "ms": 1382.0683329999997,
+        "ok": true,
+        "out": 188,
+        "reasoning": 157,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 10,
+        "ms": 1281.7607500000004,
+        "ok": true,
+        "out": 130,
+        "reasoning": 98,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 11,
+        "ms": 6410.048083,
+        "ok": true,
+        "out": 234,
+        "reasoning": 203,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 12,
+        "ms": 1223.815541,
+        "ok": true,
+        "out": 177,
+        "reasoning": 146,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 13,
+        "ms": 1653.0067920000001,
+        "ok": true,
+        "out": 143,
+        "reasoning": 112,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 14,
+        "ms": 1563.0260420000004,
+        "ok": true,
+        "out": 221,
+        "reasoning": 189,
+        "input": 305,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 15,
+        "ms": 1195.2600000000002,
+        "ok": true,
+        "out": 148,
+        "reasoning": 117,
+        "input": 307,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 16,
+        "ms": 1737.3446249999997,
+        "ok": true,
+        "out": 226,
+        "reasoning": 195,
+        "input": 285,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 17,
+        "ms": 5009.245917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 4926.589584,
+        "ok": false,
+        "out": 400,
+        "reasoning": 391,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 3378.158292,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 2722.089,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 2694.126790999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 3177.252375,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 1342.7375420000008,
+        "ok": true,
+        "out": 138,
+        "reasoning": 106,
+        "input": 305,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 24,
+        "ms": 862.2427499999994,
+        "ok": true,
+        "out": 154,
+        "reasoning": 122,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 25,
+        "ms": 794.9172090000011,
+        "ok": true,
+        "out": 129,
+        "reasoning": 96,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 26,
+        "ms": 986.4697499999984,
+        "ok": true,
+        "out": 148,
+        "reasoning": 116,
+        "input": 287,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 27,
+        "ms": 2764.470541999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 321,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 954.8637080000008,
+        "ok": true,
+        "out": 121,
+        "reasoning": 89,
+        "input": 290,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 29,
+        "ms": 2957.362874999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 30,
+        "ms": 1274.5040420000005,
+        "ok": true,
+        "out": 190,
+        "reasoning": 157,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 31,
+        "ms": 3144.8658750000013,
+        "ok": false,
+        "out": 400,
+        "reasoning": 389,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 32,
+        "ms": 1602.5639170000013,
+        "ok": true,
+        "out": 227,
+        "reasoning": 195,
+        "input": 289,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 33,
+        "ms": 816.1449579999971,
+        "ok": true,
+        "out": 95,
+        "reasoning": 64,
+        "input": 306,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 34,
+        "ms": 969.4278330000016,
+        "ok": true,
+        "out": 119,
+        "reasoning": 87,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 35,
+        "ms": 1019.1427499999991,
+        "ok": true,
+        "out": 112,
+        "reasoning": 81,
+        "input": 284,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 36,
+        "ms": 1705.3933749999997,
+        "ok": true,
+        "out": 254,
+        "reasoning": 223,
+        "input": 304,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 37,
+        "ms": 773.0654589999976,
+        "ok": true,
+        "out": 90,
+        "reasoning": 59,
+        "input": 287,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 38,
+        "ms": 1868.294750000001,
+        "ok": true,
+        "out": 241,
+        "reasoning": 210,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 39,
+        "ms": 1307.986334000001,
+        "ok": true,
+        "out": 195,
+        "reasoning": 164,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 40,
+        "ms": 1869.558291999998,
+        "ok": true,
+        "out": 261,
+        "reasoning": 228,
+        "input": 291,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 41,
+        "ms": 1675.7200840000005,
+        "ok": true,
+        "out": 190,
+        "reasoning": 159,
+        "input": 306,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 42,
+        "ms": 3408.179583000001,
+        "ok": true,
+        "out": 400,
+        "reasoning": 367,
+        "input": 309,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 43,
+        "ms": 1709.356917000001,
+        "ok": true,
+        "out": 186,
+        "reasoning": 154,
+        "input": 282,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 44,
+        "ms": 1194.7781669999968,
+        "ok": true,
+        "out": 150,
+        "reasoning": 119,
+        "input": 321,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 45,
+        "ms": 1454.5814589999973,
+        "ok": true,
+        "out": 204,
+        "reasoning": 172,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 46,
+        "ms": 3363.9149160000015,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 47,
+        "ms": 2751.1980000000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 48,
+        "ms": 1076.143250000001,
+        "ok": true,
+        "out": 143,
+        "reasoning": 112,
+        "input": 288,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 49,
+        "ms": 1721.1747910000013,
+        "ok": true,
+        "out": 239,
+        "reasoning": 208,
+        "input": 306,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 50,
+        "ms": 1772.801292,
+        "ok": true,
+        "out": 199,
+        "reasoning": 167,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 51,
+        "ms": 1400.0741250000028,
+        "ok": true,
+        "out": 203,
+        "reasoning": 172,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 52,
+        "ms": 1829.950499999999,
+        "ok": true,
+        "out": 252,
+        "reasoning": 221,
+        "input": 288,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 53,
+        "ms": 2784.8015000000014,
+        "ok": true,
+        "out": 391,
+        "reasoning": 360,
+        "input": 307,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 54,
+        "ms": 2537.2521669999987,
+        "ok": true,
+        "out": 340,
+        "reasoning": 309,
+        "input": 312,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 55,
+        "ms": 3113.431124999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 56,
+        "ms": 1422.2849999999999,
+        "ok": true,
+        "out": 161,
+        "reasoning": 130,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 57,
+        "ms": 3137.3813329999975,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 58,
+        "ms": 2870.6014590000013,
+        "ok": true,
+        "out": 364,
+        "reasoning": 332,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 59,
+        "ms": 3413.4993749999994,
+        "ok": true,
+        "out": 397,
+        "reasoning": 363,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 60,
+        "ms": 2671.5374999999985,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 61,
+        "ms": 1637.586542000001,
+        "ok": true,
+        "out": 221,
+        "reasoning": 186,
+        "input": 297,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 62,
+        "ms": 1545.7424170000013,
+        "ok": true,
+        "out": 279,
+        "reasoning": 246,
+        "input": 280,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 63,
+        "ms": 1681.109166999995,
+        "ok": true,
+        "out": 260,
+        "reasoning": 225,
+        "input": 297,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 64,
+        "ms": 1425.948542000002,
+        "ok": true,
+        "out": 190,
+        "reasoning": 155,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 65,
+        "ms": 1424.5338340000017,
+        "ok": true,
+        "out": 235,
+        "reasoning": 199,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 66,
+        "ms": 1682.685666999998,
+        "ok": true,
+        "out": 262,
+        "reasoning": 228,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 67,
+        "ms": 1601.1512920000023,
+        "ok": true,
+        "out": 170,
+        "reasoning": 138,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 68,
+        "ms": 2512.2557920000036,
+        "ok": true,
+        "out": 329,
+        "reasoning": 295,
+        "input": 302,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 69,
+        "ms": 2255.540332999997,
+        "ok": true,
+        "out": 299,
+        "reasoning": 264,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 70,
+        "ms": 1801.1338329999999,
+        "ok": true,
+        "out": 246,
+        "reasoning": 211,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 71,
+        "ms": 2453.5070419999975,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 297,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 72,
+        "ms": 2928.3634999999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 73,
+        "ms": 1693.277833,
+        "ok": true,
+        "out": 261,
+        "reasoning": 226,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 74,
+        "ms": 2404.647957999994,
+        "ok": true,
+        "out": 365,
+        "reasoning": 333,
+        "input": 305,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 75,
+        "ms": 1978.253208000002,
+        "ok": true,
+        "out": 291,
+        "reasoning": 256,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 76,
+        "ms": 2420.954749999997,
+        "ok": true,
+        "out": 351,
+        "reasoning": 317,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 77,
+        "ms": 2405.371291999996,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 78,
+        "ms": 1466.9820829999953,
+        "ok": true,
+        "out": 236,
+        "reasoning": 204,
+        "input": 284,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 79,
+        "ms": 2372.3668340000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 80,
+        "ms": 1439.0613749999975,
+        "ok": true,
+        "out": 269,
+        "reasoning": 231,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 81,
+        "ms": 2450.9714999999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 389,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 82,
+        "ms": 2234.395166999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 283,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 83,
+        "ms": 2475.9657499999958,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 84,
+        "ms": 2751.467417,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 297,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 85,
+        "ms": 1139.4575840000034,
+        "ok": true,
+        "out": 204,
+        "reasoning": 172,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 86,
+        "ms": 2346.5882920000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 87,
+        "ms": 815.354250000004,
+        "ok": true,
+        "out": 154,
+        "reasoning": 123,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 88,
+        "ms": 2419.337124999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 292,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 89,
+        "ms": 2015.8609580000048,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 281,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 90,
+        "ms": 2349.037250000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 392,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 91,
+        "ms": 1961.159458999995,
+        "ok": true,
+        "out": 269,
+        "reasoning": 235,
+        "input": 289,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 92,
+        "ms": 2410.742333000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 323,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 93,
+        "ms": 2453.8039590000044,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 292,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 94,
+        "ms": 1014.5104159999973,
+        "ok": true,
+        "out": 176,
+        "reasoning": 145,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 95,
+        "ms": 2408.4272500000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 96,
+        "ms": 850.2570829999968,
+        "ok": true,
+        "out": 154,
+        "reasoning": 123,
+        "input": 281,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 97,
+        "ms": 2360.3241659999985,
+        "ok": true,
+        "out": 348,
+        "reasoning": 317,
+        "input": 301,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 98,
+        "ms": 1327.1779169999936,
+        "ok": true,
+        "out": 241,
+        "reasoning": 209,
+        "input": 286,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 99,
+        "ms": 2429.2164580000026,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 100,
+        "ms": 2366.6741669999974,
+        "ok": true,
+        "out": 359,
+        "reasoning": 327,
+        "input": 297,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 101,
+        "ms": 2317.5264580000003,
+        "ok": true,
+        "out": 230,
+        "reasoning": 199,
+        "input": 291,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 102,
+        "ms": 1745.0332500000004,
+        "ok": true,
+        "out": 276,
+        "reasoning": 244,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 103,
+        "ms": 2101.377124999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 395,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 104,
+        "ms": 2705.5802919999987,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 105,
+        "ms": 2787.4986659999995,
+        "ok": true,
+        "out": 397,
+        "reasoning": 366,
+        "input": 281,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 106,
+        "ms": 2851.578416999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 107,
+        "ms": 1435.3477080000011,
+        "ok": true,
+        "out": 255,
+        "reasoning": 221,
+        "input": 294,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 108,
+        "ms": 1859.6402920000037,
+        "ok": true,
+        "out": 286,
+        "reasoning": 250,
+        "input": 336,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 109,
+        "ms": 1642.705915999999,
+        "ok": true,
+        "out": 292,
+        "reasoning": 259,
+        "input": 309,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 110,
+        "ms": 2361.2782080000034,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 111,
+        "ms": 1083.6863749999975,
+        "ok": true,
+        "out": 210,
+        "reasoning": 177,
+        "input": 315,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 112,
+        "ms": 1507.7496669999964,
+        "ok": true,
+        "out": 221,
+        "reasoning": 187,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 113,
+        "ms": 1472.8111659999995,
+        "ok": true,
+        "out": 232,
+        "reasoning": 199,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 114,
+        "ms": 1044.9896669999944,
+        "ok": true,
+        "out": 172,
+        "reasoning": 139,
+        "input": 307,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 115,
+        "ms": 1393.421291999999,
+        "ok": true,
+        "out": 244,
+        "reasoning": 210,
+        "input": 324,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 116,
+        "ms": 1148.0219999999972,
+        "ok": true,
+        "out": 208,
+        "reasoning": 174,
+        "input": 289,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 117,
+        "ms": 1356.4673329999932,
+        "ok": true,
+        "out": 277,
+        "reasoning": 242,
+        "input": 308,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 118,
+        "ms": 2114.9249590000036,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 119,
+        "ms": 3461.1260419999962,
+        "ok": true,
+        "out": 203,
+        "reasoning": 172,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 120,
+        "ms": 4809.974875,
+        "ok": true,
+        "out": 392,
+        "reasoning": 358,
+        "input": 299,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 121,
+        "ms": 3172.5882090000014,
+        "ok": true,
+        "out": 203,
+        "reasoning": 172,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": false,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 122,
+        "ms": 2659.985166000006,
+        "ok": true,
+        "out": 268,
+        "reasoning": 237,
+        "input": 316,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 123,
+        "ms": 2241.696042000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 124,
+        "ms": 1051.885792000001,
+        "ok": true,
+        "out": 147,
+        "reasoning": 116,
+        "input": 298,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": false,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 125,
+        "ms": 839.0262499999953,
+        "ok": true,
+        "out": 168,
+        "reasoning": 137,
+        "input": 300,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 126,
+        "ms": 1159.5024170000033,
+        "ok": true,
+        "out": 178,
+        "reasoning": 149,
+        "input": 303,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 127,
+        "ms": 922.8953340000007,
+        "ok": true,
+        "out": 170,
+        "reasoning": 140,
+        "input": 280,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 128,
+        "ms": 1345.3810000000012,
+        "ok": true,
+        "out": 160,
+        "reasoning": 131,
+        "input": 283,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      }
+    ]
+  }
+]

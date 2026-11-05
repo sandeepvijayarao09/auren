@@ -1,0 +1,1617 @@
+[
+  {
+    "model": "muse-spark-1.3",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 1,
+    "acc": {
+      "apps": 0,
+      "risk_tier": 0,
+      "reply_surface": 0,
+      "needs_vision": 0
+    },
+    "exact": 0,
+    "under_budget": 0,
+    "p50": 3738.323457999999,
+    "p95": 5080.356749999999,
+    "mean_out": 400,
+    "mean_reasoning": 398,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 3373.6315,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 318,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 1,
+        "ms": 3173.716541,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 3934.284917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 3772.962125,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 4975.958041,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 5080.356749999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 3270.290917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 3358.254042,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 3592.363292000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 3234.5267080000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 3860.008749999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 4839.101166999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 3478.2250839999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 3738.323457999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 4210.231041999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 3509.3307910000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 3899.2964999999986,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 3643.302791,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 5057.363958,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 3698.4730830000008,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 5132.252333999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 3433.339832999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 4899.305042,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 3650.649459,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 4718.100208,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 4548.839750000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 4030.8830830000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 3543.5259160000023,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 4119.098042000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 3419.419833,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  },
+  {
+    "model": "muse-spark-1.2",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 1,
+    "acc": {
+      "apps": 0,
+      "risk_tier": 0,
+      "reply_surface": 0,
+      "needs_vision": 0
+    },
+    "exact": 0,
+    "under_budget": 0,
+    "p50": 2076.74075,
+    "p95": 2888.8421670000002,
+    "mean_out": 400,
+    "mean_reasoning": 397.73333333333335,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 2779.34975,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 318,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 1,
+        "ms": 1906.068125,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 2846.038875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 2273.307292,
+        "ok": false,
+        "out": 400,
+        "reasoning": 390,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 2940.412875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 2076.74075,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 2415.825709,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 2888.8421670000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 1561.074541,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 2341.6467079999993,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 2100.5847919999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 2214.9328750000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 1819.4568340000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 1998.2093329999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 2641.1960419999996,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 2181.644292000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 1530.8505420000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 1555.843166999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 2269.8677500000013,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 1949.3162080000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 2287.6244580000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 1952.1054999999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 2019.633249999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 2053.513917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 2244.1084580000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 1769.8610840000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 1912.2361250000013,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 1564.4364590000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 2260.849957999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 1875.1585000000014,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  },
+  {
+    "model": "muse-spark-1.1",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 1,
+    "acc": {
+      "apps": 0,
+      "risk_tier": 0,
+      "reply_surface": 0,
+      "needs_vision": 0
+    },
+    "exact": 0,
+    "under_budget": 0,
+    "p50": 1859.8664580000004,
+    "p95": 2703.663625000001,
+    "mean_out": 400,
+    "mean_reasoning": 398,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 1778.6017499999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 318,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 1,
+        "ms": 1606.174875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 2077.317708,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 2130.872416,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 2106.899167,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 2295.694667,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 2090.9443329999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 1859.8664580000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 2152.9477079999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 1819.4678750000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 1973.0248330000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 2073.901334,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 1499.6812499999996,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 2576.515707999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 1800.7364580000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 3675.8277910000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 2703.663625000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 2201.2093749999995,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 2000.5191250000007,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 2220.0282499999994,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 1753.0368749999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 2238.061540999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 1601.5318750000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 916.4310000000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 1754.1900000000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 1307.8556250000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 1520.8197500000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 1188.592917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 1812.2773749999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 1453.201959,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  },
+  {
+    "model": "muse-spark-1.3-contributor",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 1,
+    "acc": {
+      "apps": 0,
+      "risk_tier": 0,
+      "reply_surface": 0,
+      "needs_vision": 0
+    },
+    "exact": 0,
+    "under_budget": 0,
+    "p50": 3731.2983750000003,
+    "p95": 4984.924875000001,
+    "mean_out": 400,
+    "mean_reasoning": 398,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 4145.899166,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 318,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 1,
+        "ms": 4232.560292,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 3551.922792,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 3830.100167,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 4266.157792,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 4372.003124999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 3877.492875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 4631.693958999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 3667.798,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 3502.8872499999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 2973.6862500000007,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 5462.051542000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 3106.5238329999993,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 4984.924875000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 3731.2983750000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 3531.330250000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 3490.2667500000025,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 3763.0069170000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 3446.130459,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 3631.5607500000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 4188.9543330000015,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 4426.197,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 3875.032708999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 3220.8690829999978,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 3817.8316250000025,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 3807.701083,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 3420.6100000000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 3300.939125000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 3723.003542000002,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 3621.670457999997,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  },
+  {
+    "model": "muse-spark-1.2-contributor",
+    "mode": "omit",
+    "n": 30,
+    "http_errors": 0,
+    "parse_fail": 0.9666666666666667,
+    "acc": {
+      "apps": 0.03333333333333333,
+      "risk_tier": 0.03333333333333333,
+      "reply_surface": 0.03333333333333333,
+      "needs_vision": 0.03333333333333333
+    },
+    "exact": 0.03333333333333333,
+    "under_budget": 0.03333333333333333,
+    "p50": 2076.3230420000004,
+    "p95": 2786.85225,
+    "mean_out": 395.8333333333333,
+    "mean_reasoning": 392.8666666666667,
+    "mean_in": 299.3333333333333,
+    "rows": [
+      {
+        "i": 0,
+        "ms": 1396.026083,
+        "ok": true,
+        "out": 275,
+        "reasoning": 244,
+        "input": 318,
+        "status": "completed",
+        "hits": {
+          "apps": true,
+          "risk_tier": true,
+          "reply_surface": true,
+          "needs_vision": true
+        }
+      },
+      {
+        "i": 1,
+        "ms": 1722.711792,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 284,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 2,
+        "ms": 2153.037708,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 322,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 3,
+        "ms": 2144.983917,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 290,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 4,
+        "ms": 2606.146709,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 307,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 5,
+        "ms": 2163.5559590000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 308,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 6,
+        "ms": 2962.449958,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 7,
+        "ms": 2076.3230420000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 8,
+        "ms": 1889.372875,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 9,
+        "ms": 2067.3104589999994,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 10,
+        "ms": 1769.3298329999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 282,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 11,
+        "ms": 1664.8990000000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 12,
+        "ms": 2037.7985840000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 301,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 13,
+        "ms": 2548.259083,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 288,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 14,
+        "ms": 2161.5849580000004,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 15,
+        "ms": 2383.549249999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 16,
+        "ms": 2786.85225,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 302,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 17,
+        "ms": 2225.400541000001,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 18,
+        "ms": 2089.104458,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 295,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 19,
+        "ms": 2471.047042,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 310,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 20,
+        "ms": 1881.8744160000006,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 305,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 21,
+        "ms": 2034.012499999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 285,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 22,
+        "ms": 1697.847416999999,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 303,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 23,
+        "ms": 2477.4458329999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 286,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 24,
+        "ms": 1930.0565830000014,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 300,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 25,
+        "ms": 1602.8531660000008,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 294,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 26,
+        "ms": 1784.3294589999987,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 315,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 27,
+        "ms": 2519.1553750000003,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 289,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 28,
+        "ms": 2487.1731660000005,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 299,
+        "status": "incomplete",
+        "err": "parse"
+      },
+      {
+        "i": 29,
+        "ms": 1804.4759169999998,
+        "ok": false,
+        "out": 400,
+        "reasoning": 398,
+        "input": 298,
+        "status": "incomplete",
+        "err": "parse"
+      }
+    ]
+  }
+]

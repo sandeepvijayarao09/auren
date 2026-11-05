@@ -99,7 +99,7 @@ async function main() {
     timeZone: config.timeZone,
     maxTurns: config.maxTurns,
     approvalTimeoutMs: 20_000,
-    router: createRouter({ muse, sparkModel: config.fastModel, namespaces: () => tools.names() }),
+    router: createRouter({ muse, sparkModel: config.decisionModel, namespaces: () => tools.names() }),
   };
 
   const out: string[] = [];
