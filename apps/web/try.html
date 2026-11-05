@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <title>Try Auren</title>
 <meta name="description" content="Try Auren's five golden paths on a fictional workspace, with a simulated phone, watch and glasses.">
 <link rel="icon" href="/brand/mark.svg" type="image/svg+xml">
@@ -133,6 +133,43 @@
   footer { border-top:1px solid var(--line); padding:18px 0 28px; color:var(--dim); font-size:12.5px; display:flex; flex-wrap:wrap; gap:8px 18px; }
   footer a { color:var(--dim); }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  /* Simple / Details: Simple is what a person cares about, Details is the full console. */
+  .view { display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--panel); }
+  .view button { border:0; background:transparent; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--dim); transition:background .2s cubic-bezier(0.16,1,0.3,1), color .2s cubic-bezier(0.16,1,0.3,1); }
+  .view button[aria-pressed="true"] { background:var(--raised); color:var(--text); }
+  .engine { margin-left:0; }
+  .top .view { margin-left:auto; }
+  @media (max-width:480px) { .top { flex-wrap:wrap; } .tag { display:none; } .engine { padding:4px 10px; } }
+  .cmd { margin:0 0 12px; padding:14px 16px; border:1px solid var(--line); border-radius:18px; background:var(--raised); }
+  .cmd.new { animation:rise .45s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .cmd .when { float:right; font-size:12px; color:var(--dim); margin-left:8px; }
+  .cmd .said { font-size:17px; line-height:1.35; }
+  .cmd .ackl { margin-top:6px; color:var(--dim); font-size:14px; }
+  .cmd .done { margin-top:10px; font-size:15px; }
+  .cmd .done::before { content:"✓ "; color:var(--done); }
+  .cmd .done.off { color:var(--dim); }
+  .cmd .stop { margin-top:10px; color:var(--bad); }
+  .cmd .stop::before { content:"■ "; }
+  .cmd .reply { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+  .cmd .wait { margin-top:12px; padding:14px; border:1px solid var(--gold); border-radius:14px; background:var(--panel); }
+  .cmd .wait .why { font-size:12px; color:var(--dim); }
+  .cmd .wait .sum { margin-top:4px; font-size:16px; }
+  .cmd .wait .go { padding:13px 16px; font-size:17px; }
+  .cmd .wait .no { padding:13px 16px; }
+  .cmd .working { margin-top:10px; color:var(--dim); font-size:13px; }
+  details.trailbox > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  details.trailbox > summary::-webkit-details-marker { display:none; }
+  details.trailbox > summary::after { content:"›"; font-size:15px; transition:transform .3s cubic-bezier(0.16,1,0.3,1); }
+  details.trailbox[open] > summary::after { transform:rotate(90deg); }
+  details.trailbox[open] .trail { animation:fade .35s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes fade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+  @media (prefers-color-scheme: light) {
+    :root { color-scheme:light; --bg:#FFFFFF; --panel:#F2F2F7; --raised:#FFFFFF; --line:#D1D1D6; --text:#0B0B0C; --dim:#5E5B55; --gold:#92712A; --gold-hi:#735921; --done:#008932; --bad:#E9152D; --proof:#1E6EF4; }
+    .go { background:#735921; color:#FFFFFF; } .go:hover { background:#5E4819; }
+    .face { color:var(--auren-halo); } .face .no { color:var(--auren-halo); } .face .what { color:var(--auren-aurum-hi); } .face .idle { color:var(--auren-ash); } .face .go { background:var(--auren-aurum); color:var(--auren-onyx); }
+  }
+  @media (prefers-reduced-motion:reduce) { .cmd.new, details.trailbox[open] .trail { animation:none; } }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
 </style>
 </head>
@@ -141,6 +178,7 @@
   <header class="top">
     <svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
     <span class="wordmark" aria-label="Auren">AUREN</span><span class="tag">Sandbox</span>
+    <div class="view" role="group" aria-label="View"><button type="button" data-view="simple" aria-pressed="true">Simple</button><button type="button" data-view="details" aria-pressed="false">Details</button></div>
     <span class="engine replay" id="engine" role="status"><i></i><b>Replay</b></span>
   </header>
 
@@ -162,7 +200,7 @@
 
   <main class="stage">
     <section class="col-phone" aria-label="iPhone">
-      <div class="label">iPhone · timeline</div>
+      <div class="label" id="phoneLabel">iPhone · timeline</div>
       <div class="phone"><div id="ptaps"></div><div id="cards"></div><div id="timeline"><div class="empty">Tap a golden path above. Every step lands here, with a receipt and Undo.</div></div></div>
     </section>
     <section class="col-watch" aria-label="Apple Watch">
@@ -172,8 +210,8 @@
       <div class="glasses" id="glasses"></div>
     </section>
     <section class="col-trail" aria-label="What Auren just did">
-      <div class="label">What Auren just did</div>
-      <ol class="trail" id="trail"><li class="none">Nothing yet.</li></ol>
+      <details class="trailbox" id="trailbox"><summary class="label">What Auren just did</summary>
+      <ol class="trail" id="trail"><li class="none">Nothing yet.</li></ol></details>
     </section>
   </main>
 
@@ -190,6 +228,9 @@ const NAME = { phone: "iPhone", watch: "Watch", glasses: "Glasses" };
 const KEY = "auren.try.visitor";
 const store = { get() { try { return sessionStorage.getItem(KEY); } catch { return null; } }, set(v) { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch {} } };
 
+const VIEW_KEY = "auren.view";
+let view = (() => { try { return localStorage.getItem(VIEW_KEY) === "details" ? "details" : "simple"; } catch { return "simple"; } })();
+const seenCards = new Set();
 let visitor = null, examples = [], events = [], since = 0, outSince = 0, taps = [], busy = false, engine = null, lastSaid = {}, timer = null, undone = new Set(), drawn = "";
 
 async function api(path, opts = {}) {
@@ -293,8 +334,58 @@ function render() {
     : `<div class="clock">${esc(clock)}</div>${lastSaid.watch ? `<div class="said">${esc(lastSaid.watch)}</div>` : ""}<div class="idle">${busy ? "Working…" : "Nothing waiting for you."}</div>`;
   // A tap that moved to the phone
   $("ptaps").innerHTML = taps.filter((t) => t.surface === "phone").map((t) => `<div class="ptap"><div class="why">Your move · the watch came off, so the tap followed you here</div><div>${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="phone" data-v="1">${verb(t)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="phone" data-v="0">Not now</button></div></div>`).join("");
-  timeline();
+  $("ptaps").hidden = view === "simple";
+  view === "simple" ? simple() : timeline();
   trail();
+}
+
+function setView(v, save = true) {
+  view = v;
+  if (save) { try { localStorage.setItem(VIEW_KEY, v); } catch {} }
+  document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+  $("trailbox").open = v === "details";
+  $("phoneLabel").textContent = v === "simple" ? "iPhone" : "iPhone · timeline";
+  render();
+}
+
+// "now", "2 min ago": a person doesn't read seconds.
+function ago(at) {
+  const s = Math.max(0, (Date.now() - new Date(at).getTime()) / 1000);
+  if (s < 45) return "now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  return new Date(at).toLocaleDateString();
+}
+
+// Simple: one card per command. What you said, the ack, a tap that waits, receipts, the reply.
+function simple() {
+  const gone = undoneIds(), groups = [];
+  for (const e of events) {
+    if (e.kind === "utterance") groups.push({ id: e.id, at: e.at, items: [] });
+    if (groups.length) groups.at(-1).items.push(e);
+  }
+  if (!groups.length) { $("timeline").innerHTML = `<div class="empty">Tap a golden path above. What Auren does lands here, with Undo.</div>`; return; }
+  const last = groups.at(-1);
+  $("timeline").innerHTML = groups.slice().reverse().map((g) => {
+    let html = "", replied = false;
+    for (const e of g.items) {
+      const d = e.data;
+      if (e.kind === "utterance") html += `<div class="said">“${esc(d.text)}”</div>`;
+      if (e.kind === "ack") html += `<div class="ackl">${esc(d.text)}</div>`;
+      if (e.kind === "approval" && d.status === "requested") {
+        const t = taps.find((x) => x.request_id === d.request_id);
+        if (t) html += `<div class="wait"><div class="why">Waiting for your tap${t.surface === "watch" ? " · also on your watch" : ""}</div><div class="sum">${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="${esc(t.surface)}" data-v="1">${verb(t)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="${esc(t.surface)}" data-v="0">Not now</button></div></div>`;
+      }
+      if (e.kind === "approval" && d.status === "declined") html += `<div class="done off">You said not now, so nothing went out.</div>`;
+      if (e.kind === "approval" && d.status === "expired") html += `<div class="done off">Nobody tapped, so nothing went out.</div>`;
+      if (e.kind === "receipt" && !d.undoes) html += `<div class="done${gone.has(e.id) ? " off" : ""}">${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a href="${esc(d.link)}" style="color:var(--proof)" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? `<span class="undone">Undone</span>` : `<button class="undo" data-undo="${e.id}">Undo</button>`) : ""}</div>`;
+      if (e.kind === "error") html += `<div class="stop">${esc(d.message)}</div>`;
+      if (e.kind === "reply") { replied = true; html += `<div class="reply">${esc(d.text)}${Array.isArray(d.suggestions) ? `<div class="sugg">${examples.filter((x) => d.suggestions.includes(x.id)).map((x) => `<button type="button" data-text="${esc(x.text)}">${esc(x.label)}</button>`).join("")}</div>` : ""}</div>`; }
+    }
+    if (g === last && busy && !replied) html += `<div class="working">Working…</div>`;
+    const fresh = !seenCards.has(g.id); seenCards.add(g.id);
+    return `<article class="cmd${fresh ? " new" : ""}"><span class="when">${esc(ago(g.at))}</span>${html}</article>`;
+  }).join("");
 }
 
 const time = (at) => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
@@ -373,6 +464,7 @@ $("f").addEventListener("submit", (ev) => { ev.preventDefault(); const t = $("q"
 document.addEventListener("click", async (ev) => {
   const el = ev.target.closest("button");
   if (!el) return;
+  if (el.dataset.view) return setView(el.dataset.view);
   if (el.dataset.text) return say(el.dataset.text);
   if (el.dataset.tap) {
     el.disabled = true;
@@ -388,6 +480,7 @@ document.addEventListener("click", async (ev) => {
   }
 });
 setInterval(() => { if (!taps.some((t) => t.surface === "watch")) render(); }, 30000);
+setView(view, false);
 open(false);
 </script>
 </body>

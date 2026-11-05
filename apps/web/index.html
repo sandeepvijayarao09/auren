@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
 <title>Auren Console</title>
 <link rel="stylesheet" href="/brand/tokens.css">
 <style>
@@ -53,6 +54,32 @@
   .spend.limit { border-color:var(--bad); }
   .spend b::before { content:"■ "; color:var(--bad); }
   .ev.usage .k { color:var(--bad); }
+  /* Simple / Details */
+  .view { display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--panel); flex:none; }
+  .view button { margin:0; border:0; background:transparent; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--dim); transition:background .2s cubic-bezier(0.16,1,0.3,1), color .2s cubic-bezier(0.16,1,0.3,1); }
+  .view button[aria-pressed="true"] { background:var(--raised); color:var(--text); }
+  body.simple #timeline, body.details #simple { display:none; }
+  body.simple .approval { padding:18px; }
+  body.simple .approval > div:first-child { font-size:17px; }
+  body.simple .approval button { padding:12px 18px; font-size:16px; }
+  body.simple .approval button.gold { flex:1; }
+  .cmd { margin:12px 0; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
+  .cmd.new { animation:rise .45s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .cmd .when { float:right; font-size:12px; color:var(--dim); margin-left:8px; }
+  .cmd .said { font-size:17px; }
+  .cmd .ackl { margin-top:6px; color:var(--dim); font-size:14px; }
+  .cmd .done { margin-top:10px; }
+  .cmd .done::before { content:"✓ "; color:var(--done); }
+  .cmd .done button { margin-left:8px; }
+  .cmd .stop { margin-top:10px; color:var(--bad); }
+  .cmd .stop::before { content:"■ "; }
+  .cmd .reply { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+  @media (prefers-color-scheme: light) {
+    :root { color-scheme:light; --bg:#FFFFFF; --panel:#F2F2F7; --raised:#FFFFFF; --line:#D1D1D6; --text:#0B0B0C; --dim:#5E5B55; --gold:#92712A; --done:#008932; --bad:#E9152D; --proof:#1E6EF4; }
+    button.gold { background:#735921; border-color:#735921; color:#FFFFFF; }
+  }
+  @media (prefers-reduced-motion:reduce) { .cmd.new { animation:none; } }
 </style>
 </head>
 <body>
@@ -60,9 +87,10 @@
   <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
   <span class="brand">AUREN</span><span class="me" id="me"></span>
   <div class="chips" id="chips"></div>
+  <div class="view" role="group" aria-label="View"><button type="button" data-view="simple" aria-pressed="true">Simple</button><button type="button" data-view="details" aria-pressed="false">Details</button></div>
   <span class="trust" id="trust" title="Checks the log's hash chain every 15 seconds">checking the log…</span>
 </header>
-<main><div id="spend" class="spend" role="status" hidden></div><div id="pair" class="card pair" hidden></div><div id="pending"></div><div id="cards"></div><div id="timeline"></div></main>
+<main><div id="spend" class="spend" role="status" hidden></div><div id="pair" class="card pair" hidden></div><div id="pending"></div><div id="cards"></div><div id="simple"></div><div id="timeline"></div></main>
 <form id="f">
   <div class="bar"><input type="text" id="q" placeholder="Say it once…" autocomplete="off"><button>Say it</button></div>
   <div class="tools">
@@ -116,7 +144,53 @@ function line(e) {
   el.className = `ev ${e.kind}`;
   el.innerHTML = `<div class="k">${e.kind.replace("_", " ")}</div><div class="b">${body()}<span class="t">${time}</span></div>`;
   $("timeline").prepend(el);
+  all.push(e); simpleSoon();
 }
+
+// Simple: one card per command, in plain sentences. Details is the full timeline above.
+const VIEW_KEY = "auren.view";
+const all = [], seenCards = new Set();
+let view = (() => { try { return localStorage.getItem(VIEW_KEY) === "details" ? "details" : "simple"; } catch { return "simple"; } })();
+function setView(v, save = true) {
+  view = v;
+  if (save) { try { localStorage.setItem(VIEW_KEY, v); } catch {} }
+  document.body.className = v;
+  document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+  simpleView();
+}
+function ago(at) {
+  const s = Math.max(0, (Date.now() - new Date(at).getTime()) / 1000);
+  if (s < 45) return "now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  return new Date(at).toLocaleDateString();
+}
+let pendingDraw = 0;
+function simpleSoon() { if (!pendingDraw) pendingDraw = requestAnimationFrame(() => { pendingDraw = 0; simpleView(); }); }
+function simpleView() {
+  if (view !== "simple") return;
+  const gone = new Set(all.filter((e) => e.kind === "receipt" && e.data.undoes).map((e) => e.data.undoes));
+  const groups = [];
+  for (const e of all) {
+    if (e.kind === "utterance") groups.push({ id: e.id, at: e.at, items: [e] });
+    else if (groups.length && ["ack", "receipt", "reply", "error", "approval"].includes(e.kind)) groups.at(-1).items.push(e);
+  }
+  $("simple").innerHTML = groups.slice().reverse().map((g) => {
+    const html = g.items.map((e) => {
+      const d = e.data;
+      if (e.kind === "utterance") return `<div class="said">“${esc(d.text)}”</div>`;
+      if (e.kind === "ack") return `<div class="ackl">${esc(d.text)}</div>`;
+      if (e.kind === "receipt" && !d.undoes) return `<div class="done">${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a class="proof" href="${esc(d.link)}" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? ` <span class="muted">Undone</span>` : ` <button data-undo="${e.id}">Undo</button>`) : ""}</div>`;
+      if (e.kind === "approval" && (d.status === "declined" || d.status === "expired")) return `<div class="ackl">${d.status === "declined" ? "You said not now" : "Nobody tapped"}, so nothing went out.</div>`;
+      if (e.kind === "error") return `<div class="stop">${esc(d.message)}</div>`;
+      if (e.kind === "reply") return `<div class="reply">${esc(d.text)}</div>`;
+      return "";
+    }).join("");
+    const fresh = !seenCards.has(g.id); seenCards.add(g.id);
+    return `<article class="cmd${fresh ? " new" : ""}"><span class="when">${esc(ago(g.at))}</span>${html}</article>`;
+  }).join("");
+}
+setInterval(simpleView, 30000);
 
 let ws, beat;
 function beatEvery(ms) {
@@ -175,6 +249,7 @@ $("pairBtn").addEventListener("click", async () => {
 });
 
 document.addEventListener("click", async (ev) => {
+  if (ev.target.dataset?.view) return setView(ev.target.dataset.view);
   const revoke = ev.target.dataset?.revoke;
   if (revoke) { await fetch(`/v1/devices/${encodeURIComponent(revoke)}`, { method: "DELETE", headers: auth }); devices(); return; }
   const a = ev.target.dataset?.a, undo = ev.target.dataset?.undo;
@@ -212,6 +287,7 @@ function spendBanner(u) {
 }
 fetch(`/v1/trust`, { headers: auth }).then((r) => r.json()).then((t) => { if (t.usage?.alarmed || t.usage?.limited) spendBanner(t.usage); }).catch(() => {});
 
+setView(view, false);
 fetch(`/v1/events`, { headers: auth }).then((r) => r.json()).then(({ events }) => { events.forEach(line); connect(); }).catch(connect);
 </script>
 </body>
