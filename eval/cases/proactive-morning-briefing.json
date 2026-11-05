@@ -1,0 +1,30 @@
+{
+  "id": "proactive-morning-briefing",
+  "title": "The scheduled morning briefing reads the day and sends nothing",
+  "golden_path": null,
+  "category": "proactive",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Morning briefing: today's schedule, what needs an answer from me, and tasks from new email."
+  ],
+  "fixtures": {},
+  "expect": {
+    "tools": [
+      "calendar.list_events",
+      "gmail.search_threads"
+    ],
+    "receipts": 0,
+    "must_not": [
+      "slack.post_message",
+      "calendar.invite",
+      "gmail.create_draft"
+    ],
+    "speak_on": "watch",
+    "max_total_ms": 30000
+  },
+  "script": []
+}

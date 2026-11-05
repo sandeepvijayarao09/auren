@@ -37,7 +37,9 @@ export type EventKind =
   // R13: the token alarm or limit was crossed (data: level, tokens, alarm, limit, message).
   | "usage"
   // Muse's decision for a command, before Wonder plans: apps, risk, reply device, whether to look.
-  | "decision";
+  | "decision"
+  // The proactive day: a scheduled briefing ran, or the evening card was offered (data: job, …).
+  | "proactive";
 
 export interface AurenEvent {
   id: number;
@@ -52,7 +54,8 @@ export type ServerMessage =
   | { type: "welcome"; session_id: string; surfaces: Manifest[]; heartbeat_ms?: number }
   | { type: "event"; event: AurenEvent }
   | { type: "speak"; text: string; reply_id?: string; seq?: number; final?: boolean }
-  | { type: "show_card"; title: string; body: string }
+  // `action` (optional): one approval-free button. Tapping it says `command` as an utterance, like typing it.
+  | { type: "show_card"; title: string; body: string; action?: { label: string; command: string } }
   // v0.1 camera: one frame for a "this" command, uploaded to POST /v1/frames/:request_id.
   | { type: "capture_request"; request_id: string; purpose: string }
   // R12: `verb` (optional) is what the approve button says, from the tool's spec.

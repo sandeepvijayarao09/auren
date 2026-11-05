@@ -11,6 +11,7 @@ import type { DriverInfo, DriverLink, DriverResult } from "../computer/hub.ts";
 import type { EventLog } from "../eventlog.ts";
 import { createMemory } from "../memory/memory.ts";
 import { createReceipts } from "../memory/receipts.ts";
+import { createPlanner } from "../proactive/planner.ts";
 import type { SurfaceRegistry } from "../surfaces.ts";
 import { createDemoWorld } from "../tools/demo-world.ts";
 import { ToolRegistry } from "../tools/registry.ts";
@@ -139,7 +140,8 @@ export function baseWorld(deps: WorldDeps) {
   // R8: Auren Memory answers from its local fallback here (no Baseten in the eval), and
   // receipts.undo resolves undo steps against the same tools the case runs.
   const registry = new ToolRegistry().add(...base);
-  const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry })];
+  // The proactive day's planner reads and writes through the same registry, so its blocks undo like any receipt.
+  const memory = [createMemory({ log: deps.log }), createReceipts({ log: deps.log, tools: registry }), createPlanner({ log: deps.log, tools: registry })];
   registry.add(...memory);
   return { state: world.state, camera, site, crops, namespaces: [...base, ...memory] };
 }

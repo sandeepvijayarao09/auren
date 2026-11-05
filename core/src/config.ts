@@ -46,6 +46,9 @@ export const config = {
   routerKey: process.env.AUREN_ROUTER_KEY ?? "",
   routerModel: process.env.AUREN_ROUTER_MODEL || "auren-router",
   routerBudgetMs: Number(process.env.AUREN_ROUTER_BUDGET_MS) || 300,
+  // The proactive day, in AUREN_TZ. Empty turns either off. The briefing catches up after sleep until noon.
+  briefingAt: process.env.AUREN_BRIEFING_AT ?? "",
+  eveningAt: process.env.AUREN_EVENING_AT ?? "",
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

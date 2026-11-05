@@ -40,6 +40,8 @@ export interface Command {
   session: string;
   text: string;
   originSurfaceId?: string;
+  /** A command Auren gave itself (the proactive day: "briefing", "plan"). Logged on the utterance; no spoken ack. */
+  system?: string;
 }
 
 const SYSTEM = `You are Auren, one voice agent that acts across the user's apps and devices, built on Meta's Muse models. The user calls you by saying "Hey Muse".
@@ -67,7 +69,7 @@ interface FunctionCall {
   arguments?: string;
 }
 
-export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply: string }> {
+export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply: string; spokenOn?: string | null }> {
   const { log, surfaces } = deps;
   const ops = deps.ops ?? silentOps;
   const trace = randomUUID().slice(0, 8);
@@ -76,7 +78,7 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
   ops.info("command.start", { trace, surface: cmd.originSurfaceId ?? null, chars: cmd.text.length });
   // R9: the devices online go on the utterance, so the router can learn from what happened next (router/examples.ts).
   const devices = liveDevices(surfaces);
-  log.append(cmd.session, "utterance", { text: cmd.text, surface_id: cmd.originSurfaceId ?? null, devices });
+  log.append(cmd.session, "utterance", { text: cmd.text, surface_id: cmd.originSurfaceId ?? null, devices, ...(cmd.system ? { system: cmd.system } : {}) });
   surfaces.touch(cmd.originSurfaceId);
 
   let done = false;
@@ -94,7 +96,7 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
       // No quick ack; the decision or Spark shapes it.
     }
   }
-  const ack = deps.fastModel || hints ? fastAck(deps, cmd, () => done, quickAck ? Promise.resolve(quickAck) : hints?.ack) : Promise.resolve();
+  const ack = !cmd.system && (deps.fastModel || hints) ? fastAck(deps, cmd, () => done, quickAck ? Promise.resolve(quickAck) : hints?.ack) : Promise.resolve();
 
   try {
     const base = {
@@ -142,10 +144,11 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
 
     const reply = outputText(resp) || "Done.";
     done = true;
-    log.append(cmd.session, "reply", { text: reply, spoken_on: surfaces.speak(reply, cmd.originSurfaceId) });
+    const spokenOn = surfaces.speak(reply, cmd.originSurfaceId);
+    log.append(cmd.session, "reply", { text: reply, spoken_on: spokenOn });
     await ack;
     ops.info("command.done", { trace, ms: Math.round(performance.now() - started), turns: turns + 1 });
-    return { reply };
+    return { reply, spokenOn };
   } catch (err) {
     done = true;
     const message = err instanceof Error ? err.message : String(err);

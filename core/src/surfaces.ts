@@ -177,9 +177,9 @@ export class SurfaceRegistry {
     if (r.acked >= r.chunks.length - 1) this.#replies.delete(replyId);
   }
 
-  showCard(title: string, body: string): string | null {
+  showCard(title: string, body: string, action?: { label: string; command: string }): string | null {
     const s = this.#pick("card");
-    s?.send({ type: "show_card", title, body });
+    s?.send({ type: "show_card", title, body, ...(action ? { action } : {}) });
     return s?.manifest.id ?? null;
   }
 

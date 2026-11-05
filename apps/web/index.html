@@ -58,7 +58,7 @@
   .view { display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--panel); flex:none; }
   .view button { margin:0; border:0; background:transparent; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--dim); transition:background .2s cubic-bezier(0.16,1,0.3,1), color .2s cubic-bezier(0.16,1,0.3,1); }
   .view button[aria-pressed="true"] { background:var(--raised); color:var(--text); }
-  body.simple #timeline, body.details #simple { display:none; }
+  body.simple #timeline, body.details #simple, body.simple #briefBtn { display:none; }
   body.simple .approval { padding:18px; }
   body.simple .approval > div:first-child { font-size:17px; }
   body.simple .approval button { padding:12px 18px; font-size:16px; }
@@ -97,6 +97,7 @@
     <label><input type="checkbox" id="voice" checked> speak replies</label>
     <label><input type="checkbox" id="offline"> go offline (test handoff)</label>
     <button type="button" id="pairBtn">Pair a device</button>
+    <button type="button" id="briefBtn" title="Runs the scheduled morning briefing now (demo)">Run briefing now</button>
   </div>
 </form>
 <script>
@@ -136,6 +137,7 @@ function line(e) {
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
     browser_frame: () => `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}`,
     usage: () => esc(d.message), // R13
+    proactive: () => `${d.job === "evening" ? "Evening card" : "Morning briefing"} · ${esc(d.status)}${d.by ? ` <span class="t">${esc(d.by)}</span>` : ""}${d.spoken_on ? ` <span class="t">spoken on ${esc(d.spoken_on)}</span>` : ""}${d.shown_on ? ` <span class="t">card on ${esc(d.shown_on)}</span>` : ""}`,
     decision: () => `${d.by === "rules" ? "Rules" : "Muse"} decided: ${esc((d.apps ?? []).join(", ") || "no apps")} · ${esc(d.risk_tier)}${d.reply_surface ? ` · reply on ${esc(d.reply_surface)}` : ""}${d.needs_vision ? " · look first" : ""} <span class=\"t\">${esc(d.ms)} ms</span>`,
   }[e.kind] || (() => esc(JSON.stringify(d)));
   if (e.kind === "usage") spendBanner(d); // R13
@@ -217,7 +219,8 @@ function connect() {
     if (m.type === "welcome") { m.surfaces.forEach((s) => online.set(s.id, s)); chips(); if (m.heartbeat_ms) beatEvery(m.heartbeat_ms); }
     if (m.type === "event") line(m.event);
     if (m.type === "speak") say(m);
-    if (m.type === "show_card") $("cards").insertAdjacentHTML("afterbegin", `<div class="card"><b>${esc(m.title)}</b><div>${esc(m.body)}</div></div>`);
+    // A card's one action is approval-free: tapping it says its command, like typing it.
+    if (m.type === "show_card") $("cards").insertAdjacentHTML("afterbegin", `<div class="card"><b>${esc(m.title)}</b><div>${esc(m.body)}</div>${m.action ? `<div class="row"><button class="gold" data-cmd="${esc(m.action.command)}">${esc(m.action.label)}</button></div>` : ""}</div>`);
     if (m.type === "approval_request") {
       if (navigator.vibrate) navigator.vibrate(60);
       $("pending").insertAdjacentHTML("afterbegin", `<div class="approval" id="a-${m.request_id}"><div>${esc(m.summary)}</div>
@@ -252,6 +255,15 @@ document.addEventListener("click", async (ev) => {
   if (ev.target.dataset?.view) return setView(ev.target.dataset.view);
   const revoke = ev.target.dataset?.revoke;
   if (revoke) { await fetch(`/v1/devices/${encodeURIComponent(revoke)}`, { method: "DELETE", headers: auth }); devices(); return; }
+  if (ev.target.id === "briefBtn") {
+    ev.target.disabled = true;
+    const r = await fetch(`/v1/proactive/briefing`, { method: "POST", headers: auth });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); $("cards").insertAdjacentHTML("afterbegin", `<div class="card"><b>Briefing</b><div>${esc(j.error ?? r.status)}</div></div>`); }
+    setTimeout(() => { ev.target.disabled = false; }, 3000);
+    return;
+  }
+  const cmd = ev.target.dataset?.cmd;
+  if (cmd) { ws.send(JSON.stringify({ type: "utterance", text: cmd })); ev.target.closest(".card")?.remove(); return; }
   const a = ev.target.dataset?.a, undo = ev.target.dataset?.undo;
   if (a) { ws.send(JSON.stringify({ type: "approval_response", request_id: a, approved: ev.target.dataset.v === "1" })); $(`a-${a}`)?.remove(); }
   if (undo) { ev.target.disabled = true; await fetch(`/v1/receipts/${undo}/undo`, { method: "POST", headers: auth }); }

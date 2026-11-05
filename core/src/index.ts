@@ -32,6 +32,8 @@ import { loadMcpConfig, McpBridge } from "./connectors/mcp.ts";
 import { createRouter } from "./router/router.ts";
 import { SpendGuard } from "./obs/spend.ts"; // R13
 import { listen, tlsEnabled } from "./tls.ts";
+import { createPlanner } from "./proactive/planner.ts";
+import { createProactive } from "./proactive/day.ts";
 
 // R13: AUREN_SANDBOX=true serves only the public sandbox (core/src/sandbox/) until it's stopped, then
 // exits. Nothing below runs: no master key, no auren.db, no connectors, devices, camera or driver.
@@ -88,6 +90,8 @@ const spark = config.basetenApiKey
   ? sparkOpen({ client: new OpenAI({ baseURL: config.basetenBaseUrl, apiKey: config.basetenApiKey, maxRetries: 1 }), model: config.memoryModel, ledger, ops })
   : undefined;
 tools.add(createMemory({ log, spark, timeZone: config.timeZone, ops }), createReceipts({ log, tools, timeZone: config.timeZone }));
+// The proactive day: planner.plan_tomorrow adds focus blocks and task slots, each with Undo, and invites nobody.
+tools.add(createPlanner({ log, tools, timeZone: config.timeZone }));
 // R13: ops too, for one `usage` line per model call. The spend guard watches the ledger's token total.
 const muse = ledgerMuse(new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing" }), ledger, ops);
 const spend = new SpendGuard(ledger, { alarm: config.tokenAlarm, limit: config.tokenLimit, ops, onCross: (e) => log.append(SESSION, "usage", { ...e }) });
@@ -141,8 +145,7 @@ const cards = cardStore
   : undefined;
 const r9 = { router, prefetchFrame: (purpose: string) => void frames.prefetch(purpose) };
 
-const core = createServer(
-  {
+const agentDeps = {
     muse,
     tools,
     surfaces,
@@ -155,7 +158,13 @@ const core = createServer(
     ops,
     ...r9,
     cards,
-  },
+  };
+// The morning briefing (AUREN_BRIEFING_AT) and the evening "plan tomorrow" card (AUREN_EVENING_AT).
+const proactive = createProactive(agentDeps, { briefingAt: config.briefingAt, eveningAt: config.eveningAt, dbPath: config.dbPath, session: SESSION, ready: Boolean(config.museApiKey) });
+proactive.scheduler.start();
+
+const core = createServer(
+  agentDeps,
   { token: config.token, museReady: Boolean(config.museApiKey), google,
     ledger,
     devices,
@@ -168,6 +177,7 @@ const core = createServer(
     driver,
     mcp, // R11: MCP bridge
     spend, // R13
+    proactive,
   },
 );
 
@@ -192,6 +202,7 @@ const server = listen({ fetch: core.app.fetch, port: config.port, hostname: conf
   const googleState = !google ? "demo" : g?.connected ? `Google (${g.email ?? "connected"})` : `Google, not connected: open ${local}/connect/google`;
   console.log(`  apps: calendar and gmail ${googleState} · slack ${config.slackBotToken ? "live" : "demo"}`);
   console.log(`  time zone: ${config.timeZone}`);
+  console.log(`  proactive: briefing ${config.briefingAt ? `at ${config.briefingAt}` : "off"} · evening card ${config.eveningAt ? `at ${config.eveningAt}` : "off"}`);
   if (personaCounts) console.log(`  persona: Maya Okafor (fictional) · ${personaCounts.threads} threads · ${personaCounts.events} events · ${personaCounts.channels} channels · journal + tasks over MCP`); // persona
   console.log("  browser: start the computer-use driver with `cd driver && npm start`");
   // R11: MCP bridge

@@ -1,0 +1,12 @@
+{
+  "case": "proactive-morning-briefing",
+  "note": "AUREN_BRIEFING_AT fires this as a system command (src/proactive/day.ts). Reads only: the schedule and new email. Nothing is sent, so nothing asks for a tap.",
+  "commands": [
+    {
+      "turns": [
+        { "calls": [ { "tool": "calendar.list_events", "args": { "date": "{{today}}" } }, { "tool": "gmail.search_threads", "args": { "query": "newer_than:1d" } } ] },
+        { "say": "Office hours at 3 and your thesis sync at 5:30; Prof. Lee is waiting on HW3 grades." }
+      ]
+    }
+  ]
+}

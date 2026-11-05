@@ -55,6 +55,8 @@ export interface ServerOptions {
   mcp?: { status(): McpServerStatus[] };
   /** R13: the token alarm and limit. At the limit, new commands are refused; approvals still resolve. */
   spend?: SpendGuard;
+  /** The proactive day: "Run briefing now" in the console, and the schedule's status. */
+  proactive?: { briefingNow(): Promise<{ reply: string }>; status(): Record<string, unknown> };
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -213,6 +215,18 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
     }
     const ok = surfaces.answer(id, approved, typeof body.surface_id === "string" ? body.surface_id : undefined, signedBy);
     return c.json({ ok }, ok ? 200 : 404);
+  });
+  // The proactive day. The button runs the same system command the schedule does; ?wait=1 returns the reply.
+  app.get("/v1/proactive", (c) => c.json(opts.proactive?.status() ?? { briefing_at: null, evening_at: null, last: {} }));
+  app.post("/v1/proactive/briefing", async (c) => {
+    if (!opts.proactive) return c.json({ error: "proactive day not configured" }, 503);
+    if (!opts.museReady) return c.json({ error: "MODEL_API_KEY is not set. Add it to .env and restart Core." }, 503);
+    const refused = opts.spend?.refusal();
+    if (refused) return c.json({ error: refused }, 429);
+    const run = opts.proactive.briefingNow();
+    if (c.req.query("wait") === "1") return c.json(await run);
+    void run.catch(() => {});
+    return c.json({ accepted: true }, 202);
   });
   app.post("/v1/receipts/:id/undo", async (c) => c.json(await undoReceipt(deps, Number(c.req.param("id")), SESSION)));
 

@@ -14,7 +14,7 @@ const Case = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   golden_path: z.enum(["GP1", "GP2", "GP3", "GP4", "GP5"]).nullable(),
-  category: z.enum(["fan-out", "tier-gate", "injection", "handoff", "vision", "stop-before-commit", "undo", "recall", "platform"]),
+  category: z.enum(["fan-out", "tier-gate", "injection", "handoff", "vision", "stop-before-commit", "undo", "recall", "platform", "proactive"]),
   surface: SurfaceKind,
   online: z.array(SurfaceKind).min(1),
   commands: z.array(z.string().min(1)).min(1),
