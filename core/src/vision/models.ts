@@ -4,7 +4,7 @@
 // Each is an interface, so tests use fakes and no key is needed.
 import { z } from "zod";
 import type { MuseLike } from "../agent/loop.ts";
-import type { Box } from "./jpeg.ts";
+import { type Box, jpegSize } from "./jpeg.ts";
 
 const text = z
   .string()
@@ -73,7 +73,8 @@ export function sparkReader(muse: MuseLike, model = "muse-spark-1.3"): PosterRea
   };
 }
 
-// SAM 3.1 answers in text, one token per object: <|box;x1=…;y1=…;x2=…;y2=…|>, in frame pixels.
+// SAM 3.1 answers in text, per object: <0f>0<|box;x1=…;y1=…;x2=…;y2=…;w=…;h=…|><|mask;x=…;y=…;data=…|>,
+// box in frame pixels (w/h echo the frame size). Checked live on poster.jpg, Nov 4 2026.
 const BOX = /<\|box;x1=(\d+(?:\.\d+)?);y1=(\d+(?:\.\d+)?);x2=(\d+(?:\.\d+)?);y2=(\d+(?:\.\d+)?)[^|]*\|>/g;
 
 export function parseBoxes(reply: string): Box[] {
@@ -88,18 +89,22 @@ export function pickBox(boxes: Box[], point: { x: number; y: number }): Box | nu
 }
 
 /**
- * A positive point prompt. The syntax mirrors SAM's box tokens; Meta hasn't
- * published the point form for the Responses API yet, so it's checked on the
- * first live call and can be swapped here without touching the tool.
+ * A point prompt for object 0 on frame 0. Found live: geometric prompts need a
+ * `<0f>` frame header and an object id, and a point must carry exactly x, y, w, h
+ * (w/h = the frame size). A bare noun ("poster") returns an empty reply.
  */
-export const pointPrompt = (p: { x: number; y: number }) => `<|point;x=${Math.round(p.x)};y=${Math.round(p.y)};label=1|>`;
+export const pointPrompt = (p: { x: number; y: number }, size: { width: number; height: number }) =>
+  `<0f>0<|point;x=${Math.round(p.x)};y=${Math.round(p.y)};w=${size.width};h=${size.height}|>`;
 
-export function samSegmenter(muse: MuseLike, opts: { model?: string; prompt?: (p: { x: number; y: number }) => string } = {}): Segmenter {
+type PromptFn = (p: { x: number; y: number }, size: { width: number; height: number }) => string;
+
+export function samSegmenter(muse: MuseLike, opts: { model?: string; prompt?: PromptFn } = {}): Segmenter {
   return {
     async segment(jpeg, point) {
+      const size = jpegSize(jpeg) ?? { width: Math.round(point.x * 2), height: Math.round(point.y * 2) };
       const resp = await muse.responses.create({
         model: opts.model ?? "sam-3.1",
-        input: [{ role: "user", content: [{ type: "input_text", text: (opts.prompt ?? pointPrompt)(point) }, { type: "input_image", image_url: dataUrl(jpeg) }] }],
+        input: [{ role: "user", content: [{ type: "input_text", text: (opts.prompt ?? pointPrompt)(point, size) }, { type: "input_image", image_url: dataUrl(jpeg) }] }],
         metadata: { mask_encoding: "one_bit", include_confidence: "true" },
       });
       return pickBox(parseBoxes(outputText(resp)), point);
