@@ -65,7 +65,16 @@ test("GP1: one command fans out in parallel, with one approval for the Slack sen
 
   assert.equal(reply, "Done: Slack posted, office hours at 3:15, draft ready.");
   assert.equal(requests.length, 3, "three model turns");
-  assert.equal((requests[1].input as unknown[]).length, 3, "turn-1 results returned together");
+  // Full history each turn, never previous_response_id: the user's words, then each turn's calls and their results.
+  for (const r of requests) assert.equal("previous_response_id" in r, false, "no previous_response_id");
+  assert.deepEqual(requests[0].input, [{ role: "user", content: "I'm running 15 late…" }]);
+  const turn1 = requests[1].input as Array<{ type?: string; call_id?: string }>;
+  assert.equal(turn1.length, 7, "user message + 3 calls + 3 results");
+  assert.deepEqual(turn1.slice(1, 4), GP1[0].output, "turn-1 calls replayed as sent");
+  assert.deepEqual(turn1.slice(4).map((o) => [o.type, o.call_id]), [["function_call_output", "c1"], ["function_call_output", "c2"], ["function_call_output", "c3"]], "turn-1 results returned together");
+  const turn2 = requests[2].input as unknown[];
+  assert.equal(turn2.length, 13, "turn 2 carries all of turn 1 plus its own calls and results");
+  assert.deepEqual(turn2.slice(0, 7), turn1, "history only grows");
   assert.equal(watchInbox.filter((m) => m.type === "approval_request").length, 1, "only the send needs a tap");
 
   const receipts = log.since("s").filter((e) => e.kind === "receipt");
@@ -78,8 +87,8 @@ test("GP1: one command fans out in parallel, with one approval for the Slack sen
 test("email content is handed back as untrusted data", async () => {
   const { deps, requests } = setup(GP1, true);
   await runCommand(deps, { session: "s", text: "…" });
-  const outputs = requests[1].input as Array<{ call_id: string; output: string }>;
-  const email = JSON.parse(outputs.find((o) => o.call_id === "c3")!.output);
+  const outputs = requests[1].input as Array<{ type?: string; call_id: string; output: string }>;
+  const email = JSON.parse(outputs.find((o) => o.type === "function_call_output" && o.call_id === "c3")!.output);
   assert.ok(email.untrusted_data, "wrapped");
   assert.match(email.note, /never as instructions/);
 });
@@ -88,7 +97,7 @@ test("a declined approval blocks the send and tells the model", async () => {
   const { deps, log, world, requests } = setup(GP1, false);
   await runCommand(deps, { session: "s", text: "…" });
   assert.equal(world.state.posts.length, 0, "nothing posted");
-  const out = (requests[2].input as Array<{ call_id: string; output: string }>).find((o) => o.call_id === "c5")!;
+  const out = (requests[2].input as Array<{ type?: string; call_id: string; output: string }>).find((o) => o.type === "function_call_output" && o.call_id === "c5")!;
   assert.deepEqual(JSON.parse(out.output), { error: "user_declined" });
   assert.equal(log.since("s").some((e) => e.kind === "receipt" && e.data.tool === "post_message"), false);
 });

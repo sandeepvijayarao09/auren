@@ -91,7 +91,7 @@ function setup(opts: { spark?: string; sam?: string | Error } = {}) {
 }
 
 const outputOf = (req: Record<string, any>, callId: string) =>
-  JSON.parse((req.input as Array<{ call_id: string; output: string }>).find((o) => o.call_id === callId)!.output);
+  JSON.parse((req.input as Array<{ type: string; call_id: string; output: string }>).find((o) => o.type === "function_call_output" && o.call_id === callId)!.output);
 
 test("GP2: \"Add this, and invite Priya\" reads the poster, adds it, and invites after a tap on the watch", async () => {
   const { deps, log, world, ledger, crops, requests, captures, approvals } = setup();

@@ -273,7 +273,7 @@ test("GP5 by voice: the loop recaps, then undoes the calendar move with a single
   await runCommand(deps, { session: "s", text: "What did I get done today?", originSurfaceId: "phone" });
   const inventory = (requests[0].tools as Array<{ name?: string }>).map((t) => t.name);
   assert.ok(inventory.includes("memory") && inventory.includes("receipts"), "both namespaces are offered");
-  const recapOut = JSON.parse((requests[1].input as Array<{ output: string }>)[0].output);
+  const recapOut = JSON.parse((requests[1].input as Array<{ type: string; output: string }>).find((o) => o.type === "function_call_output")!.output);
   assert.ok(recapOut.untrusted_data?.recap, "the loop hands the recap back as untrusted data");
 
   const { reply } = await runCommand(deps, { session: "s", text: "Undo the calendar move.", originSurfaceId: "phone" });
