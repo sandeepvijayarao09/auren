@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { config } from "./config.ts";
 import { EventLog } from "./eventlog.ts";
 import { createServer, SESSION } from "./server.ts";
+import { Preferences } from "./memory/preferences.ts";
 import { SurfaceRegistry } from "./surfaces.ts";
 import { GoogleAuth } from "./connectors/google/auth.ts";
 import { createGoogleCalendar, toLocal } from "./connectors/google/calendar.ts";
@@ -45,6 +46,7 @@ if (config.sandbox) {
 // One master key (sealed to the Secure Enclave on a Mac), one derived key per job.
 const master = masterKey({ secret: config.secret || undefined, dbPath: config.dbPath });
 const log = new EventLog(config.dbPath, derive(master.key, "events"));
+const preferences = new Preferences({ path: config.dbPath, key: derive(master.key, "preferences"), log, session: SESSION });
 const store = new SecretStore(config.dbPath, derive(master.key, "tokens"));
 const ledger = new Ledger(config.dbPath);
 const devices = new DeviceRegistry(config.dbPath);
@@ -158,6 +160,7 @@ const agentDeps = {
     ops,
     ...r9,
     cards,
+    preferences,
   };
 // The morning briefing (AUREN_BRIEFING_AT) and the evening "plan tomorrow" card (AUREN_EVENING_AT).
 const proactive = createProactive(agentDeps, { briefingAt: config.briefingAt, eveningAt: config.eveningAt, dbPath: config.dbPath, session: SESSION, ready: Boolean(config.museApiKey) });
@@ -178,6 +181,7 @@ const core = createServer(
     mcp, // R11: MCP bridge
     spend, // R13
     proactive,
+    preferences,
   },
 );
 

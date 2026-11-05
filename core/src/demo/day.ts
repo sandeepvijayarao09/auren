@@ -20,6 +20,7 @@ import { SurfaceRegistry } from "../surfaces.ts";
 import { ToolRegistry } from "../tools/registry.ts";
 import { MAYA_DAY } from "./persona/maya-day.ts";
 import { mayaWorld } from "./persona/maya.ts";
+import { Preferences } from "../memory/preferences.ts";
 
 export interface Moment {
   at: string;
@@ -61,6 +62,8 @@ async function main() {
   const log = new EventLog();
   const world = persona === "maya" ? await mayaWorld({ log, session }) : await evalWorld({ log, session });
   const tools = new ToolRegistry().add(...world.namespaces);
+  // Auren Preferences learns from the day's receipts as they land, and Wonder sees what it learned.
+  const prefs = new Preferences({ log, session });
   const tokens = { input: 0, output: 0 };
   const raw = new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey });
   const muse: MuseLike = {
@@ -100,6 +103,7 @@ async function main() {
     maxTurns: config.maxTurns,
     approvalTimeoutMs: 20_000,
     router: createRouter({ muse, sparkModel: config.decisionModel, namespaces: () => tools.names() }),
+    preferences: prefs,
   };
 
   const out: string[] = [];
@@ -117,6 +121,32 @@ async function main() {
     steps.push({ moment: m.at, device: m.device, text: m.text, ms, events: events.map((e) => ({ kind: e.kind, data: e.data })) });
     out.push(section(m, events, reply, ms));
     console.log(`  → ${reply}  (${(ms / 1000).toFixed(1)} s)`);
+  }
+  // Personalization check (Maya): the same request without and with what Auren learned today.
+  // The run without preferences is declined at the tap, so it teaches nothing.
+  if (persona === "maya") {
+    const learned = prefs.list();
+    const prompt = prefs.promptBlock();
+    console.log("\nLearned today:");
+    for (const p of learned) console.log(`  ${p.label}: ${p.value}${p.detail ? ` (${p.detail})` : ""} · ${Math.round(p.confidence * 100)}% · ${p.evidence.count}/${p.evidence.total} · receipts ${p.evidence.latest.join(", ")}`);
+    const text = "Tell the team I'm running 10 minutes late.";
+    const runs: unknown[] = [];
+    for (const withPrefs of [false, true]) {
+      moment = { at: "9:00 AM (next day)", device: "watch", scene: withPrefs ? "With preferences" : "Without preferences", text, ...(withPrefs ? {} : { decline: /./ }) };
+      const before = log.since(session, 0, 100_000).at(-1)?.id ?? 0;
+      const t0 = performance.now();
+      const { reply } = await runCommand({ ...deps, preferences: withPrefs ? prefs : undefined }, { session, text, originSurfaceId: "watch" });
+      const ms = Math.round(performance.now() - t0);
+      await new Promise((r) => setTimeout(r, 300));
+      const events = log.since(session, before, 100_000);
+      const calls = events.filter((e) => e.kind === "tool_call").map((e) => `${e.data.namespace}.${e.data.tool}`);
+      const asked = events.filter((e) => e.kind === "approval" && e.data.status === "requested").map((e) => String(e.data.summary));
+      const posts = events.filter((e) => e.kind === "tool_call" && e.data.tool === "post_message").map((e) => (e.data.args as Record<string, unknown>));
+      runs.push({ with_preferences: withPrefs, calls, asked, posts, reply, ms });
+      console.log(`  ${withPrefs ? "with" : "without"} preferences: ${calls.join(" → ")} · tap: ${asked.join(" | ") || "none"} · ${(ms / 1000).toFixed(1)} s`);
+    }
+    mkdirSync(new URL("../../../eval/out/", import.meta.url), { recursive: true });
+    writeFileSync(new URL("../../../eval/out/personalization.json", import.meta.url), JSON.stringify({ learned, prompt, runs }, null, 2));
   }
   clearInterval(beat);
   await world.close();

@@ -13,7 +13,7 @@ import { loadKey } from "../connectors/secrets.ts";
 export type KeySource = "secure-enclave" | "env" | "file" | "memory";
 
 /** Every derived key, one per job. Learning one tells you nothing about the others. */
-export type Purpose = "tokens" | "events" | "devices" | "crops" | "cards";
+export type Purpose = "tokens" | "events" | "devices" | "crops" | "cards" | "preferences";
 
 const DEFAULT_KEYD = fileURLToPath(new URL("../../../keyd/.build/release/auren-keyd", import.meta.url));
 

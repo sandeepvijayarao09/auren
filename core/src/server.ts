@@ -26,6 +26,7 @@ import type { McpServerStatus } from "./connectors/mcp.ts";
 import { acceptClip, MAX_CLIP_BYTES, ReplayCache } from "./voice/clip.ts";
 import { examplesJsonl } from "./router/examples.ts";
 import type { SpendGuard } from "./obs/spend.ts"; // R13
+import { PROMPT_THRESHOLD, type Preferences } from "./memory/preferences.ts";
 
 export const SESSION = "default"; // v0: one person, one live session
 
@@ -57,6 +58,8 @@ export interface ServerOptions {
   spend?: SpendGuard;
   /** The proactive day: "Run briefing now" in the console, and the schedule's status. */
   proactive?: { briefingNow(): Promise<{ reply: string }>; status(): Record<string, unknown> };
+  /** What Auren has learned from the user's receipts. Shown and forgotten through /v1/preferences. */
+  preferences?: Preferences;
 }
 
 const LOOPBACK = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
@@ -185,6 +188,16 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
       mcp: opts.mcp?.status() ?? [],
     }),
   );
+  // What Auren knows: each preference with its evidence, and what Wonder actually sees.
+  app.get("/v1/preferences", (c) =>
+    c.json({ preferences: opts.preferences?.list() ?? [], threshold: PROMPT_THRESHOLD, prompt: opts.preferences?.promptBlock() ?? "" }),
+  );
+  app.delete("/v1/preferences/:key", (c) => {
+    const ok = opts.preferences?.forget(c.req.param("key")) ?? false;
+    return c.json({ ok }, ok ? 200 : 404);
+  });
+  // Forget everything Auren has learned. Receipts already in the log aren't read again.
+  app.delete("/v1/preferences", (c) => c.json({ ok: true, forgotten: opts.preferences?.forgetAll() ?? 0 }));
   app.get("/v1/events", (c) => c.json({ events: log.since(SESSION, Number(c.req.query("since") ?? 0)) }));
   app.post("/v1/command", async (c) => {
     const body = await c.req.json().catch(() => ({}));

@@ -178,7 +178,8 @@ export function createDemoWorld() {
         async run({ thread_id, body }: { thread_id: string; body: string }) {
           const d = { id: id("dr"), thread_id, body };
           state.drafts.set(d.id, d);
-          return { ok: true, draft_id: d.id };
+          const to = state.threads.find((t) => t.id === thread_id)?.from;
+          return { ok: true, draft_id: d.id, ...(to ? { to } : {}) };
         },
         summarize: (a: { body: string }) => `Drafted: "${a.body.slice(0, 60)}"`,
         undo: (_a, r: { draft_id: string }) => ({ namespace: "gmail", tool: "delete_draft", args: { draft_id: r.draft_id } }),
