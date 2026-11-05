@@ -22,7 +22,7 @@ Muse is the future Meta is building. For it to arrive, Muse has to be a natural 
 | **Muse Spark**, vision | Reads the poster in a glasses or phone frame | **Partly.** Read a real poster photo live (title, time, room, 2.5 s). The eval and the day use a fixture poster reader (`core/src/eval/world.ts`) |
 | **SAM 3.1** (point prompt) | Outlines "this" in the frame for the receipt crop | **Yes**, on a real poster photo: a point prompt after a frame header (`<0f>0<\|point;x;y;w;h\|>`) returned the poster's box in 0.86 s. The eval and the day still use a fixture segmenter |
 | **Muse Wonder computer use** | Drives Chromium on the Mac; the commit guard pauses before any confirm click | **No.** The eval and the day use a scripted computer-use model and a fake driver; the guard itself is tested on real Chromium |
-| **Muse Voice Transcribe** (realtime, keyword biasing) | Ears on every surface: iPhone hold-to-talk, signed watch clips | **No.** Built and tested against a fake transcriber |
+| **Muse Voice Transcribe** (realtime, keyword biasing) | Ears on every surface: iPhone hold-to-talk, signed watch clips | **Yes.** A recorded GP1 command transcribed correctly, final 161 ms after the audio ended; posted as a watch clip, Core ran it |
 | **Muse Spark Open** (Baseten, `meta-models/muse-spark-open-1026`) | Auren Memory: recap and recall over receipts | **No.** `BASETEN_API_KEY` was not set, so the local fallback answered in the eval and the day |
 | **Muse Glimmer** (LoRA distillation) | A smaller decision model to replace Spark at the fast lane | **No.** Code in `router/`, not trained (no training credits) |
 
@@ -92,7 +92,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
 
 ## Not verified yet
-- **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, and Spark reading a real poster photo. **What didn't:** SAM regions, live computer-use clicks, live ASR, and real-device runs (watch, iPhone, glasses).
+- **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, Spark reading a real poster photo, SAM 3.1 outlining it, and Muse Voice Transcribe. **What didn't:** live computer-use clicks and real-device runs (watch, iPhone, glasses).
 - The judges' sandbox runs live Muse when a key is set, and replays the golden paths otherwise.
 - No run on a real Apple Watch or iPhone. Both apps build for the Simulator only.
 - The Ray-Ban Meta glasses toolkit isn't available here, so the glasses camera is a stub; the iPhone camera stands in.
