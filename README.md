@@ -11,7 +11,7 @@ Auren is one agent built on Muse, and one live session across your **Apple Watch
 **Why "Auren".** From *aura*, the field around a person, and *aurum*, gold: the golden layer around you, which every app and device speaks through.
 
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 to Nov 4, 2026) · Indie track · Theme: *Build for Your World*
-> Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Voice Transcribe · SAM 3.1** (a Muse Glimmer router is written, not yet trained). Every use is listed in [MUSE.md](MUSE.md).
+> Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Voice Transcribe · SAM 3.1** (a smaller Muse Glimmer decision model is written, not yet trained). Every use is listed in [MUSE.md](MUSE.md).
 
 ## The idea
 **Muse is the future Meta is building toward.** For that future to arrive, Muse has to live in everyday life as a natural extension of you, not as one more app you open.
@@ -22,9 +22,21 @@ Auren is one agent built on Muse, and one live session across your **Apple Watch
 - **More personal with every message.** Every email, message and action in or out becomes a receipt in your encrypted log, and Auren Memory recaps and recalls from it ("what did I promise Prof. Lee?"). That learning stays on your Mac; your mail never trains anyone's model.
 - **End to end, from one command.** Say it once on the glasses, or tap once on the watch, and the whole task runs across apps and follows you between devices. If a device drops, its pending approval moves to the next best one. Nothing is sent without your tap.
 
-**iCloud-level security, with no Auren cloud.** Core's master key is sealed to your Mac's Secure Enclave. Your iPhone and Apple Watch pair once, and every tap they approve is signed by their own Secure Enclave. The log is encrypted and hash-chained, so any edit shows. Every outbound call is recorded. Details in [SECURITY.md](SECURITY.md).
+**Muse decides, Core enforces.** As a command arrives, **Muse Spark** decides which apps it needs, how risky it is (read, write or send), which device should answer, and whether to look through the camera first. It gets 2.5 s; if it doesn't answer in time, simple rules decide. Each decision lands on the timeline ("Muse decided: slack, calendar, gmail · send · reply on watch"). Decisions are advisory: they preload tools, start the camera early and shape the spoken ack, and never change a tool's tier.
 
-**Core enforces safety, not the model.** Reads run on their own. Writes run on their own, with a receipt and an **Undo**. Sends always wait for a **tap**; a spoken yes never sends. Email, chat and web content reaches the model only as untrusted data. Computer use stops before any commit and never solves a CAPTCHA.
+## Your data stays yours: iCloud-level security
+Auren follows the model of Apple's Advanced Data Protection, adapted to an agent (the comparison is ours, not Apple's). **There is no Auren cloud.** Core runs on your Mac.
+
+- **Keys on your hardware.** Core's master key is sealed to your Mac's Secure Enclave by `auren-keyd`; each job gets its own derived key.
+- **Encrypted, tamper-evident log.** Every event is AES-256-GCM encrypted and HMAC hash-chained, so an edit or deletion shows at `/v1/audit/verify`. Receipt crops and connector tokens are encrypted at rest too.
+- **Trusted devices sign.** iPhone and Apple Watch pair once, then sign every approval, camera frame and voice clip with their own Secure Enclave keys.
+- **Every crossing on the record.** The outbound ledger lists each call that leaves the Mac (to Meta, Google, Slack, MCP servers): service, size, time, never contents. The ops log is redacted: no tokens, keys or message bodies.
+- **You approve what goes out.** Reads run on their own. Writes run on their own, with a receipt and an **Undo**. Sends always wait for a **tap**; a spoken yes never sends. Computer use stops before any commit and never solves a CAPTCHA.
+- **Outside content is data, not orders.** Email, chat, calendar and web content reaches the model only as untrusted data. MCP servers are untrusted by default: every tool asks for a tap.
+- **The camera looks only for "this".** It runs only when a command needs it, and people are blurred on the iPhone before a frame leaves it.
+- **The public sandbox holds nothing real.** No log, keys, connectors or devices; each visitor gets a fictional world.
+
+**The limits, plainly.** Commands go to Meta's Model API to be processed. While Auren runs on free hackathon credits, Meta's billing page says content may be used for product improvement; check Meta's terms. Learning and personalization (Auren Memory over your receipts) stay on your Mac. Full details: [SECURITY.md](SECURITY.md).
 
 ## The Golden Path
 Five commands are the whole product. Each one has an eval case, and [docs/golden-paths.md](docs/golden-paths.md) has the pass criteria.
@@ -79,7 +91,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
 | Glasses (Wearables toolkit) | ⏳ the toolkit isn't available here, so the glasses camera is a stub; the iPhone's camera answers GP2 today |
 | Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models; live run needs the API key and a real iPhone |
-| Auren Router: reads a command and the devices around you, preloads the right tools, starts the camera early for "this" and shapes the ack; advisory only, never changes a tier ([router](router/README.md)) | ✅ routing with rules, or Muse Spark with a key · Glimmer fine-tune: data, training, serving and eval code ready, ⏳ needs Modal credits |
+| Muse decisions: as each command arrives, Muse Spark decides the apps, risk, reply device and camera for each command (2.5 s budget), logged as a `decision` event on the timeline; advisory only, never changes a tier ([router](router/README.md)) | ✅ Spark decides live, rules as the instant fallback · Glimmer distillation code ready, ⏳ not trained (no training credits) |
 | MCP bridge: any MCP server in `mcp.json` becomes a Muse tool namespace; every tool asks for a tap unless you trust that server's read-only hints; never a write ([setup](docs/mcp-setup.md)) | ✅ built and tested with a demo Journal server; live Muse run pending |
 | Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses; isolated visitors and rate limits; live Muse with a key, golden-path replays without one | ✅ built and tested; not deployed |
 | Token usage and spend limits: every Muse call's tokens in the outbound ledger and `/v1/trust`; `AUREN_TOKEN_ALARM` warns, `AUREN_TOKEN_LIMIT` refuses new commands | ✅ built and tested |
@@ -107,7 +119,7 @@ core/            Auren Core: TypeScript on Node, Hono, ws, zod, node:sqlite, Ope
 apps/web/        the console surface, served by Core
 apps/apple/      iPhone + Apple Watch apps (SwiftUI, XcodeGen) and AurenKit, the shared Swift package
 driver/          computer use on the Mac: the Playwright driver and its commit guard
-router/          Auren Router: schema, rubric, seed data, and the Glimmer data, training, serving and eval code (training needs Modal)
+router/          Muse decisions: schema, rubric, seed data, and the Glimmer distillation code (data, training, serving, eval; not yet trained)
 eval/            golden-path and safety cases, their scripts, and the latest `npm run eval` results
 spec/            Surface Protocol v0 and the 20-line example surface
 keyd/            auren-keyd: seals Core's master key to the Mac's Secure Enclave (Swift)

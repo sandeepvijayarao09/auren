@@ -32,7 +32,7 @@ Every part is marked with its status, so you can see what exists today and what 
 13. [Vision: "add this" (GP2)](#13-vision-add-this-gp2)
 14. [Computer use (GP4)](#14-computer-use-gp4)
 15. [Auren Memory and undo (GP5)](#15-auren-memory-and-undo-gp5)
-16. [Auren Router (Glimmer)](#16-auren-router-glimmer)
+16. [Muse decisions](#16-muse-decisions)
 17. [Data model](#17-data-model)
 18. [API reference](#18-api-reference)
 19. [Deployment](#19-deployment)
@@ -91,7 +91,7 @@ A **surface** is any device you talk to Auren through. **Core** is the single br
 | **Muse Voice Transcribe** | Ears for every surface (realtime, with keyword biasing) |
 | **SAM 3.1** | Finds the exact object you mean by "this" |
 | **Muse Spark Open** | Auren Memory: recall and the day's recap |
-| **Muse Glimmer** | Auren Router: a fine-tuned fast classifier |
+| **Muse Glimmer** | Future work: a smaller distilled decision model; code ready, not trained (no training credits) |
 
 ## 2. Five design rules
 1. **One session, one log.** Everything is an append to one event log: every utterance, tool call, approval, receipt and reply. Surfaces are just views of that log. Handoff, the phone timeline, undo, Auren Memory and the eval all read the same record.
@@ -112,7 +112,7 @@ A **surface** is any device you talk to Auren through. **Core** is the single br
 | **L1 Protocol** | [Surface Protocol v0](spec/surface-protocol.md): manifest, heartbeat, utterance, approvals, with an HTTPS fallback. Voice, frame and driver channels are added in v0.1 | WebSocket / HTTPS |
 | **L2 Core** | Event log, surface registry and device picker, approval broker, agent loop, tool registry, guard, voice gateway, vision, computer-use runner, Auren Memory | Node 24+ (on the Mac for the demo; any Node host) |
 | **L3 Connectors** | Google Calendar, Gmail, Slack, the computer-use driver, and the demo world with record/replay | Core, plus the Mac for the driver |
-| **L4 Models** | Meta Model API (`api.meta.ai/v1`), Baseten (Spark Open), Modal (Auren Router on Glimmer) | Cloud |
+| **L4 Models** | Meta Model API (`api.meta.ai/v1`), Baseten (Spark Open), Modal (Glimmer decision model, future work) | Cloud |
 
 ## 4. Inside Auren Core
 
@@ -121,7 +121,7 @@ flowchart TB
   EDGE["Edge · Hono + ws · bearer token<br/>surface · command · approvals · events ✅<br/>voice · frames · driver ✅"]
   subgraph BRAIN["Brain"]
     direction LR
-    FST["Fast lane<br/>Spark ack ✅ · Router ✅"]
+    FST["Fast lane<br/>Spark ack ✅ · Muse decisions ✅"]
     LOOP["Agent loop ✅<br/>Muse Wonder"]
     TRG["Tool registry ✅<br/>namespaces · tool_search"]
     GRD["Guard ✅<br/>tier gate · untrusted wrap · receipts"]
@@ -159,7 +159,7 @@ flowchart TB
 | **Device picker** | Chooses the best online surface for each output (rules in [§11](#11-presence-and-handoff-gp3)). | `speak(text, origin)`, `showCard(title, body)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Approval broker** | Turns a send-tier call into a tap. It routes the request, moves it when a device drops, takes the first answer, and expires the request after 60 s, which counts as a decline. | `requestApproval(summary, tier) → Promise<boolean>`, `answer(id, approved, from)` | [`surfaces.ts`](core/src/surfaces.ts) | ✅ |
 | **Agent loop** | Runs Muse Wonder on the Responses API: parallel tool calls, up to 8 turns, and the tool inventory rebuilt each turn. | `runCommand(deps, {session, text, originSurfaceId})` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ scripted · live run pending a key |
-| **Fast lane** | Speaks an acknowledgement in under 8 words while Wonder plans. Uses Spark at minimal effort and a 2.5 s timeout; the Router is added later. | `fastAck` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ ack · Router ✅ (rules, Spark) · Glimmer ⏳ Modal |
+| **Fast lane** | Muse Spark decides the apps, risk, reply device and camera for the command (2.5 s, rules as fallback), logs a `decision` event, and speaks an acknowledgement in under 8 words while Wonder plans. Advisory only. | `fastAck`, `startHints` | [`agent/loop.ts`](core/src/agent/loop.ts), [`router/router.ts`](core/src/router/router.ts) | ✅ ack · ✅ Muse decisions (Spark, rules) · Glimmer ⏳ not trained |
 | **Tool registry** | Turns apps and devices into Muse tool namespaces. Builds the per-turn inventory, adds `tool_search` when tools are deferred, and resolves calls. | `toResponsesTools(ctx)`, `resolve(name, namespace)` | [`tools/registry.ts`](core/src/tools/registry.ts) | ✅ hosted search · client-executed ⏳ Day 2 |
 | **Guard** | Enforces tiers, writes receipts with undo steps, and wraps external results as untrusted data. | inside `executeCall`, `undoReceipt` | [`agent/loop.ts`](core/src/agent/loop.ts) | ✅ |
 | **Connectors** | App adapters behind stable tool names. Today it's an in-memory demo world with fictional people. | `Namespace` | [`tools/demo-world.ts`](core/src/tools/demo-world.ts) | ✅ demo · Google Calendar, Gmail, Slack ✅ (live runs need your accounts) |
@@ -517,19 +517,21 @@ flowchart LR
 - **Undo** already works through the button ([`undoReceipt`](core/src/agent/loop.ts), tested). The `receipts` namespace makes it work by voice. An undo is itself a receipt, so the log stays honest.
 - **Why open weights here.** Memory is the most personal data Auren holds. Spark Open runs on a deployment you choose, and it's an open model at the centre of the product, not a side demo.
 
-## 16. Auren Router (Glimmer)
+## 16. Muse decisions
 
-*P1 item, gated on Sun Nov 1, 12 PM (G2).*
+**Task.** Input: a command plus device context (which surfaces are online and active). Output, in one fast call: `{apps[], risk_tier, reply_surface, needs_vision}`: which apps, how risky, which device answers, and whether to look first.
 
-**Task.** Input: a command plus device context (which surfaces are online and active). Output, in one fast call: `{apps[], risk_tier, reply_surface, needs_vision}`.
+**Who decides.** **Muse Spark 1.3** decides live, with a 2.5 s budget (`SPARK_BUDGET_MS`). If it doesn't answer in time, or answers off-schema, simple rules decide instantly. Each decision is a `decision` event on the timeline ("Muse decided: slack, calendar, gmail · send · reply on watch"), with its source (`spark` or `rules`).
 
-**How Core uses it.** The router is advisory, and it has a 300 ms budget:
-1. Preload only the predicted namespaces, so Wonder's first prompt is smaller and faster.
+**How Core uses it.** Decisions are advisory:
+1. Preload only the decided namespaces, so Wonder's first prompt is smaller and faster.
 2. If `needs_vision`, start the camera capture **in parallel** with Wonder's first turn.
 3. Shape the spoken acknowledgement.
 4. Hint which surface gets the reply.
 
-The router **never grants or lowers a tier**; the tool spec stays the authority. If the router is slow or down, Spark 1.3 does the same job.
+A decision **never grants or lowers a tier**; the tool spec stays the authority, so a send still waits for a tap.
+
+**Future work: Glimmer.** A smaller distilled decision model, a QLoRA fine-tune of Muse Glimmer, would answer first in 300 ms. Its data, training, serving and eval code is ready in `router/`; it was never trained (no Modal credits).
 
 ```mermaid
 flowchart LR
@@ -641,7 +643,7 @@ flowchart LR
 | No touch surface online for an approval | The request waits, finds the first surface that joins, and expires at 60 s. ✅ |
 | A surface drops while holding an approval | Handoff to the next best surface. ✅ |
 | Glasses SDK fails the G1 gate | Plan B: phone camera for GP2, watch ↔ phone for GP3. |
-| Router slow or down | Spark 1.3 fast lane. |
+| Muse decision slow or down | Rules decide at once after 2.5 s; Wonder plans either way. |
 | Baseten cold or down | The recap falls back to Spark 1.3, and the fallback is logged. |
 | Connector token expired | The tool returns an error, and a re-connect card goes to the phone. |
 | CAPTCHA or login wall during computer use | Stop and hand it to you. Never bypassed. |
@@ -677,7 +679,7 @@ auren/
   apps/web/        console surface ✅
   apps/apple/      project.yml (XcodeGen) · AurenKit (protocol, SurfaceClient, brand) · iOS · Watch ✅ Simulator · glasses via the Wearables toolkit ⏳
   driver/          commit guard + CAPTCHA stop · Playwright driver ✅
-  router/          schema · rubric · seed data · dataset, Modal QLoRA training, vLLM serving and eval code ✅ · training run ⏳ Modal
+  router/          schema · rubric · seed data · dataset, Modal QLoRA training, vLLM serving and eval code ✅ · Glimmer not trained (no credits)
   eval/            11 cases · scripts · runner · results.md ✅
   spec/            surface-protocol.md · examples/minimal-surface.html ✅
   brand/           tokens.css · mark.svg · make-icon.swift · README (palette, naming) ✅

@@ -69,7 +69,7 @@ async function main() {
   };
 
   let moment: Moment = DAY[0];
-  const surfaces = new SurfaceRegistry({ presenceTimeoutMs: 3000 });
+  const surfaces = new SurfaceRegistry({ presenceTimeoutMs: 3000, onEvent: (kind, data) => log.append(session, kind, data) });
   world.camera.attach(surfaces);
   const onMessage = (id: string, msg: ServerMessage) => {
     if (msg.type === "capture_request") return void setTimeout(() => world.camera.shoot(msg.request_id, id), 0);
@@ -141,6 +141,7 @@ function section(m: Moment, events: AurenEvent[], reply: string, ms: number): st
   const asked = of("approval").filter((a) => a.status === "requested");
   const answered = of("approval").filter((a) => a.status !== "requested");
   const receipts = of("receipt");
+  const flat = (s: unknown) => String(s ?? "").replace(/\s+/g, " ").trim();
   const lines = [
     `## ${m.at} · ${NAMES[m.device]}`,
     `*${m.scene}*`,
@@ -155,9 +156,9 @@ function section(m: Moment, events: AurenEvent[], reply: string, ms: number): st
   if (calls.length) lines.push(`- **Did:** ${calls.map((c) => `\`${c.namespace}.${c.tool}\` (${c.tier})`).join(" → ")}`);
   for (const a of asked) {
     const done = answered.find((x) => x.request_id === a.request_id);
-    lines.push(`- **Asked for a tap** on the ${a.surface_id ?? "nearest device"}: “${a.summary}” → **${done?.status ?? "no answer"}**`);
+    lines.push(`- **Asked for a tap** on the ${a.surface_id ?? "nearest device"}: “${flat(a.summary)}” → **${done?.status ?? "no answer"}**${done?.surface_id ? ` on the ${done.surface_id}` : ""}`);
   }
-  if (receipts.length) lines.push(`- **Receipts:** ${receipts.map((r) => `${r.summary}${r.undo ? " (Undo)" : ""}`).join(" · ")}`);
+  if (receipts.length) lines.push(`- **Receipts:** ${receipts.map((r) => `${flat(r.summary)}${r.undo ? " (Undo)" : ""}`).join(" · ")}`);
   else lines.push("- **Receipts:** none (nothing changed)");
   lines.push(`- **Answered:** “${reply}” · ${(ms / 1000).toFixed(1)} s`, "");
   return lines.join("\n");

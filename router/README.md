@@ -1,28 +1,28 @@
-# Auren Router
+# Muse decisions
 
-A small, fast model that reads a command and the devices around you, and answers in one call:
+As a command arrives, alongside Muse Wonder, **Muse Spark** decides in one call which apps a command needs, how risky it is, which device should answer, and whether to look through the camera first:
 
 ```json
 {"apps":["slack","calendar","gmail"],"risk_tier":"send","reply_surface":"watch","needs_vision":false}
 ```
 
-Core uses the answer to start sooner and smaller, as hints only:
+Each decision is logged as a `decision` event and shown on the console timeline ("Muse decided: slack, calendar, gmail · send · reply on watch"). Core uses it to start sooner and smaller, as hints only:
 - **Preload.** The named namespaces' deferred tools go straight into Wonder's inventory instead of behind `tool_search`.
 - **Camera.** When `needs_vision` is true and a camera is online, the capture starts at once, so `glasses.look` finds a frame already in flight (used only if it's under 3 s old).
-- **Ack.** "On it: Slack, calendar and Gmail." comes from the route, so Spark isn't asked for one.
+- **Ack.** "On it: Slack, calendar and Gmail." comes from the decision, so Spark isn't asked for a second one.
 
-**The router is advisory.** It never grants, raises or lowers a risk tier; each tool's tier in Core is the only authority, and a router that says `read` for a Slack post still gets you a tap (`core/src/router/wiring.test.ts`). `reply_surface` is recorded and evaluated, but the device picker still chooses where the reply goes.
+**Decisions are advisory.** A decision never grants, raises or lowers a risk tier; each tool's tier in Core is the only authority, and a decision that says `read` for a Slack post still gets you a tap (`core/src/router/wiring.test.ts`). `reply_surface` is recorded and evaluated, but the device picker still chooses where the reply goes.
 
-It's meant to be a QLoRA fine-tune of **Muse Glimmer**, trained and served on Modal. Until that runs, Core routes with Muse Spark (with a key) or with simple rules.
+**Future work: Glimmer.** A smaller distilled decision model, a QLoRA fine-tune of **Muse Glimmer** served on Modal, is fully written here (data, training, serving, evaluation) and runs when training credits exist. It was never trained: no Modal credits during the hackathon.
 
-## How Core routes
+## How Core decides
 | Order | Source | When | Budget |
 |---|---|---|---|
-| 1 | Glimmer LoRA on Modal (OpenAI-compatible `/v1/chat/completions`) | `AUREN_ROUTER_URL` is set | 300 ms (`AUREN_ROUTER_BUDGET_MS`); Wonder's first turn waits at most this long to preload |
-| 2 | Muse Spark 1.3 (Responses API) | a Meta key is set | 1 s, and Wonder never waits on it; it shapes the ack and starts the camera |
-| 3 | Rules (`rulesRoute` in `core/src/router/router.ts`) | always | instant |
+| 1 | Muse Spark 1.3 (Responses API, minimal effort): **the live decision** | a Meta key is set | 2.5 s (`SPARK_BUDGET_MS`); it shapes the ack, starts the camera and preloads tools |
+| 2 | Rules (`rulesRoute` in `core/src/router/router.ts`) | always: the instant fallback | instant |
+| (future) | Glimmer LoRA on Modal (OpenAI-compatible `/v1/chat/completions`), tried first when deployed | `AUREN_ROUTER_URL` is set | 300 ms (`AUREN_ROUTER_BUDGET_MS`) |
 
-Every answer must pass the same schema (`schema.py` here, zod `Route` in Core); anything off-schema, slow or failed falls to the next source. Each outbound call gets an outbound ledger row, and each attempt gets one `router.route` line in the ops log (source, ms, ok, reason), never the command.
+Every answer must pass the same schema (`schema.py` here, zod `Route` in Core); anything off-schema, slow or failed falls to the next source. Each outbound call gets an outbound ledger row, and each attempt gets one `router.route` line in the ops log (source `glimmer`, `spark` or `rules`, ms, ok, reason), never the command.
 
 ## Files
 | Path | What it is | Status |
@@ -55,7 +55,7 @@ uv run python -m auren_router.data build                                    # tr
 - **Synthetic** asks the generator for 10 commands per (apps, tier, device situation) cell of an even grid, has Wonder label each with `rubric.md` word for word, drops anything `parse()` rejects, dedupes, and appends, so a stopped run resumes.
 - **Splits** go by a hash of the normalised command, so one command never lands in two splits. The seed, and any command that repeats a seed command, is always test.
 
-## Train, serve, evaluate (when Modal credits land)
+## Train, serve, evaluate (future work, when training credits exist)
 ```bash
 # TODO first: check the Meta model API terms on training with model outputs.
 AUREN_ROUTER_BASE=<base model> uv run --with modal modal run auren_router/train.py --i-checked-the-terms

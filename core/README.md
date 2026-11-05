@@ -36,7 +36,7 @@ npm run typecheck
 | `src/vision/` | `glasses.look`: a capture request → one blurred frame → Muse Spark reads it, SAM 3.1 outlines it → an encrypted receipt crop | ✅ tested against fake models ([R6](../docs/rounds/R6.md)) |
 | `src/computer/` | `browser.run_task`: the nested computer-use runner that drives `driver/`, with the tap at the commit | ✅ tested against a fake driver and scripted Muse ([R7](../docs/rounds/R7.md)) |
 | `src/memory/` | Auren Memory: recap and recall over receipts on Muse Spark Open (local fallback), and `receipts.undo` | ✅ |
-| `src/router/` | Auren Router: Glimmer, then Muse Spark, then rules; preloads namespaces, starts the camera early, shapes the ack; advisory only. `examples.ts` exports labelled examples from the log | ✅ ([R9](../docs/rounds/R9.md)) |
+| `src/router/` | Muse decisions: Muse Spark decides live (2.5 s), rules as the instant fallback, Glimmer first if ever deployed; logs a `decision` event, preloads namespaces, starts the camera early, shapes the ack; advisory only. `examples.ts` exports labelled examples from the log | ✅ ([R9](../docs/rounds/R9.md)) |
 | `src/connectors/mcp.ts` | The MCP bridge: servers from `mcp.json` as namespaces; every tool asks unless the server is trusted. `mcp-journal.ts` is the demo server | ✅ ([R11](../docs/rounds/R11.md)) |
 | `src/sandbox/` | The judges' sandbox at `/try`: isolated visitors, limits, live and replay engines | ✅ ([R13](../docs/rounds/R13.md)) |
 | `src/obs/spend.ts` | Token alarm and limit, fed by the outbound ledger | ✅ |

@@ -136,13 +136,16 @@ export function createDemoWorld() {
         tier: "send",
         verb: "Post",
         deferred: true,
-        async run({ channel_id, text }: { channel_id: string; text: string }) {
+        async run(a: { channel_id?: string; channel?: string; text: string }) {
+          // Live Muse sometimes names the field `channel`; both mean the id from list_channels.
+          const channel_id = a.channel_id ?? a.channel ?? "";
+          if (!state.channels.some((c) => c.id === channel_id)) throw new Error(`no channel ${channel_id}: use an id from list_channels`);
           const ts = `${Date.now() / 1000}`;
-          state.posts.push({ channel_id, text, ts });
+          state.posts.push({ channel_id, text: a.text, ts });
           return { ok: true, ts };
         },
-        summarize: (a: { channel_id: string; text: string }) =>
-          `Post to #${state.channels.find((c) => c.id === a.channel_id)?.name ?? a.channel_id}: "${a.text}"`,
+        summarize: (a: { channel_id?: string; channel?: string; text: string }) =>
+          `Post to #${state.channels.find((c) => c.id === (a.channel_id ?? a.channel))?.name ?? a.channel_id ?? a.channel}: "${a.text}"`,
       },
     ],
   };
