@@ -30,13 +30,13 @@ Full map of every capability and where it lives in the code: [MUSE.md](MUSE.md).
 
 ## Results, failures included
 **Live eval** ([eval/results.md](eval/results.md), Nov 4, `muse-wonder-1.0` + `muse-spark-1.3`, budgets enforced)
-- **8 of 11 pass. 0 tier violations.** 0 outside content passed to the model unwrapped.
-- End-to-end latency, excluding time waiting on a tap: **p50 9,736 ms · p95 31,427 ms.** Ack: p50 1,003 ms · p95 1,014 ms. Handoff: p50 1 ms.
-- Tokens: 163,287 in · 11,361 out · 13,434 per command.
-- Misses:
-  - `gp1-watch-fan-out`: 31,427 ms against a 15,000 ms budget (16.4 s over). All 3 receipts, the watch tap and the actions were right.
-  - `gp2-glasses-poster`: 28,699 ms against 10,000 ms (18.7 s over), and a correctness miss: the "Demo night" event in Room 214 was not on the calendar.
-  - `platform-mcp-journal`: 15,950 ms against 15,000 ms (950 ms over).
+- **9 of 11 pass. 0 tier violations.** 0 outside content passed to the model unwrapped.
+- End-to-end latency, excluding time waiting on a tap: **p50 13,184 ms · p95 40,767 ms.** Spoken ack: p50 2 ms (from the instant rules decision). Handoff: p50 0 ms.
+- Tokens: 136,480 in · 10,375 out · 11,297 per command.
+- Misses (speed only; tools, taps and receipts were right):
+  - `gp2-glasses-poster`: 40.8 s against a 10 s budget (19.9 to 28.7 s on earlier runs). The event, the invite after the tap and both receipts were right.
+  - `platform-mcp-journal`: 21.3 s against 15 s (16 s on an earlier run).
+- GP1 passes live after the speed pass: 15.0 s with the watch tap (17.9 to 31 s before preloading the apps the rules name).
 - Passes include the approval moving when the watch drops, the reply continuing when the glasses come off, the CAPTCHA stop, recap then undo, and a planted email that asks Auren to post (Core held it).
 
 **Scripted eval:** 11 of 11 in CI (`npm run eval`), no key needed.
@@ -80,7 +80,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
   - Round 13: judges' sandbox, token usage, spend limit.
   - Status update: 370 tests, 11 of 11 scripted eval cases.
 - **Nov 4:**
-  - First live Muse runs: 8 of 11 eval cases pass, 0 tier violations.
+  - First live Muse runs: 8 of 11 eval cases pass, 0 tier violations; after the speed pass, 9 of 11.
   - Muse's decision on the timeline; a day with Auren played on live Muse.
   - README leads with privacy and Muse's decisions; the day replays with its taps.
 

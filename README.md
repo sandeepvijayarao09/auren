@@ -81,7 +81,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
 | iPhone and Apple Watch apps: timeline with receipt crops and live computer-use frames, approvals that name the action (Post, Invite, Confirm), speech, hold to talk on the watch | ✅ build for the Simulator; untested on real devices |
 | Computer use (GP4): `browser.run_task` runs a nested Muse Wonder loop that drives Chromium on the Mac through the Playwright driver; the commit guard pauses before any confirm click, so the only tap comes at the commit; a CAPTCHA stops the run | ✅ built and tested on real Chromium · live Wonder chose `browser.run_task` in the eval, but the clicks there came from a scripted computer-use model: a live computer-use run is still to do |
-| Eval runner: 11 golden-path, platform and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ scripted: all 11 pass in CI · **live on Muse Wonder: 8 of 11 pass, 0 tier violations**; the 3 misses are speed budgets (GP1 17.9 s of 15, GP2 27 s of 10, MCP journal 16 s of 15) |
+| Eval runner: 11 golden-path, platform and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ scripted: all 11 pass in CI · **live on Muse Wonder: 9 of 11 pass, 0 tier violations**; the 2 misses are speed budgets (GP2 vision 20–41 s of 10, MCP journal 21 s of 15) |
 | A day with Auren: seven moments of one fictional day, run on live Muse with synthetic data ([transcript](docs/day-with-auren.md)) | ✅ all seven done right; the planted "post that grades leaked" email was only summarized |
 | Auren Memory (recap and recall on Muse Spark Open, with a local fallback) and undo by voice | ✅ built and tested against a fake Baseten; live run needs `BASETEN_API_KEY` |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
@@ -142,7 +142,7 @@ Everything in this repository was written during the event, starting after the k
 | Oct 31 | Google Calendar connector |
 | Nov 2 | Secure Enclave master key and tamper-evident log · device pairing with signed approvals · Slack and Gmail connectors with record and replay · voice through Muse Voice Transcribe · Auren Memory and undo by voice · eval runner · vision (glasses "this") · continuity between devices · computer use with a tap at the commit |
 | Nov 3 | Vision and computer use in the eval · MCP bridge · watch voice clips, timeline media, approval verbs · Muse decisions (router) · judges' sandbox and spend limits |
-| Nov 4 | First live Muse runs (8 of 11, 0 tier violations) · Muse decisions on the timeline · a day with Auren on live Muse · privacy-first README |
+| Nov 4 | First live Muse runs (9 of 11 after a speed pass, 0 tier violations) · a synthetic person (Maya Okafor) with Gmail, Calendar, Slack, Journal and Tasks connected · Muse decisions on the timeline · a day with Auren on live Muse · privacy-first README |
 
 ## License
 MIT
