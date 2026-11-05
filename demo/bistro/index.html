@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo Bistro · Reservations</title>
+<style>
+  body { font: 18px/1.5 Georgia, serif; background: #f7f3ec; color: #2b2118; margin: 0; }
+  main { max-width: 560px; margin: 40px auto; background: #fff; padding: 32px 40px; border-radius: 8px; box-shadow: 0 2px 12px #0001; }
+  h1 { margin: 0 0 4px; } p.sub { margin: 0 0 24px; color: #7a6a58; }
+  label { display: block; margin: 16px 0 6px; font-weight: bold; }
+  .row { display: flex; gap: 8px; } .opt { flex: 1; margin: 0; padding: 10px 4px; background: #efe7dc; color: #2b2118; }
+  .opt[aria-pressed="true"] { background: #2b2118; color: #fff; }
+  button { font: inherit; border: 0; margin-top: 28px; padding: 12px 20px; width: 100%; background: #7b2d26; color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
+  #done { display: none; } #done h2 { color: #2f6b3a; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Demo Bistro</h1>
+  <p class="sub">A fictional restaurant for Auren's computer-use demo.</p>
+  <form id="f">
+    <label>Date</label>
+    <div class="row" id="date"><button type="button" class="opt" data-k="date">Thursday</button><button type="button" class="opt" data-k="date">Friday</button><button type="button" class="opt" data-k="date">Saturday</button><button type="button" class="opt" data-k="date">Sunday</button></div>
+    <label>Time</label>
+    <div class="row" id="time"><button type="button" class="opt" data-k="time">6:00 PM</button><button type="button" class="opt" data-k="time">7:00 PM</button><button type="button" class="opt" data-k="time">8:00 PM</button><button type="button" class="opt" data-k="time">9:00 PM</button></div>
+    <label>Party size</label>
+    <div class="row" id="party"><button type="button" class="opt" data-k="party">1 guest</button><button type="button" class="opt" data-k="party">2 guests</button><button type="button" class="opt" data-k="party">3 guests</button><button type="button" class="opt" data-k="party">4 guests</button></div>
+    <button type="submit" id="go">Complete reservation</button>
+  </form>
+  <section id="done">
+    <h2>Your table is held</h2>
+    <p id="summary"></p>
+  </section>
+</main>
+<script>
+  document.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach((o) => o.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true");
+  }));
+  document.getElementById("f").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = (id) => document.querySelector(`#${id} [aria-pressed="true"]`)?.textContent ?? "(not picked)";
+    document.getElementById("summary").textContent = `${v("party")} on ${v("date")} at ${v("time")}. Confirmation DB-0042.`;
+    document.getElementById("f").style.display = "none";
+    document.getElementById("done").style.display = "block";
+    document.title = "Demo Bistro · Reservation held";
+  });
+</script>
+</body>
+</html>

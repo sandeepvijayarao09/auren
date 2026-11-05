@@ -57,3 +57,23 @@ test("the call output carries the screenshot and only the approved checks", () =
     output: { type: "computer_screenshot", image_url: "data:image/jpeg;base64,AA" },
   });
 });
+
+test("the live Muse Spark 1.3 shape (CU-live): reasoning + commentary + computer_call with actions[] and a safety check", () => {
+  const resp = {
+    output: [
+      { id: "rs_1", type: "reasoning", status: "completed", summary: [] },
+      { id: "rs_2", type: "message", role: "assistant", phase: "commentary", status: "completed", content: [{ type: "output_text", text: "Starting with a fresh screenshot.", annotations: [], logprobs: [] }] },
+      {
+        type: "computer_call",
+        call_id: "call_1",
+        actions: [{ type: "click", x: 640, y: 300, button: "left" }, { type: "screenshot" }],
+        pending_safety_checks: [{ id: "sc_1", code: "computer_action_requires_confirmation", message: "Review and confirm before executing this computer action." }],
+      },
+    ],
+  };
+  const call = readComputerCall(resp);
+  assert.ok(call);
+  assert.equal(call.callId, "call_1");
+  assert.deepEqual(call.actions, [{ type: "click", x: 640, y: 300, button: "left" }, { type: "screenshot" }]);
+  assert.equal(call.safetyChecks[0]?.code, "computer_action_requires_confirmation");
+});

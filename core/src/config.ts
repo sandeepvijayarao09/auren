@@ -13,6 +13,8 @@ export const config = {
   museApiKey: process.env.MODEL_API_KEY ?? "",
   agentModel: process.env.AUREN_AGENT_MODEL ?? "muse-wonder-1.0",
   fastModel: process.env.AUREN_FAST_MODEL ?? "muse-spark-1.3",
+  // Live check (CU-live): Muse Wonder 1.0 answers 400 "Unsupported tool type: 'computer'"; Spark 1.3 takes it.
+  computerModel: process.env.AUREN_COMPUTER_MODEL ?? "muse-spark-1.3",
   dbPath: process.env.AUREN_DB ?? "auren.db",
   // Encrypts connector tokens. Without it, Core generates a key next to the database.
   secret: process.env.AUREN_SECRET ?? "",
