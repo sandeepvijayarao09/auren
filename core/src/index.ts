@@ -157,6 +157,7 @@ const agentDeps = {
     timeZone: config.timeZone,
     maxTurns: config.maxTurns,
     approvalTimeoutMs: config.approvalTimeoutMs,
+    followUpWindowMs: config.followUpWindowS * 1000,
     ops,
     ...r9,
     cards,

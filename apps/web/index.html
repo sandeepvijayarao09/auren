@@ -146,6 +146,7 @@ function line(e) {
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
     browser_frame: () => `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}`,
     usage: () => esc(d.message), // R13
+    injection_notice: () => esc(d.text),
     proactive: () => `${d.job === "evening" ? "Evening card" : "Morning briefing"} · ${esc(d.status)}${d.by ? ` <span class="t">${esc(d.by)}</span>` : ""}${d.spoken_on ? ` <span class="t">spoken on ${esc(d.spoken_on)}</span>` : ""}${d.shown_on ? ` <span class="t">card on ${esc(d.shown_on)}</span>` : ""}`,
     decision: () => `${d.by === "rules" ? "Rules" : "Muse"} decided: ${esc((d.apps ?? []).join(", ") || "no apps")} · ${esc(d.risk_tier)}${d.reply_surface ? ` · reply on ${esc(d.reply_surface)}` : ""}${d.needs_vision ? " · look first" : ""} <span class=\"t\">${esc(d.ms)} ms</span>`,
   }[e.kind] || (() => esc(JSON.stringify(d)));
@@ -202,7 +203,7 @@ function simpleView() {
   const groups = [];
   for (const e of all) {
     if (e.kind === "utterance") groups.push({ id: e.id, at: e.at, items: [e] });
-    else if (groups.length && ["ack", "receipt", "reply", "error", "approval"].includes(e.kind)) groups.at(-1).items.push(e);
+    else if (groups.length && ["ack", "receipt", "reply", "error", "approval", "injection_notice"].includes(e.kind)) groups.at(-1).items.push(e);
   }
   $("simple").innerHTML = groups.slice().reverse().map((g) => {
     const html = g.items.map((e) => {
@@ -213,6 +214,7 @@ function simpleView() {
       if (e.kind === "approval" && (d.status === "declined" || d.status === "expired")) return `<div class="ackl">${d.status === "declined" ? "You said not now" : "Nobody tapped"}, so nothing went out.</div>`;
       if (e.kind === "error") return `<div class="stop">${esc(d.message)}</div>`;
       if (e.kind === "reply") return `<div class="reply">${esc(d.text)}</div>`;
+      if (e.kind === "injection_notice") return `<div class="stop">${esc(d.text)}</div>`;
       return "";
     }).join("");
     const fresh = !seenCards.has(g.id); seenCards.add(g.id);

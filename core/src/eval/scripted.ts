@@ -4,6 +4,7 @@
 // "replay" engine (R13) uses it for the golden paths.
 import { readFileSync } from "node:fs";
 import { z } from "zod";
+import { FOLLOWUP_PREFIX } from "../agent/followup.ts";
 import type { MuseLike } from "../agent/loop.ts";
 import type { EventLog } from "../eventlog.ts";
 
@@ -44,6 +45,7 @@ export interface ScriptHost {
 const today = () => new Intl.DateTimeFormat("en-CA").format(new Date());
 const RECEIPT = /^\{\{receipt:([a-z_]+)\.([a-z_]+)\}\}$/;
 const OUTPUT = /^\{\{output:([a-z_]+)\}\}$/;
+const CONTEXT = /^\{\{context:([a-z_]+)\}\}$/;
 
 /** The latest receipt from `namespace.tool` in the host's log: what `{{receipt:ns.tool}}` resolves to. */
 export function latestReceipt(host: Pick<ScriptHost, "log" | "session">, namespace: string, tool: string) {
@@ -97,12 +99,13 @@ export class ScriptedMuse implements MuseLike {
       if (turn.ms) await new Promise((r) => this.host.later(turn.ms!, () => r(null)));
       if (turn.say !== undefined) return { id, output: [], output_text: turn.say };
       const outputs = toolOutputs(params.input);
+      const note = followUpNote(params.input);
       return {
         id,
         output_text: "",
         output: (turn.calls ?? []).map((c, k) => {
           const [namespace, name] = c.tool.split(".");
-          return { type: "function_call", call_id: `call_${this.#n}_${k}`, namespace, name, arguments: JSON.stringify(this.#fill(c.args, outputs)) };
+          return { type: "function_call", call_id: `call_${this.#n}_${k}`, namespace, name, arguments: JSON.stringify(this.#fill(c.args, outputs, note)) };
         }),
       };
     },
@@ -110,20 +113,31 @@ export class ScriptedMuse implements MuseLike {
 
   /**
    * `{{today}}` is the local date; a value of `{{receipt:ns.tool}}` is the id of that tool's latest receipt;
-   * a value of `{{output:key}}` is `key` from the tool results this turn was handed, as a model would read it.
+   * a value of `{{output:key}}` is `key` from the tool results this turn was handed, as a model would read it;
+   * a value of `{{context:key}}` is `key=…` from the note of the previous command (agent/followup.ts), so a
+   * follow-up only works if Core carried it over.
    */
-  #fill(value: unknown, outputs: Array<Record<string, unknown>>): unknown {
+  #fill(value: unknown, outputs: Array<Record<string, unknown>>, note = ""): unknown {
     if (typeof value === "string") {
       const receipt = value.match(RECEIPT);
       if (receipt) return latestReceipt(this.host, receipt[1], receipt[2])?.id ?? null;
       const output = value.match(OUTPUT);
       if (output) return outputs.find((o) => output[1] in o)?.[output[1]] ?? null;
+      const context = value.match(CONTEXT);
+      if (context) return note.match(new RegExp(`\\b${context[1]}=([^,)\\s]+)`))?.[1] ?? null;
       return value.replaceAll("{{today}}", today());
     }
-    if (Array.isArray(value)) return value.map((v) => this.#fill(v, outputs));
-    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, this.#fill(v, outputs)]));
+    if (Array.isArray(value)) return value.map((v) => this.#fill(v, outputs, note));
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, this.#fill(v, outputs, note)]));
     return value;
   }
+}
+
+/** The note of the previous command that the loop puts first in the input, or "". */
+function followUpNote(input: unknown): string {
+  if (!Array.isArray(input)) return "";
+  const first = input[0] as { role?: string; content?: unknown } | undefined;
+  return first?.role === "user" && typeof first.content === "string" && first.content.startsWith(FOLLOWUP_PREFIX) ? first.content : "";
 }
 
 /** The JSON objects in a turn's function_call_output items. */

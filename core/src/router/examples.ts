@@ -57,6 +57,8 @@ export function examplesFrom(events: Iterable<AurenEvent>): RouterExample[] {
     }
     if (!open) continue;
     if (e.kind === "tool_call") {
+      // A contact lookup Core started from the words (agent/preload.ts) isn't a choice the command made.
+      if (e.data.preload === true) continue;
       const ns = String(e.data.namespace ?? "");
       if ((APPS as readonly string[]).includes(ns) && !open.apps.includes(ns as App)) open.apps.push(ns as App);
       if ((TIERS as readonly string[]).includes(String(e.data.tier))) open.tiers.push(e.data.tier as Tier);

@@ -1,6 +1,6 @@
 {
   "case": "multi-turn-move-it-again",
-  "note": "Each command reaches the model on its own (the loop keeps no chat history), so the follow-up has to find \"it\" from the receipts.",
+  "note": "The follow-up starts with Core's note of the last command (agent/followup.ts). It reads the event id from that note ({{context:event_id}}), so the case fails if the note isn't carried over.",
   "commands": [
     {
       "ack": "On it: calendar.",
@@ -38,19 +38,9 @@
         {
           "calls": [
             {
-              "tool": "receipts.list_recent",
-              "args": {
-                "limit": 5
-              }
-            }
-          ]
-        },
-        {
-          "calls": [
-            {
               "tool": "calendar.move_event",
               "args": {
-                "event_id": "evt_1",
+                "event_id": "{{context:event_id}}",
                 "new_start": "{{today}}T16:00"
               }
             }

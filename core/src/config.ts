@@ -49,6 +49,8 @@ export const config = {
   // The proactive day, in AUREN_TZ. Empty turns either off. The briefing catches up after sleep until noon.
   briefingAt: process.env.AUREN_BRIEFING_AT ?? "",
   eveningAt: process.env.AUREN_EVENING_AT ?? "",
+  // A command this many seconds after the last one in its session also gets a short note of it, so "move it to 4 instead" works. 0 is off.
+  followUpWindowS: count(process.env.AUREN_FOLLOWUP_WINDOW_S, 300),
   presenceTimeoutMs: 3000,
   approvalTimeoutMs: 60_000,
   maxTurns: 8,

@@ -39,7 +39,9 @@ export type EventKind =
   // Muse's decision for a command, before Wonder plans: apps, risk, reply device, whether to look.
   | "decision"
   // The proactive day: a scheduled briefing ran, or the evening card was offered (data: job, …).
-  | "proactive";
+  | "proactive"
+  // Outside content in a command read like orders to the assistant; Core told the user it ignored them (data: text, namespaces).
+  | "injection_notice";
 
 export interface AurenEvent {
   id: number;
