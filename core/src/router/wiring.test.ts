@@ -100,7 +100,8 @@ test("preload: the route's namespaces skip tool_search on the first turn; the re
 
 test("preload: a route slower than the hold doesn't delay Wonder, and isn't used for the inventory", async () => {
   const { deps, wonder } = setup(DONE, { router: fixed(ROUTE, { ms: 250, holdMs: 20 }) });
-  await runCommand(deps, { session: "s", text: "Tell office hours and push my 3 PM.", originSurfaceId: "watch" });
+  // Text the local rules don't route, so only the late route could have preloaded Slack.
+  await runCommand(deps, { session: "s", text: "Sort it out for me.", originSurfaceId: "watch" });
   assert.ok(wonder()[0].at < 150, `Wonder started at ${Math.round(wonder()[0].at)} ms`);
   assert.equal(inventory(wonder()[0]).slack.post_message, true);
 });
