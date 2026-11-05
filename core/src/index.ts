@@ -72,7 +72,14 @@ if (google) {
 if (config.slackBotToken) {
   live.set("slack", createSlack({ token: config.slackBotToken, onCall: (c) => ledger.record({ service: "Slack", ...c }) }));
 }
-const namespaces = createDemoWorld().namespaces.map((ns) => live.get(ns.name) ?? ns);
+const demo = createDemoWorld();
+// Persona: AUREN_PERSONA=maya loads Maya Okafor's fictional week into the demo world
+// and adds her Journal and Tasks MCP servers (src/demo/persona/maya.ts).
+const persona = process.env.AUREN_PERSONA === "maya" ? await import("./demo/persona/maya.ts") : undefined;
+const personaCounts = persona?.applyMaya(demo.state, demo.namespaces);
+const personaServers = persona ? persona.mayaServers().servers : [];
+// end persona
+const namespaces = demo.namespaces.map((ns) => live.get(ns.name) ?? ns);
 const tools = new ToolRegistry().add(...namespaces, surfacesNamespace);
 
 // Auren Memory and voice undo. Muse Spark Open writes the recaps only when BASETEN_API_KEY is set.
@@ -97,7 +104,7 @@ tools.add(createBrowser({ hub: driver, muse, model: config.agentModel, log, ops,
 // R11: MCP bridge. Each server in mcp.json becomes a namespace while it's connected.
 // They connect in the background, so a slow or broken server never holds up Core.
 const mcpConfig = loadMcpConfig(config.mcpConfig || undefined);
-const mcp = new McpBridge({ servers: mcpConfig.servers, ledger, ops });
+const mcp = new McpBridge({ servers: [...mcpConfig.servers.filter((s) => !personaServers.some((p) => p.namespace === s.namespace)), ...personaServers], ledger, ops }); // persona servers win
 tools.add(...mcp.namespaces);
 mcp.start();
 
@@ -163,6 +170,7 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   const googleState = !google ? "demo" : g?.connected ? `Google (${g.email ?? "connected"})` : `Google, not connected: open ${local}/connect/google`;
   console.log(`  apps: calendar and gmail ${googleState} · slack ${config.slackBotToken ? "live" : "demo"}`);
   console.log(`  time zone: ${config.timeZone}`);
+  if (personaCounts) console.log(`  persona: Maya Okafor (fictional) · ${personaCounts.threads} threads · ${personaCounts.events} events · ${personaCounts.channels} channels · journal + tasks over MCP`); // persona
   console.log("  browser: start the computer-use driver with `cd driver && npm start`");
   // R11: MCP bridge
   const servers = mcpConfig.servers.map((s) => `${s.namespace} (${s.transport}${s.trust ? ", read-only hints trusted" : ", every tool asks"})`);
