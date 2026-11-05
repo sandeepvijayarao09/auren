@@ -97,7 +97,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models · Muse Spark read a real poster photo live and SAM 3.1 outlined it live (0.86 s); no run on a real iPhone |
 | Muse decisions: as each command arrives, Muse Spark decides the apps, risk, reply device and camera for each command (2.5 s budget), logged as a `decision` event on the timeline; advisory only, never changes a tier ([router](router/README.md)) | ✅ Spark decides live, rules as the instant fallback · Glimmer distillation code ready, ⏳ not trained (no training credits) |
 | MCP bridge: any MCP server in `mcp.json` becomes a Muse tool namespace; every tool asks for a tap unless you trust that server's read-only hints; never a write ([setup](docs/mcp-setup.md)) | ✅ built and tested with a demo Journal server; live Muse run pending |
-| Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses; isolated visitors and rate limits; live Muse with a key, golden-path replays without one | ✅ built and tested; not deployed |
+| Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses, a 3-minute judge tour, Maya's proactive day, "What Auren knows" with Forget, and follow-ups; isolated visitors and rate limits; live Muse with a key, replays without one. `make sandbox-image` builds a 70 MB container; `make deploy-aws` or `make tunnel` puts it online ([docs/deploy.md](docs/deploy.md)) | ✅ built and tested; not deployed |
 | Token usage and spend limits: every Muse call's tokens in the outbound ledger and `/v1/trust`; `AUREN_TOKEN_ALARM` warns, `AUREN_TOKEN_LIMIT` refuses new commands | ✅ built and tested |
 
 ## Demo honesty and known limits
@@ -112,7 +112,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 - **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
 - **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
 
-**Tests:** 414 across five suites (Core 299, AurenKit 55, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
+**Tests:** 437 across five suites (Core 322, AurenKit 55, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.
@@ -156,6 +156,7 @@ Everything in this repository was written during the event, starting after the k
 | Oct 27 | Architecture · brand v1 · iPhone and Apple Watch apps · commit guard · router schema · eval cases · CI |
 | Oct 31 | Google Calendar connector |
 | Nov 2 | Secure Enclave master key and tamper-evident log · device pairing with signed approvals · Slack and Gmail connectors with record and replay · voice through Muse Voice Transcribe · Auren Memory and undo by voice · eval runner · vision (glasses "this") · continuity between devices · computer use with a tap at the commit |
+| Nov 4 | Follow-up memory · Core warns about ignored injections · one-sentence spoken briefing · judge tour and Maya's world in `/try` · sandbox container and deploy scripts |
 | Nov 3 | Vision and computer use in the eval · MCP bridge · watch voice clips, timeline media, approval verbs · Muse decisions (router) · judges' sandbox and spend limits |
 | Nov 4 | First live Muse runs (9 of 11 after a speed pass, 0 tier violations) · a synthetic person (Maya Okafor) with Gmail, Calendar, Slack, Journal and Tasks connected · Muse decisions on the timeline · a day with Auren on live Muse · privacy-first README |
 

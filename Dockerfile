@@ -27,7 +27,7 @@ COPY --from=deps /app/core/node_modules core/node_modules
 COPY core/package.json core/package.json
 COPY core/src core/src
 COPY apps/web/try.html apps/web/try.html
-COPY brand/tokens.css brand/mark.svg brand/
+COPY brand/tokens.css brand/mark.svg brand/og.png brand/
 COPY eval/cases eval/cases
 COPY eval/scripts eval/scripts
 # core/src/index.ts imports the router statically, and its prompt is read when that module loads.
