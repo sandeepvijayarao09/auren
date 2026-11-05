@@ -102,6 +102,8 @@ struct WatchHomeView: View {
 struct ApprovalView: View {
     let request: ApprovalRequest
     let answer: (Bool) -> Void
+    /// The short line leads; tap it to read the full summary, which is what the watch signs.
+    @State private var expanded = false
 
     var body: some View {
         ScrollView {
@@ -109,7 +111,13 @@ struct ApprovalView: View {
                 Text("Your move")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(Color.aurenAurum)
-                Text(request.summary).font(.headline)
+                Text(expanded ? request.summary : request.headline).font(.headline)
+                if request.hasMore {
+                    Button(expanded ? "Less" : "Details") { expanded.toggle() }
+                        .font(.caption2)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.aurenAurum)
+                }
                 Button { answer(true) } label: {
                     // R12: the verb Core sent ("Post", "Invite"), or "Approve".
                     Text(request.actionLabel).foregroundStyle(Color.aurenOnyx).frame(maxWidth: .infinity)

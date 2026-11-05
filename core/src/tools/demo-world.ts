@@ -2,7 +2,7 @@
 // end to end before any real account is connected, and the eval replays
 // against it. Live connectors replace these namespaces one by one.
 import type { Namespace, ToolSpec } from "./types.ts";
-import { params } from "./types.ts";
+import { inviteShort, params } from "./types.ts";
 
 interface CalEvent { id: string; title: string; start: string; end: string; location?: string; invitees: string[] }
 interface Draft { id: string; thread_id: string; body: string }
@@ -90,6 +90,7 @@ export function createDemoWorld() {
           return { ok: true, invited: emails };
         },
         summarize: (a: { emails: string[] }) => `Send an invite to ${a.emails.join(", ")}?`,
+        shortSummary: (a: { emails: string[] }) => inviteShort(a.emails),
       },
       {
         name: "delete_event",
@@ -146,6 +147,7 @@ export function createDemoWorld() {
         },
         summarize: (a: { channel_id?: string; channel?: string; text: string }) =>
           `Post to #${state.channels.find((c) => c.id === (a.channel_id ?? a.channel))?.name ?? a.channel_id ?? a.channel}: "${a.text}"`,
+        shortSummary: (a: { channel_id: string }) => `Post to #${state.channels.find((c) => c.id === a.channel_id)?.name ?? a.channel_id}`,
       },
     ],
   };

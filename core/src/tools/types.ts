@@ -46,6 +46,12 @@ export interface ToolSpec<A = any, R = any> {
   verb?: string;
   run: (args: A, ctx: ToolContext) => Promise<R>;
   summarize?: (args: A, result?: R) => string;
+  /**
+   * A glanceable approval line (about 60 characters, such as "Post to #office-hours") for
+   * small screens like the watch. Display only: devices still sign the full summary, which
+   * they show when expanded. Falls back to a clipped summary.
+   */
+  shortSummary?: (args: A) => string;
   undo?: (args: A, result: R) => UndoStep | undefined;
   /** A link to the change in the app itself (the event, the message), shown as Proof on the receipt. */
   proof?: (args: A, result: R) => string | undefined;
@@ -61,6 +67,11 @@ export interface Namespace {
 }
 
 /** JSON-schema helper for flat object parameters. */
+/** "Invite priya@example.com", or "Invite priya@example.com +2" for several. */
+export function inviteShort(emails: string[]): string {
+  return emails.length > 1 ? `Invite ${emails[0]} +${emails.length - 1}` : `Invite ${emails[0] ?? "people"}`;
+}
+
 export function params(props: Record<string, { type: string; description?: string; items?: unknown }>, optional: string[] = []) {
   return {
     type: "object",

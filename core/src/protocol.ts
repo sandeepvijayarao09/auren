@@ -56,5 +56,6 @@ export type ServerMessage =
   // v0.1 camera: one frame for a "this" command, uploaded to POST /v1/frames/:request_id.
   | { type: "capture_request"; request_id: string; purpose: string }
   // R12: `verb` (optional) is what the approve button says, from the tool's spec.
-  | { type: "approval_request"; request_id: string; summary: string; tier: Tier; verb?: string }
+  // `short` (optional) is a glanceable line of at most SHORT_MAX characters for small screens. Display only, never signed.
+  | { type: "approval_request"; request_id: string; summary: string; tier: Tier; verb?: string; short?: string }
   | { type: "approval_cancel"; request_id: string; reason: "moved" | "expired" | "answered" };

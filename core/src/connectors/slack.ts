@@ -84,6 +84,7 @@ export function createSlack(opts: SlackOptions): Namespace {
           return { ok: true, ts: res.ts, link };
         },
         summarize: (a: { channel_id: string; text: string }, r?: unknown) => (r ? `Posted in ${label(a.channel_id)}` : `Post to ${label(a.channel_id)}: "${a.text}"`),
+        shortSummary: (a: { channel_id: string }) => `Post to ${label(a.channel_id)}`,
         proof: (_a, r: { link?: string }) => r?.link,
       },
     ],

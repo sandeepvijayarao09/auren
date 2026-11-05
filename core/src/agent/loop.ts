@@ -3,6 +3,8 @@ import type { EventLog } from "../eventlog.ts";
 import { silentOps, type OpsLog } from "../obs/opslog.ts";
 import type { SurfaceRegistry } from "../surfaces.ts";
 import type { ToolRegistry } from "../tools/registry.ts";
+import { validateArgs } from "../tools/args.ts";
+import { shortFor } from "../surfaces.ts";
 import type { ToolContext, UndoStep } from "../tools/types.ts";
 import { ackFor, contextOf, liveDevices, RouteContext, rulesRoute, startHints, type RouterLike } from "../router/router.ts";
 
@@ -153,16 +155,27 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
   if (!found) return out({ error: `unknown tool ${call.namespace ? `${call.namespace}.` : ""}${call.name}` });
   const { ns, tool } = found;
 
-  let args: Record<string, unknown>;
+  let parsed: unknown;
   try {
-    args = JSON.parse(call.arguments || "{}");
+    parsed = JSON.parse(call.arguments || "{}");
   } catch {
     return out({ error: "arguments were not valid JSON" });
   }
-  deps.log.append(ctx.session, "tool_call", { app: ns.app, namespace: ns.name, tool: tool.name, tier: tool.tier, args });
 
   const ops = deps.ops ?? silentOps;
   const name = `${ns.name}.${tool.name}`;
+
+  // Check the arguments against the tool's schema before anything runs or asks for a tap.
+  // A mismatch goes back to the model naming the expected keys, so it retries next turn.
+  const checked = validateArgs(tool.parameters, parsed);
+  if (!checked.ok) {
+    ops.warn("tool.args_invalid", { trace: ctx.trace, tool: name, problems: checked.error.problems.length });
+    deps.log.append(ctx.session, "error", { app: ns.app, tool: tool.name, message: checked.error.message });
+    return out(checked.error);
+  }
+  const args = checked.args;
+  for (const m of checked.mapped) ops.info("tool.args_mapped", { trace: ctx.trace, tool: name, from: m.from, to: m.to });
+  deps.log.append(ctx.session, "tool_call", { app: ns.app, namespace: ns.name, tool: tool.name, tier: tool.tier, args });
 
   // Core enforces the tier; the model cannot talk its way past an approval.
   let callCtx = ctx;
@@ -172,15 +185,17 @@ async function executeCall(deps: AgentDeps, ctx: ToolContext, call: FunctionCall
     callCtx = {
       ...ctx,
       approveCommit: async (summary) => {
-        const approved = await ctx.surfaces.requestApproval(summary, "send", deps.approvalTimeoutMs, tool.verb); // R12: verb
+        const approved = await ctx.surfaces.requestApproval(summary, "send", deps.approvalTimeoutMs, tool.verb, shortFor(summary)); // R12: verb
         ops.info("tool.approval", { trace: ctx.trace, tool: name, approved, at: "commit" });
         committed ||= approved;
         return approved;
       },
     };
   } else if (tool.tier === "send") {
+    // Both summaries come from the validated arguments; the device signs the full one.
     const summary = tool.summarize?.(args) ?? `${ns.app}: ${tool.name}`;
-    const approved = await ctx.surfaces.requestApproval(summary, tool.tier, deps.approvalTimeoutMs, tool.verb); // R12: verb
+    const short = shortFor(tool.shortSummary?.(args) || summary);
+    const approved = await ctx.surfaces.requestApproval(summary, tool.tier, deps.approvalTimeoutMs, tool.verb, short); // R12: verb
     ops.info("tool.approval", { trace: ctx.trace, tool: name, approved });
     if (!approved) return out({ error: "user_declined" });
   }

@@ -36,6 +36,11 @@ private func verifies(_ identity: DeviceIdentity, _ signature: Data, _ payload: 
         let sig = Data(base64Encoded: try id.signApproval(request, approved: true))!
         #expect(try verifies(id, sig, DeviceIdentity.approvalPayload(requestID: "apr_9", approved: true, summary: "Post in #office-hours")))
         #expect(try !verifies(id, sig, DeviceIdentity.approvalPayload(requestID: "apr_9", approved: true, summary: "Post in #general")))
+
+        // The short line is display only: the signature still covers the full summary.
+        let withShort = ApprovalRequest(id: "apr_9", summary: "Post in #office-hours", tier: .send, short: "Post")
+        let shortSig = Data(base64Encoded: try id.signApproval(withShort, approved: true))!
+        #expect(try verifies(id, shortSig, DeviceIdentity.approvalPayload(requestID: "apr_9", approved: true, summary: "Post in #office-hours")))
     }
 
     @Test(.enabled(if: SecureEnclave.isAvailable)) func enclaveKeySignsTooAndNeverLeaves() throws {
