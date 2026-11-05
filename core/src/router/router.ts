@@ -136,7 +136,7 @@ export function createRouter(deps: RouterDeps): RouterLike {
 
   async function spark(text: string, ctx: RouteContext): Promise<Route> {
     const resp = await within(deps.sparkBudgetMs ?? SPARK_BUDGET_MS, () =>
-      deps.muse!.responses.create({ model: deps.sparkModel, instructions: SYSTEM, input: renderUser(text, ctx), reasoning: { effort: "minimal" }, max_output_tokens: 80 }),
+      deps.muse!.responses.create({ model: deps.sparkModel, instructions: SYSTEM, input: renderUser(text, ctx), reasoning: { effort: "minimal" }, max_output_tokens: 400 }), // reasoning tokens count against the cap
     );
     return parseRoute(outputText(resp));
   }

@@ -18,6 +18,7 @@ import { SurfaceKind, type Manifest, type ServerMessage } from "../protocol.ts";
 import { SurfaceRegistry } from "../surfaces.ts";
 import { ToolRegistry } from "../tools/registry.ts";
 import type { Namespace, ToolSpec } from "../tools/types.ts";
+import { createRouter } from "../router/router.ts";
 import { EVAL_DIR, loadScript, ScriptedMuse, type Script } from "./scripted.ts";
 import { applyFixtures, evalWorld, PLANNED, type EvalWorld } from "./world.ts";
 
@@ -371,8 +372,17 @@ async function play(bench: Bench, c: Case, script: Script | null, opts: EvalOpti
   opts.patchSurfaces?.(surfaces);
   bench.world.camera.attach(surfaces);
 
+  // Live, the model's pace is unknown, so a scripted drop waits until that device is holding
+  // the task (an approval or speech), then drops 200 ms later. Its rejoin keeps the same gap.
+  const live = !script;
+  const waitingDrops = new Map<string, () => void>();
   const onMessage = (id: string, msg: ServerMessage) => {
     bench.inbox.push({ at: performance.now(), surface: id, msg });
+    const drop = (msg.type === "approval_request" || msg.type === "speak") && waitingDrops.get(id);
+    if (drop) {
+      waitingDrops.delete(id);
+      bench.later(200, drop);
+    }
     // A camera surface answers a capture request with one frame, as the glasses app does.
     if (msg.type === "capture_request") return bench.later(0, () => bench.world.camera.shoot(msg.request_id, id));
     if (msg.type !== "approval_request") return;
@@ -400,13 +410,21 @@ async function play(bench: Bench, c: Case, script: Script | null, opts: EvalOpti
   bench.every(500, () => surfaces.sweep());
 
   const started = performance.now();
+  const act = (s: Case["script"][number]) => {
+    if (s.action === "drop") {
+      out.drops.push({ at: performance.now(), surface: s.surface });
+      down(s.surface);
+    } else up(s.surface);
+  };
   for (const s of c.script) {
-    bench.later(s.at_ms, () => {
-      if (s.action === "drop") {
-        out.drops.push({ at: performance.now(), surface: s.surface });
-        down(s.surface);
-      } else up(s.surface);
-    });
+    if (!live) bench.later(s.at_ms, () => act(s));
+    else if (s.action === "drop") {
+      const rejoins = c.script.filter((r) => r.action === "rejoin" && r.surface === s.surface && r.at_ms > s.at_ms);
+      waitingDrops.set(s.surface, () => {
+        act(s);
+        for (const r of rejoins) bench.later(r.at_ms - s.at_ms, () => act(r));
+      });
+    }
   }
 
   const scripted = script ? new ScriptedMuse(bench, fastModel) : null;
@@ -421,6 +439,8 @@ async function play(bench: Bench, c: Case, script: Script | null, opts: EvalOpti
     tools: bench.tools,
     surfaces,
     log: bench.log,
+    // Live, the router runs as in production: Spark when it answers in time, else the rules.
+    ...(live ? { router: createRouter({ muse: bench.instrument(muse, fastModel), sparkModel: fastModel, namespaces: () => bench.tools.names() }) } : {}),
     agentModel: opts.agentModel ?? "scripted",
     fastModel,
     timeZone: opts.timeZone,

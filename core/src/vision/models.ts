@@ -65,7 +65,7 @@ export function sparkReader(muse: MuseLike, model = "muse-spark-1.3"): PosterRea
         model,
         instructions: `${READ}\nToday is ${today}; use it for a date with no year.`,
         reasoning: { effort: "low" },
-        max_output_tokens: 300,
+        max_output_tokens: 800, // Spark's reasoning counts against the cap; 300 nearly ran out live
         input: [{ role: "user", content: [{ type: "input_text", text: question }, { type: "input_image", image_url: dataUrl(jpeg) }] }],
       });
       return parseFields(outputText(resp));

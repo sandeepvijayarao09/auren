@@ -9,7 +9,7 @@
     "web"
   ],
   "commands": [
-    "Find a table for two near there at 8 and hold it."
+    "Hold a table for two at 8 tonight at Demo Bistro on OpenTable."
   ],
   "expect": {
     "tools": [

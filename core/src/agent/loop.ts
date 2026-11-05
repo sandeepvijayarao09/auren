@@ -226,7 +226,8 @@ async function fastAck(deps: AgentDeps, cmd: Command, isDone: () => boolean, rou
     let text = (await routed) ?? "";
     if (!text && deps.fastModel) {
       const resp = await Promise.race([
-        deps.muse.responses.create({ model: deps.fastModel, instructions: ACK, input: cmd.text, reasoning: { effort: "minimal" }, max_output_tokens: 40 }),
+        deps.muse.responses.create({ model: deps.fastModel, instructions: ACK, input: cmd.text, // Spark reasons even at minimal effort, and those tokens count against the cap: 40 left the ack empty.
+        reasoning: { effort: "minimal" }, max_output_tokens: 300 }),
         new Promise((_, reject) => setTimeout(() => reject(new Error("ack timeout")), 2500)),
       ]);
       text = outputText(resp);

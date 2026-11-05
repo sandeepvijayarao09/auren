@@ -6,18 +6,21 @@
 
 > *"Hey Muse, I'm running 15 late. Tell office hours, push my 3 PM, and draft the reply to Prof. Lee."*
 
-Auren is one Muse-powered agent and one live session across your **Apple Watch, Ray-Ban Meta glasses, iPhone and Mac**. You say "Hey Muse", and one sentence gets done across all your apps. The task follows you from device to device.
+Auren is one agent built on Muse, and one live session across your **Apple Watch, Ray-Ban Meta glasses, iPhone and Mac**. You say "Hey Muse", and one sentence gets done across all your apps. The task follows you from device to device.
 
 **Why "Auren".** From *aura*, the field around a person, and *aurum*, gold: the golden layer around you, which every app and device speaks through.
 
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 to Nov 4, 2026) · Indie track · Theme: *Build for Your World*
-> Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Glimmer · Muse Voice Transcribe · SAM 3.1**. Every use is listed in [MUSE.md](MUSE.md).
+> Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Voice Transcribe · SAM 3.1** (a Muse Glimmer router is written, not yet trained). Every use is listed in [MUSE.md](MUSE.md).
 
 ## The idea
-Meta's Muse agent lives on Meta's devices. Auren brings Muse models to **every device you already own**:
-1. **Any device.** A device joins with a one-message manifest ([Surface Protocol](spec/surface-protocol.md)). A new surface takes [about 20 lines](spec/examples/minimal-surface.html).
-2. **The task follows you.** Look through the glasses, approve on the watch, read the receipt on the phone. If a device drops, its pending approval moves to the next best one.
-3. **Every app.** Auren uses APIs where they exist and Muse Wonder computer use where they don't.
+**Muse is the future Meta is building toward.** For that future to arrive, Muse has to live in everyday life as a natural extension of you, not as one more app you open.
+
+**Auren is that extension: a layer between you and the digital world, built on Muse.**
+- **Across any app.** Native connectors for Calendar, Gmail and Slack; any MCP server you already use; and Muse Wonder computer use for apps with no API at all.
+- **Across your devices.** The iPhone and the Mac run Auren's own apps: the live timeline, receipts and approvals. The glasses, the Apple Watch and AirPods (as the iPhone's mic and speakers) are Muse's eyes, ears and voice: they carry what you see and say in, and Muse's answer out. A new device joins with a one-message manifest ([Surface Protocol](spec/surface-protocol.md)), [about 20 lines](spec/examples/minimal-surface.html).
+- **More personal with every message.** Every email, message and action in or out becomes a receipt in your encrypted log, and Auren Memory recaps and recalls from it ("what did I promise Prof. Lee?"). That learning stays on your Mac; your mail never trains anyone's model.
+- **End to end, from one command.** Say it once on the glasses, or tap once on the watch, and the whole task runs across apps and follows you between devices. If a device drops, its pending approval moves to the next best one. Nothing is sent without your tap.
 
 **iCloud-level security, with no Auren cloud.** Core's master key is sealed to your Mac's Secure Enclave. Your iPhone and Apple Watch pair once, and every tap they approve is signed by their own Secure Enclave. The log is encrypted and hash-chained, so any edit shows. Every outbound call is recorded. Details in [SECURITY.md](SECURITY.md).
 
