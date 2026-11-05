@@ -27,3 +27,5 @@ logs/
 # R11: MCP bridge. Your MCP servers (commands, tokens) and the demo Journal's entries; mcp.example.json is the template
 mcp.json
 journal.json
+# Rendered ad cuts and their audio (upload the MP4, don't commit it)
+film/
