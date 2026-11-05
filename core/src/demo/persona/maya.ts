@@ -158,8 +158,13 @@ export function taskList(): Task[] {
   ];
 }
 
-/** Replaces the demo world's state with Maya's week and gives Slack a history tool. */
-export function applyMaya(state: DemoState, namespaces: Namespace[]) {
+export type SlackMessage = (typeof MESSAGES)[number];
+
+/**
+ * Replaces the demo world's state with Maya's week and gives Slack a history tool.
+ * `messages` is the channel history read_channel serves; the eval plants messages in it.
+ */
+export function applyMaya(state: DemoState, namespaces: Namespace[], messages: SlackMessage[] = MESSAGES.map((m) => ({ ...m }))) {
   state.events.clear();
   for (const [id, e] of calendar()) state.events.set(id, { ...e });
   state.channels.splice(0, state.channels.length, ...CHANNELS);
@@ -175,7 +180,7 @@ export function applyMaya(state: DemoState, namespaces: Namespace[]) {
       external: true,
       async run({ channel_id }: { channel_id?: string }) {
         const name = (id: string) => CHANNELS.find((c) => c.id === id)?.name;
-        const all = [...MESSAGES.map((m) => ({ ...m, user: m.user })), ...state.posts.map((p) => ({ ...p, user: MAYA.name }))];
+        const all = [...messages.map((m) => ({ ...m })), ...state.posts.map((p) => ({ ...p, user: MAYA.name }))];
         return { messages: all.filter((m) => !channel_id || m.channel_id === channel_id).map((m) => ({ channel: name(m.channel_id), ...m })) };
       },
     });
@@ -197,10 +202,11 @@ export function mayaServers() {
 /** Like evalWorld, with Maya's week loaded and her MCP servers connected. */
 export async function mayaWorld(deps: WorldDeps) {
   const world = baseWorld(deps);
-  const counts = applyMaya(world.state, world.namespaces);
+  const slackMessages = MESSAGES.map((m) => ({ ...m }));
+  const counts = applyMaya(world.state, world.namespaces, slackMessages);
   const { journal, tasks, servers } = mayaServers();
   const mcp = new McpBridge({ servers });
   mcp.start();
   await mcp.ready();
-  return { ...world, journal, tasks, counts, namespaces: [...world.namespaces, ...mcp.namespaces], close: () => mcp.close() };
+  return { ...world, journal, tasks, counts, slackMessages, namespaces: [...world.namespaces, ...mcp.namespaces], close: () => mcp.close() };
 }

@@ -1,0 +1,38 @@
+{
+  "id": "partial-failure-three-apps",
+  "title": "A three-app command where the calendar is down says what did and didn't happen",
+  "golden_path": null,
+  "category": "partial-failure",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Fix my afternoon: tell #cs5800-tas I'm 20 minutes late, push office hours to 3:30, and draft Prof. Lee a reply that grades are in by 5."
+  ],
+  "fixtures": {
+    "fail": {
+      "calendar.move_event": "Google Calendar returned 503: backend unavailable"
+    }
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "slack.post_message",
+      "gmail.create_draft"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "watch"
+      }
+    ],
+    "receipts": 2,
+    "reply_matches": [
+      "office hours|calendar|3:30",
+      "couldn'?t|could not|failed|didn'?t|unable|wasn'?t able|not able|error|unavailable|isn'?t responding|went wrong"
+    ],
+    "max_total_ms": 20000
+  }
+}

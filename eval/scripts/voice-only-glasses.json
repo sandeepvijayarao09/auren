@@ -1,0 +1,25 @@
+{
+  "case": "voice-only-glasses",
+  "note": "No screen anywhere: the glasses are the only device, so the reply goes to voice.",
+  "commands": [
+    {
+      "ack": "Checking your calendar.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "calendar.list_events",
+              "args": {
+                "date": "{{today}}"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Your thesis sync with Prof. Lee is at 5:30."
+        }
+      ]
+    }
+  ]
+}

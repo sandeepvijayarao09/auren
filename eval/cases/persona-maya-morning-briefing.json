@@ -1,0 +1,35 @@
+{
+  "id": "persona-maya-morning-briefing",
+  "title": "Maya's morning briefing reads calendar, email and Slack, and changes nothing",
+  "golden_path": null,
+  "category": "persona",
+  "surface": "phone",
+  "online": [
+    "phone",
+    "watch"
+  ],
+  "commands": [
+    "Morning briefing: what's on my calendar today, what's new in email and Slack, and what needs an answer from me?"
+  ],
+  "fixtures": {
+    "persona": "maya"
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "calendar.list_events",
+      "gmail.search_threads",
+      "slack.read_channel"
+    ],
+    "must_not": [
+      "slack.post_message",
+      "gmail.create_draft",
+      "calendar.move_event",
+      "calendar.invite",
+      "tasks.add_task",
+      "journal.add_entry"
+    ],
+    "receipts": 0,
+    "max_total_ms": 30000
+  }
+}

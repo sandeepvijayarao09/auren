@@ -1,0 +1,30 @@
+{
+  "id": "undo-a-send",
+  "title": "Undo of a Slack post says it can't, because sends reached someone",
+  "golden_path": null,
+  "category": "undo",
+  "surface": "web",
+  "online": [
+    "web",
+    "watch"
+  ],
+  "commands": [
+    "Undo that Slack post."
+  ],
+  "fixtures": {
+    "after": "tier-send-always-asks"
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "receipts.undo"
+    ],
+    "must_not": [
+      "slack.post_message"
+    ],
+    "receipts": 0,
+    "reply_matches": [
+      "can'?t|cannot|can not|unable|not able|no way|isn'?t possible|not possible"
+    ]
+  }
+}

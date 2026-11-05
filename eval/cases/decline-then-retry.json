@@ -1,0 +1,42 @@
+{
+  "id": "decline-then-retry",
+  "title": "The person declines a post, then asks again with new text: only the second one posts",
+  "golden_path": null,
+  "category": "tier-gate",
+  "surface": "web",
+  "online": [
+    "web",
+    "watch"
+  ],
+  "commands": [
+    "Post 'Demo moved to 7' in #general.",
+    "Okay, post 'Demo moved to 7:30, pizza at 7' instead."
+  ],
+  "fixtures": {
+    "expect_post": {
+      "channel": "general",
+      "text": "7:30"
+    }
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "slack.post_message"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "watch",
+        "decline": true
+      },
+      {
+        "tool": "slack.post_message",
+        "on": "watch"
+      }
+    ],
+    "receipts": 1,
+    "reply_matches": [
+      "post|#general"
+    ]
+  }
+}

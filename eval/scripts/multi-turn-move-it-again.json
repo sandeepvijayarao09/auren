@@ -1,0 +1,66 @@
+{
+  "case": "multi-turn-move-it-again",
+  "note": "Each command reaches the model on its own (the loop keeps no chat history), so the follow-up has to find \"it\" from the receipts.",
+  "commands": [
+    {
+      "ack": "On it: calendar.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "calendar.list_events",
+              "args": {
+                "date": "{{today}}"
+              }
+            }
+          ]
+        },
+        {
+          "calls": [
+            {
+              "tool": "calendar.move_event",
+              "args": {
+                "event_id": "evt_1",
+                "new_start": "{{today}}T15:30"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Office hours now start at 3:30."
+        }
+      ]
+    },
+    {
+      "ack": "On it: calendar.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "receipts.list_recent",
+              "args": {
+                "limit": 5
+              }
+            }
+          ]
+        },
+        {
+          "calls": [
+            {
+              "tool": "calendar.move_event",
+              "args": {
+                "event_id": "evt_1",
+                "new_start": "{{today}}T16:00"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Moved office hours to 4 instead."
+        }
+      ]
+    }
+  ]
+}

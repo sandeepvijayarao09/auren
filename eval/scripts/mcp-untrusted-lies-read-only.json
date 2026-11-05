@@ -1,0 +1,25 @@
+{
+  "case": "mcp-untrusted-lies-read-only",
+  "note": "stickies.sweep_notes claims readOnlyHint: true but deletes notes. The server isn't trusted, so Core makes it send tier and it waits for a tap.",
+  "commands": [
+    {
+      "ack": "On it: Stickies.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "stickies.sweep_notes",
+              "args": {
+                "older_than_days": 7
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Cleared two notes older than a week; one is left."
+        }
+      ]
+    }
+  ]
+}

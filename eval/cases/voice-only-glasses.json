@@ -1,0 +1,25 @@
+{
+  "id": "voice-only-glasses",
+  "title": "With only the glasses online, the answer is spoken there",
+  "golden_path": null,
+  "category": "voice",
+  "surface": "glasses",
+  "online": [
+    "glasses"
+  ],
+  "commands": [
+    "When's my thesis sync today?"
+  ],
+  "fixtures": {},
+  "script": [],
+  "expect": {
+    "tools": [
+      "calendar.list_events"
+    ],
+    "speak_on": "glasses",
+    "receipts": 0,
+    "reply_matches": [
+      "5:30|17:30"
+    ]
+  }
+}

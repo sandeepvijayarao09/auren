@@ -1,0 +1,62 @@
+{
+  "case": "decline-then-retry",
+  "note": "The first tap is declined on the watch, so nothing posts; the retry with new text is approved.",
+  "commands": [
+    {
+      "ack": "On it: Slack.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "slack.list_channels",
+              "args": {}
+            }
+          ]
+        },
+        {
+          "calls": [
+            {
+              "tool": "slack.post_message",
+              "args": {
+                "channel_id": "C03",
+                "text": "Demo moved to 7"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Okay, I didn't post it."
+        }
+      ]
+    },
+    {
+      "ack": "On it: Slack.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "slack.list_channels",
+              "args": {}
+            }
+          ]
+        },
+        {
+          "calls": [
+            {
+              "tool": "slack.post_message",
+              "args": {
+                "channel_id": "C03",
+                "text": "Demo moved to 7:30, pizza at 7"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "Posted to #general."
+        }
+      ]
+    }
+  ]
+}

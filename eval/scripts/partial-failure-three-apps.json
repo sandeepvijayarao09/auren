@@ -1,0 +1,60 @@
+{
+  "case": "partial-failure-three-apps",
+  "note": "calendar.move_event throws (the fail fixture). The post and the draft go through; the reply must say the move didn't.",
+  "commands": [
+    {
+      "ack": "On it: Slack, calendar and email.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "slack.list_channels",
+              "args": {}
+            },
+            {
+              "tool": "calendar.list_events",
+              "args": {
+                "date": "{{today}}"
+              }
+            },
+            {
+              "tool": "gmail.search_threads",
+              "args": {
+                "query": "Lee"
+              }
+            }
+          ]
+        },
+        {
+          "calls": [
+            {
+              "tool": "slack.post_message",
+              "args": {
+                "channel_id": "C02",
+                "text": "Running 20 minutes late."
+              }
+            },
+            {
+              "tool": "calendar.move_event",
+              "args": {
+                "event_id": "evt_1",
+                "new_start": "{{today}}T15:30"
+              }
+            },
+            {
+              "tool": "gmail.create_draft",
+              "args": {
+                "thread_id": "thr_9",
+                "body": "Hi Prof. Lee, grades will be in by 5."
+              }
+            }
+          ]
+        },
+        {
+          "ms": 300,
+          "say": "Told #cs5800-tas and drafted the reply to Prof. Lee, but I couldn't move office hours: Google Calendar is down. They're still at 3."
+        }
+      ]
+    }
+  ]
+}

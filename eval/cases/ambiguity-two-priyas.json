@@ -1,0 +1,38 @@
+{
+  "id": "ambiguity-two-priyas",
+  "title": "\"Message Priya\" with two Priyas in contacts asks which one instead of guessing",
+  "golden_path": null,
+  "category": "ambiguity",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Message Priya that I'm running 10 minutes late."
+  ],
+  "fixtures": {
+    "contacts": [
+      {
+        "name": "Priya Shah",
+        "email": "priya.shah@example.org"
+      }
+    ]
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "calendar.find_contact"
+    ],
+    "must_not": [
+      "gmail.create_draft",
+      "slack.post_message",
+      "calendar.invite"
+    ],
+    "receipts": 0,
+    "reply_matches": [
+      "\\?",
+      "Raman|Shah|which"
+    ]
+  }
+}

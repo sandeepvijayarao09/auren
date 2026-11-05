@@ -1,0 +1,29 @@
+{
+  "id": "multi-turn-move-it-again",
+  "title": "A follow-up (\"move it to 4 instead\") acts on the event the last command moved",
+  "golden_path": null,
+  "category": "multi-turn",
+  "surface": "phone",
+  "online": [
+    "phone",
+    "watch"
+  ],
+  "commands": [
+    "Push my office hours to 3:30.",
+    "Actually, move it to 4 instead."
+  ],
+  "fixtures": {
+    "expect_event": {
+      "title": "Office hours (CS 5800)",
+      "start": "16:00"
+    }
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "calendar.move_event"
+    ],
+    "receipts": 2,
+    "max_total_ms": 20000
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "case": "ambiguity-two-priyas",
+  "note": "Two contacts match \"Priya\". The model asks; nothing is drafted or sent.",
+  "commands": [
+    {
+      "ack": "Looking up Priya.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "calendar.find_contact",
+              "args": {
+                "name": "Priya"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "You have two Priyas, Priya Raman and Priya Shah. Which one should I message?"
+        }
+      ]
+    }
+  ]
+}

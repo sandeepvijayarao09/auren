@@ -1,0 +1,25 @@
+{
+  "case": "undo-a-send",
+  "note": "Runs after tier-send-always-asks. receipts.undo refuses sends; the reply has to say so.",
+  "commands": [
+    {
+      "ack": "Checking your receipts.",
+      "turns": [
+        {
+          "calls": [
+            {
+              "tool": "receipts.undo",
+              "args": {
+                "description": "the Slack post"
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200,
+          "say": "I can't undo that: the post to #general already went out. I can post a correction if you like."
+        }
+      ]
+    }
+  ]
+}
