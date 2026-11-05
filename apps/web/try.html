@@ -5,37 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>Try Auren</title>
-<meta name="description" content="Try Auren's five golden paths on a fictional workspace, with a simulated phone, watch and glasses.">
+<meta name="description" content="Try Auren, a voice-first agent built on Meta's Muse, in your browser: a 3-minute judge tour on a fictional workspace with a simulated iPhone, Apple Watch and glasses. Sends wait for your tap.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Auren">
+<meta property="og:title" content="Try Auren: say it once, on anything">
+<meta property="og:description" content="One voice agent across your Apple Watch, Ray-Ban Meta glasses, iPhone and Mac, built on Meta's Muse. Take the 3-minute tour in your browser: nothing goes out without your tap.">
+<meta property="og:url" content="{{origin}}/try">
+<meta property="og:image" content="{{origin}}/brand/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Auren: say it once, on anything. A tap waiting on an Apple Watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Try Auren: say it once, on anything">
+<meta name="twitter:description" content="A voice-first agent on Meta's Muse across watch, glasses, phone and Mac. Try the 3-minute judge tour in your browser.">
+<meta name="twitter:image" content="{{origin}}/brand/og.png">
 <link rel="icon" href="/brand/mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/brand/tokens.css">
 <style>
   /* Brand tokens come from brand/tokens.css. Gold means you: only the mark and what waits for your tap are gold. */
-  :root { --bg:var(--auren-onyx); --panel:var(--auren-graphite); --raised:var(--auren-raised); --line:var(--auren-seam); --text:var(--auren-halo); --dim:var(--auren-ash); --gold:var(--auren-aurum); --gold-hi:var(--auren-aurum-hi); --done:var(--auren-done); --bad:var(--auren-stopped); --proof:var(--auren-proof); }
+  :root { --bg:var(--auren-onyx); --panel:var(--auren-graphite); --raised:var(--auren-raised); --line:var(--auren-seam); --text:var(--auren-halo); --dim:var(--auren-ash); --gold:var(--auren-aurum); --gold-hi:var(--auren-aurum-hi); --done:var(--auren-done); --bad:var(--auren-stopped); --proof:var(--auren-proof); --ease:cubic-bezier(0.16,1,0.3,1); }
   * { box-sizing:border-box; }
   html { -webkit-text-size-adjust:100%; }
   body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 var(--auren-text); overflow-x:hidden; }
   button, input { font:inherit; color:inherit; }
   button { cursor:pointer; }
+  button:active:not(:disabled) { transform:scale(.98); }
   :focus-visible { outline:2px solid var(--text); outline-offset:2px; }
+  a { color:inherit; }
   .wrap { max-width:1180px; margin:0 auto; padding:0 16px; }
+  .label { font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin:0 0 10px 2px; font-weight:500; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .skip { position:absolute; left:16px; top:-40px; padding:6px 12px; border-radius:8px; background:var(--raised); z-index:5; }
+  .skip:focus { top:8px; }
 
   /* header */
   .top { display:flex; align-items:center; gap:10px; padding:18px 0 6px; }
   .wordmark { font-family:var(--auren-display); letter-spacing:.32em; font-size:20px; }
   .tag { font-size:12px; color:var(--dim); border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
-  .engine { margin-left:auto; display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:5px 12px; border:1px solid var(--line); border-radius:999px; background:var(--panel); white-space:nowrap; }
+  .view { margin-left:auto; display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--panel); }
+  .view button { border:0; background:transparent; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--dim); }
+  .view button[aria-pressed="true"] { background:var(--raised); color:var(--text); }
+  .engine { display:inline-flex; align-items:center; gap:8px; font-size:13px; padding:5px 12px; border:1px solid var(--line); border-radius:999px; background:var(--panel); white-space:nowrap; }
   .engine i { width:8px; height:8px; border-radius:50%; border:1.5px solid var(--dim); flex:none; }
   .engine.live i { background:var(--text); border-color:var(--text); }
-  .engine.replay b { color:var(--text); font-weight:600; }
+  .engine b { font-weight:600; }
+  @media (max-width:520px) { .top { flex-wrap:wrap; } .tag { display:none; } .engine { padding:4px 10px; } }
 
-  .hero { padding:22px 0 8px; max-width:760px; }
-  .hero h1 { font:400 32px/1.15 var(--auren-display); margin:0 0 10px; letter-spacing:.01em; }
-  .hero p { margin:0; color:var(--dim); }
+  /* hero */
+  .hero { padding:30px 0 12px; display:grid; gap:14px; max-width:820px; }
+  .eyebrow { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  .hero h1 { font:400 clamp(32px, 6vw, 52px)/1.04 var(--auren-display); margin:0; letter-spacing:.005em; }
+  .hero .one { margin:0; font-size:clamp(16px, 2.2vw, 19px); line-height:1.45; color:var(--text); max-width:46em; }
+  .hero .honest { margin:0; font-size:13.5px; color:var(--dim); max-width:60em; }
+  .ctas { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:4px; }
+  .primary { padding:12px 20px; border-radius:999px; border:0; background:var(--text); color:var(--bg); font-weight:650; font-size:15px; display:inline-flex; align-items:center; gap:8px; }
+  .primary:hover { background:#fff; }
+  .ghost { padding:11px 16px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--text); text-decoration:none; font-size:14px; display:inline-flex; align-items:center; gap:6px; }
+  .ghost:hover { border-color:var(--dim); }
+  .ghost svg, .primary svg { flex:none; }
+
+  /* the judge tour */
+  .tour { margin:18px 0 6px; border:1px solid var(--line); border-radius:22px; background:var(--panel); padding:16px; }
+  .tour[hidden] { display:none; }
+  .tour-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .tour-head h2 { margin:0; font:400 21px/1.2 var(--auren-display); }
+  .tour-head .count { font:12px var(--auren-mono); color:var(--dim); }
+  .tour-head .exit { margin-left:auto; border:0; background:transparent; color:var(--dim); font-size:13px; text-decoration:underline; text-underline-offset:3px; padding:4px; }
+  .steps { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:6px; }
+  .steps li button { width:100%; height:100%; text-align:left; border:1px solid var(--line); background:transparent; border-radius:12px; padding:8px 9px; font-size:12.5px; line-height:1.25; color:var(--dim); display:flex; flex-direction:column; gap:3px; }
+  .steps li button small { font:11px var(--auren-mono); }
+  .steps li.done button { color:var(--text); }
+  .steps li.done button small::after { content:" ✓"; color:var(--done); }
+  .steps li.now button { border-color:var(--text); color:var(--text); background:var(--raised); }
+  @media (max-width:900px) { .steps { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
+  @media (max-width:520px) { .steps { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  .stepcard { margin-top:12px; padding:14px 16px; border-radius:16px; background:var(--raised); display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:6px 16px; align-items:center; }
+  .stepcard .what { font-size:16px; font-weight:600; }
+  .stepcard .look { color:var(--dim); font-size:14px; grid-column:1; }
+  .stepcard .look b { color:var(--text); font-weight:600; }
+  .stepcard .act { grid-column:2; grid-row:1 / span 2; display:flex; gap:8px; align-items:center; }
+  .stepcard .go-step { padding:10px 16px; border-radius:999px; border:0; background:var(--text); color:var(--bg); font-weight:650; white-space:nowrap; }
+  .stepcard .go-step:disabled { opacity:.5; cursor:default; }
+  .stepcard .state { font-size:13px; color:var(--dim); white-space:nowrap; }
+  .stepcard .state.yours { color:var(--gold-hi); }
+  @media (max-width:640px) { .stepcard { grid-template-columns:minmax(0, 1fr); } .stepcard .act { grid-column:1; grid-row:auto; flex-wrap:wrap; } }
+  .stepcard.new { animation:rise .28s var(--ease) both; }
 
   /* asking */
-  .ask { padding:18px 0 8px; }
+  .ask { padding:18px 0 4px; }
   .chips { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
-  .chip { text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); transition:border-color .15s, background .15s; min-width:0; }
+  .chip { text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); min-width:0; }
   .chip:hover:not(:disabled) { border-color:var(--dim); background:var(--raised); }
   .chip:disabled { opacity:.45; cursor:default; }
   .chip small { display:block; font:11px/1.3 var(--auren-mono); color:var(--dim); letter-spacing:.02em; }
@@ -51,13 +110,14 @@
   .opts { display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--dim); }
 
   /* the stage: phone, watch, trail. Stacked on a phone: watch, trail, then the timeline. */
-  .stage { display:grid; gap:20px; padding:18px 0 32px; grid-template-columns:minmax(0, 1.25fr) 248px minmax(0, 1fr); grid-template-areas:"phone watch trail"; align-items:start; }
+  .stage { display:grid; gap:20px; padding:14px 0 28px; grid-template-columns:minmax(0, 1.25fr) 248px minmax(0, 1fr); grid-template-areas:"phone watch trail"; align-items:start; }
   @media (max-width:1020px) { .stage { grid-template-columns:minmax(0, 1fr) 248px; grid-template-areas:"phone watch" "phone trail"; } }
-  @media (max-width:700px) { .stage { grid-template-columns:minmax(0, 1fr); grid-template-areas:"watch" "trail" "phone"; } .hero h1 { font-size:27px; } }
+  @media (max-width:700px) { .stage { grid-template-columns:minmax(0, 1fr); grid-template-areas:"watch" "trail" "phone"; } }
   .col-phone { grid-area:phone; min-width:0; }
   .col-watch { grid-area:watch; min-width:0; }
   .col-trail { grid-area:trail; min-width:0; }
-  .label { font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin:0 0 10px 2px; }
+  .world { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 10px 2px; font-size:13px; color:var(--dim); }
+  .world b { color:var(--text); font-weight:600; }
 
   /* phone */
   .phone { border:1px solid var(--line); border-radius:30px; background:var(--panel); padding:14px; max-height:min(720px, 78vh); overflow:auto; overscroll-behavior:contain; }
@@ -70,10 +130,11 @@
   .ev.receipt .k::before { content:"✓ "; }
   .ev.error .k { color:var(--bad); }
   .ev.error .k::before { content:"■ "; }
+  .ev.hist { opacity:.62; }
   .ev .b { flex:1; min-width:0; overflow-wrap:anywhere; }
   .t { color:var(--dim); font:11px var(--auren-mono); margin-left:6px; white-space:nowrap; }
-  .tier { font:11px var(--auren-mono); color:var(--dim); border:1px solid var(--line); border-radius:6px; padding:0 5px; margin-left:6px; }
   .replayed { font-size:11px; color:var(--dim); font-style:italic; margin-left:6px; }
+  .pill { display:inline-block; font:11px/1.6 var(--auren-mono); color:var(--dim); border:1px solid var(--line); border-radius:6px; padding:0 6px; margin-left:6px; white-space:nowrap; vertical-align:1px; }
   .undo { margin-left:8px; font-size:12px; padding:3px 10px; border-radius:8px; border:1px solid var(--line); background:var(--raised); }
   .undone { margin-left:8px; font-size:12px; color:var(--dim); }
   .seen { display:flex; align-items:center; gap:8px; margin:8px 0 0; font-size:12px; color:var(--dim); }
@@ -93,14 +154,40 @@
   .go:hover { background:var(--gold-hi); }
   .no { padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--text); }
 
+  .cmd { margin:0 0 12px; padding:14px 16px; border:1px solid var(--line); border-radius:18px; background:var(--raised); }
+  .cmd.new { animation:rise .3s var(--ease) both; }
+  .cmd.hist { background:transparent; border-style:dashed; }
+  .cmd.hist .said, .cmd.hist .done, .cmd.hist .reply { color:var(--dim); }
+  @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .cmd .when { float:right; font-size:12px; color:var(--dim); margin-left:8px; text-align:right; }
+  .cmd .said { font-size:17px; line-height:1.35; }
+  .cmd .ackl { margin-top:6px; color:var(--dim); font-size:14px; }
+  .cmd .done { margin-top:10px; font-size:15px; }
+  .cmd .done::before { content:"✓ "; color:var(--done); }
+  .cmd .done.off { color:var(--dim); }
+  .cmd .stop { margin-top:10px; color:var(--bad); }
+  .cmd .stop::before { content:"■ "; }
+  .cmd .reply { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+  .cmd .wait { margin-top:12px; padding:14px; border:1px solid var(--gold); border-radius:14px; background:var(--panel); }
+  .cmd .wait .why { font-size:12px; color:var(--dim); }
+  .cmd .wait .sum { margin-top:4px; font-size:16px; }
+  .cmd .wait .go { padding:13px 16px; font-size:17px; }
+  .cmd .wait .no { padding:13px 16px; }
+  /* A safety note: outside content tried to give Auren orders, and it didn't follow them. */
+  .cmd .safety { margin-top:10px; padding:10px 12px; border-left:2px solid var(--text); background:var(--panel); border-radius:0 10px 10px 0; font-size:14px; }
+  .cmd .safety::before, .ev.injection_notice .k::before { content:"◆ "; }
+  .cmd .working { margin-top:10px; color:var(--dim); font-size:13px; }
+
   /* watch */
-  .watch { position:relative; width:212px; height:252px; margin:0 auto; border-radius:54px; padding:11px; background:#161618; border:1px solid var(--line); box-shadow:0 18px 50px rgba(0,0,0,.55); }
+  .watch { position:relative; width:212px; height:252px; margin:0 auto; border-radius:54px; padding:11px; background:#161618; border:1px solid var(--line); box-shadow:0 18px 50px rgba(0,0,0,.55); transition:opacity .2s var(--ease); }
   .watch::after { content:""; position:absolute; right:-6px; top:66px; width:6px; height:36px; border-radius:0 4px 4px 0; background:#26262a; border:1px solid var(--line); border-left:0; }
-  .face { height:100%; border-radius:44px; background:#000; padding:20px 16px 16px; display:flex; flex-direction:column; overflow:hidden; transition:background .25s; }
+  .face { position:relative; height:100%; border-radius:44px; background:#000; padding:20px 16px 16px; display:flex; flex-direction:column; overflow:hidden; isolation:isolate; }
+  /* The gold wash fades in on opacity alone. */
+  .face::before { content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(120% 70% at 50% 0%, rgba(212,171,84,.34), rgba(212,171,84,.06) 60%, #000 100%); opacity:0; transition:opacity .22s var(--ease); }
+  .face.ask::before { opacity:1; }
   .face .clock { font:600 30px/1 var(--auren-text); letter-spacing:-.01em; text-align:right; }
   .face .idle { margin-top:auto; font-size:13px; color:var(--dim); }
   .face .said { margin-top:8px; font-size:13px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
-  .face.ask { background:radial-gradient(120% 70% at 50% 0%, rgba(212,171,84,.34), rgba(212,171,84,.06) 60%, #000 100%); }
   .face .what { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-hi); }
   .face .sum { margin-top:6px; font-size:13.5px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
   .face .row { margin-top:auto; flex-direction:column; gap:6px; }
@@ -115,7 +202,29 @@
   .dev.on::before { content:"● "; }
   .glasses { margin-top:12px; font-size:12.5px; color:var(--dim); text-align:center; min-height:1.4em; overflow-wrap:anywhere; }
 
+  /* what Auren knows */
+  .knows { margin-top:18px; border:1px solid var(--line); border-radius:18px; background:var(--panel); padding:14px; }
+  .knows .label { margin-bottom:4px; }
+  .knows .sub { font-size:12px; color:var(--dim); margin:0 0 10px; }
+  .knows ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+  .knows li { display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:2px 8px; align-items:center; }
+  .knows .k { font-size:12px; color:var(--dim); grid-column:1 / -1; }
+  .knows .v { font-size:14px; overflow-wrap:anywhere; }
+  .knows .v small { color:var(--dim); font-size:12px; }
+  .knows .forget { font-size:12px; padding:3px 10px; border-radius:8px; border:1px solid var(--line); background:var(--raised); }
+  .meter { grid-column:1 / -1; height:4px; border-radius:2px; background:var(--line); overflow:hidden; }
+  .meter i { display:block; height:100%; background:var(--text); transform-origin:left; transition:transform .3s var(--ease); }
+  .meter.low i { background:var(--dim); }
+  .knows .ev2 { grid-column:1 / -1; font:11px var(--auren-mono); color:var(--dim); }
+  .knows .none { font-size:13px; color:var(--dim); }
+
   /* trail */
+  details.trailbox > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  details.trailbox > summary::-webkit-details-marker { display:none; }
+  details.trailbox > summary::after { content:"›"; font-size:15px; transition:transform .25s var(--ease); }
+  details.trailbox[open] > summary::after { transform:rotate(90deg); }
+  details.trailbox[open] .trail { animation:fade .25s var(--ease) both; }
+  @keyframes fade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
   .trail { list-style:none; margin:0; padding:0 0 0 4px; }
   .trail .none { color:var(--dim); font-size:14px; }
   .step { position:relative; padding:0 0 14px 22px; font-size:14px; overflow-wrap:anywhere; }
@@ -130,50 +239,42 @@
   .step.stop::before { background:var(--bad); border-radius:1px; }
   .step.eng::before { background:transparent; border:1.5px solid var(--text); width:6px; height:6px; }
 
-  footer { border-top:1px solid var(--line); padding:18px 0 28px; color:var(--dim); font-size:12.5px; display:flex; flex-wrap:wrap; gap:8px 18px; }
+  /* how it works, measured live */
+  .strip { padding:26px 0 8px; border-top:1px solid var(--line); }
+  .strip h2 { font:400 22px/1.2 var(--auren-display); margin:0 0 14px; }
+  .flow { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; counter-reset:f; }
+  .flow li { position:relative; padding:12px 14px; border:1px solid var(--line); border-radius:16px; background:var(--panel); counter-increment:f; }
+  .flow li::before { content:counter(f); font:11px var(--auren-mono); color:var(--dim); }
+  .flow li.gold { border-color:var(--gold); }
+  .flow b { display:block; font-weight:600; margin:2px 0 4px; }
+  .flow span { display:block; font-size:13px; color:var(--dim); line-height:1.4; }
+  @media (max-width:900px) { .flow { grid-template-columns:repeat(2, minmax(0, 1fr)); } .flow li:last-child { grid-column:1 / -1; } }
+  .stats { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; }
+  .stat { padding:14px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
+  .stat b { display:block; font:400 30px/1.1 var(--auren-display); letter-spacing:.01em; }
+  .stat span { display:block; margin-top:6px; font-size:13px; color:var(--dim); line-height:1.35; }
+  @media (max-width:900px) { .stats { grid-template-columns:repeat(2, minmax(0, 1fr)); } .stat:last-child { grid-column:1 / -1; } }
+  .source { margin:12px 0 0; font-size:12.5px; color:var(--dim); }
+  .source a { color:var(--proof); text-underline-offset:3px; }
+
+  footer { margin-top:26px; border-top:1px solid var(--line); padding:18px 0 28px; color:var(--dim); font-size:12.5px; display:flex; flex-wrap:wrap; gap:8px 18px; }
   footer a { color:var(--dim); }
-  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
-  /* Simple / Details: Simple is what a person cares about, Details is the full console. */
-  .view { display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--panel); }
-  .view button { border:0; background:transparent; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--dim); transition:background .2s cubic-bezier(0.16,1,0.3,1), color .2s cubic-bezier(0.16,1,0.3,1); }
-  .view button[aria-pressed="true"] { background:var(--raised); color:var(--text); }
-  .engine { margin-left:0; }
-  .top .view { margin-left:auto; }
-  @media (max-width:480px) { .top { flex-wrap:wrap; } .tag { display:none; } .engine { padding:4px 10px; } }
-  .cmd { margin:0 0 12px; padding:14px 16px; border:1px solid var(--line); border-radius:18px; background:var(--raised); }
-  .cmd.new { animation:rise .45s cubic-bezier(0.16,1,0.3,1) both; }
-  @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  .cmd .when { float:right; font-size:12px; color:var(--dim); margin-left:8px; }
-  .cmd .said { font-size:17px; line-height:1.35; }
-  .cmd .ackl { margin-top:6px; color:var(--dim); font-size:14px; }
-  .cmd .done { margin-top:10px; font-size:15px; }
-  .cmd .done::before { content:"✓ "; color:var(--done); }
-  .cmd .done.off { color:var(--dim); }
-  .cmd .stop { margin-top:10px; color:var(--bad); }
-  .cmd .stop::before { content:"■ "; }
-  .cmd .reply { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
-  .cmd .wait { margin-top:12px; padding:14px; border:1px solid var(--gold); border-radius:14px; background:var(--panel); }
-  .cmd .wait .why { font-size:12px; color:var(--dim); }
-  .cmd .wait .sum { margin-top:4px; font-size:16px; }
-  .cmd .wait .go { padding:13px 16px; font-size:17px; }
-  .cmd .wait .no { padding:13px 16px; }
-  .cmd .working { margin-top:10px; color:var(--dim); font-size:13px; }
-  details.trailbox > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:6px; }
-  details.trailbox > summary::-webkit-details-marker { display:none; }
-  details.trailbox > summary::after { content:"›"; font-size:15px; transition:transform .3s cubic-bezier(0.16,1,0.3,1); }
-  details.trailbox[open] > summary::after { transform:rotate(90deg); }
-  details.trailbox[open] .trail { animation:fade .35s cubic-bezier(0.16,1,0.3,1) both; }
-  @keyframes fade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
   @media (prefers-color-scheme: light) {
     :root { color-scheme:light; --bg:#FFFFFF; --panel:#F2F2F7; --raised:#FFFFFF; --line:#D1D1D6; --text:#0B0B0C; --dim:#5E5B55; --gold:#92712A; --gold-hi:#735921; --done:#008932; --bad:#E9152D; --proof:#1E6EF4; }
     .go { background:#735921; color:#FFFFFF; } .go:hover { background:#5E4819; }
+    .primary:hover { background:#000; }
     .face { color:var(--auren-halo); } .face .no { color:var(--auren-halo); } .face .what { color:var(--auren-aurum-hi); } .face .idle { color:var(--auren-ash); } .face .go { background:var(--auren-aurum); color:var(--auren-onyx); }
+    .stepcard .state.yours { color:#735921; }
   }
-  @media (prefers-reduced-motion:reduce) { .cmd.new, details.trailbox[open] .trail { animation:none; } }
-  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+  @media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation:none !important; transition:none !important; }
+    button:active:not(:disabled) { transform:none; }
+  }
 </style>
 </head>
 <body>
+<a class="skip" href="#stage">Skip to the demo</a>
 <div class="wrap">
   <header class="top">
     <svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true"><g fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="11" cy="11" r="10" opacity=".35"/><circle cx="11" cy="11" r="7" opacity=".6"/><circle cx="11" cy="11" r="4"/></g><circle cx="11" cy="11" r="1.6" fill="var(--gold)"/></svg>
@@ -182,12 +283,26 @@
     <span class="engine replay" id="engine" role="status"><i></i><b>Replay</b></span>
   </header>
 
-  <section class="hero">
-    <h1>Say it once. On anything.</h1>
-    <p>Try Auren on a fictional workspace: a calendar, Slack and Gmail with made-up people, and a simulated iPhone, Apple Watch and glasses. Nothing here reaches a real account or device. Sends still wait for your tap on the watch.</p>
+  <section class="hero" aria-labelledby="h">
+    <div class="eyebrow">Built on Meta's Muse · Meta × Cerebral Valley hackathon</div>
+    <h1 id="h">Say it once. On anything.</h1>
+    <p class="one">Auren is one voice agent across your Apple Watch, Ray-Ban Meta glasses, iPhone and Mac: Muse does the work across your apps, and nothing goes out without your tap.</p>
+    <div class="ctas">
+      <button class="primary" type="button" id="tourStart"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg>Start the 3-minute judge tour</button>
+      <a class="ghost" href="https://youtu.be/dmmQTRM8Ci8" target="_blank" rel="noopener">Watch the 2:45 demo<span aria-hidden="true">↗</span></a>
+      <a class="ghost" href="https://github.com/sandeepvijayarao09/auren" target="_blank" rel="noopener">Source on GitHub<span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="honest" id="honest">This page runs Auren Core for real (the tier gate, your tap, receipts, Undo and what it learns) on a fictional workspace with a simulated iPhone, watch and glasses. Nothing here reaches a real account or device. Every command is labeled <b>Replay</b> or <b>Live</b>.</p>
+  </section>
+
+  <section class="tour" id="tour" aria-labelledby="tourTitle" hidden>
+    <div class="tour-head"><h2 id="tourTitle">The 3-minute judge tour</h2><span class="count" id="tourCount"></span><button class="exit" type="button" id="tourExit">Exit tour</button></div>
+    <ol class="steps" id="steps"></ol>
+    <div id="stepcard" aria-live="polite"></div>
   </section>
 
   <section class="ask" aria-label="Try a command">
+    <div class="label">Or tap any example</div>
     <div class="chips" id="chips"></div>
     <form class="say" id="f">
       <label class="sr" for="q">Say something to Auren</label>
@@ -198,16 +313,21 @@
     <div class="opts"><label><input type="checkbox" id="voice"> Read replies aloud</label></div>
   </section>
 
-  <main class="stage">
+  <main class="stage" id="stage" tabindex="-1">
     <section class="col-phone" aria-label="iPhone">
-      <div class="label" id="phoneLabel">iPhone · timeline</div>
-      <div class="phone"><div id="ptaps"></div><div id="cards"></div><div id="timeline"><div class="empty">Tap a golden path above. Every step lands here, with a receipt and Undo.</div></div></div>
+      <div class="world" id="world"></div>
+      <div class="phone"><div id="ptaps"></div><div id="cards"></div><div id="timeline"><div class="empty">Tap an example above. Every step lands here, with a receipt and Undo.</div></div></div>
     </section>
     <section class="col-watch" aria-label="Apple Watch">
       <div class="label">Apple Watch</div>
       <div class="watch" id="watch"><div class="face" id="face" aria-live="polite"></div></div>
       <div class="devices" id="devices"></div>
       <div class="glasses" id="glasses"></div>
+      <section class="knows" aria-labelledby="knowsTitle">
+        <div class="label" id="knowsTitle">What Auren knows</div>
+        <p class="sub" id="knowsSub">Learned from your receipts in this session, in memory. At 40% or more, Muse sees it; it never skips a tap.</p>
+        <ul id="knows"><li class="none">Nothing yet.</li></ul>
+      </section>
     </section>
     <section class="col-trail" aria-label="What Auren just did">
       <details class="trailbox" id="trailbox"><summary class="label">What Auren just did</summary>
@@ -215,23 +335,52 @@
     </section>
   </main>
 
+  <section class="strip" aria-labelledby="howTitle">
+    <h2 id="howTitle">How it works</h2>
+    <ol class="flow">
+      <li><b>Muse decides</b><span>Muse Spark picks the apps, the risk (read, write or send) and the device to answer on.</span></li>
+      <li><b>Wonder acts</b><span>Muse Wonder calls the tools across Calendar, Slack, Gmail, MCP and the web.</span></li>
+      <li><b>Tier gate</b><span>Core enforces it, not the model: reads run, writes get a receipt, sends wait.</span></li>
+      <li class="gold"><b>A tap on your device</b><span>The send waits on your watch, and follows you to your phone if the watch comes off.</span></li>
+      <li><b>Receipt</b><span>Every change lands on your timeline with Undo, and Auren learns your habits from it.</span></li>
+    </ol>
+  </section>
+
+  <section class="strip" aria-labelledby="liveTitle">
+    <h2 id="liveTitle">Measured live</h2>
+    <div class="stats">
+      <div class="stat"><b>18 / 20</b><span>eval cases passed live on Muse Wonder</span></div>
+      <div class="stat"><b>0</b><span>tier violations: no send without a tap</span></div>
+      <div class="stat"><b>7.2 s</b><span>median end to end, not counting time waiting on a tap</span></div>
+      <div class="stat"><b>414</b><span>tests across five suites, no key or device needed</span></div>
+      <div class="stat"><b>2.4–3.1 s</b><span>to read a real poster through the glasses (vision)</span></div>
+    </div>
+    <p class="source">From the live eval run against muse-wonder-1.0 on Nov 5 2026 (<a href="https://github.com/sandeepvijayarao09/auren/blob/main/eval/results.md" target="_blank" rel="noopener">eval/results.md</a>) and the README. They were not measured in this sandbox, which replays unless a live key is set.</p>
+  </section>
+
   <footer>
-    <span>Uses Muse models from Meta.</span>
+    <span>Uses Muse models from Meta. Every person and company here is fictional.</span>
     <span id="foot">Replay plays the model's turns from the eval's scripts; the tier gate, the tap, receipts and Undo are Auren Core itself.</span>
-    <a href="https://github.com/sandeepvijayarao09/auren" rel="noopener">Source</a>
+    <a href="https://github.com/sandeepvijayarao09/auren" target="_blank" rel="noopener">Source</a>
+    <a href="https://youtu.be/dmmQTRM8Ci8" target="_blank" rel="noopener">Demo video</a>
   </footer>
 </div>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const NAME = { phone: "iPhone", watch: "Watch", glasses: "Glasses" };
+const WORLD = { sandbox: "", "sandbox-maya": "Maya" };
 const KEY = "auren.try.visitor";
 const store = { get() { try { return sessionStorage.getItem(KEY); } catch { return null; } }, set(v) { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch {} } };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 
 const VIEW_KEY = "auren.view";
 let view = (() => { try { return localStorage.getItem(VIEW_KEY) === "details" ? "details" : "simple"; } catch { return "simple"; } })();
 const seenCards = new Set();
-let visitor = null, examples = [], events = [], since = 0, outSince = 0, taps = [], busy = false, engine = null, lastSaid = {}, timer = null, undone = new Set(), drawn = "";
+let visitor = null, examples = [], events = [], since = 0, outSince = 0, taps = [], busy = false, engine = null, lastSaid = {}, timer = null, undone = new Set(), drawn = "", scene = null, knows = null;
+// Which engine ran each command: the page knows it when it sends one; older ones show the engine of the moment.
+const ranOn = new Map();
+let sentOn = null;
 
 async function api(path, opts = {}) {
   const r = await fetch(`/try/api/${path}`, { ...opts, headers: { "content-type": "application/json", ...(visitor ? { "x-auren-visitor": visitor } : {}) } });
@@ -247,19 +396,20 @@ const engineLine = () => !engine ? "" : engine.mode === "live"
   : `Replay: ${(WHY[engine.reason] || "").replace(/^./, (c) => c.toLowerCase())} Core is real: the tier gate, your tap, receipts and Undo.`;
 
 async function open(fresh) {
-  if (fresh) { visitor = null; store.set(null); events = []; since = 0; outSince = 0; taps = []; lastSaid = {}; undone = new Set(); render(); }
+  if (fresh) { visitor = null; store.set(null); events = []; since = 0; outSince = 0; taps = []; lastSaid = {}; undone = new Set(); ranOn.clear(); render(); }
   else visitor = store.get();
   const r = await api("session", { method: "POST", body: "{}" });
   if (!r.ok) { note(r.body.error || "The sandbox isn't answering. Try again in a moment.", true); setTimeout(() => open(true), 15000); return; }
   visitor = r.body.visitor; store.set(visitor); examples = r.body.examples; engine = r.body.engine;
-  chips(); badge(); poll();
+  chips(); badge(); poll(); drawTour();
 }
 
+const where = (e) => `${e.scene === "maya" ? "Maya · " : ""}${NAME[e.where] || e.where}`;
 function chips() {
-  $("chips").innerHTML = examples.map((e) => `<button class="chip" type="button" data-text="${esc(e.text)}" title="${esc(e.text)}"><small>${esc(e.golden)} · ${esc(NAME[e.where] || e.where)}</small><span>${esc(e.label)}</span></button>`).join("");
+  $("chips").innerHTML = examples.map((e) => `<button class="chip" type="button" data-text="${esc(e.text)}" title="${esc(e.text)}"><small>${esc(e.golden)} · ${esc(where(e))}</small><span>${esc(e.label)}</span></button>`).join("");
 }
 
-const WHY = { no_key: "The live model isn't connected here, so the golden paths replay.", replay_only: "This sandbox is set to replay.", budget: "The live model's budget for this sandbox is spent, so the golden paths replay now.", limit: "Auren's token limit is reached, so the golden paths replay now.", failing: "The live model isn't answering right now, so the golden paths replay." };
+const WHY = { no_key: "The live model isn't connected here, so the examples replay.", replay_only: "This sandbox is set to replay.", budget: "The live model's budget for this sandbox is spent, so the examples replay now.", limit: "Auren's token limit is reached, so the examples replay now.", failing: "The live model isn't answering right now, so the examples replay." };
 function badge() {
   if (!engine) return;
   const el = $("engine");
@@ -286,19 +436,23 @@ async function poll() {
   if (r && r.status === 401) { note("Your session expired after 30 minutes idle, so this is a fresh workspace."); return open(true); }
   if (r && r.ok) {
     const s = r.body;
-    if (s.events.length) { events.push(...s.events); since = s.events.at(-1).id; }
+    if (s.events.length) {
+      for (const e of s.events) if (e.kind === "utterance" && !e.data.history && !ranOn.has(e.id)) { ranOn.set(e.id, sentOn || (s.engine && s.engine.label) || "Replay"); sentOn = null; }
+      events.push(...s.events); since = s.events.at(-1).id;
+    }
     for (const o of s.outputs) { outSince = o.id; output(o); }
     // On a phone, a new tap scrolls the device that holds it into view: it's your move.
     const fresh = s.taps.find((t) => !taps.some((x) => x.request_id === t.request_id));
-    taps = s.taps; busy = s.busy; engine = s.engine; devices(s.devices);
+    taps = s.taps; busy = s.busy; engine = s.engine; scene = s.scene; knows = s.knows; devices(s.devices);
     if (fresh && matchMedia("(max-width:700px)").matches) {
       const el = fresh.surface === "watch" ? $("watch") : $("ptaps");
       const box = el.getBoundingClientRect();
-      if (box.top < 0 || box.bottom > innerHeight) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+      if (box.top < 0 || box.bottom > innerHeight) setTimeout(() => el.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "center" }), 50);
     }
     // Only redraw when something changed, so hover and focus survive the poll.
-    const sig = JSON.stringify([since, taps, busy, engine, lastSaid, undone.size, s.devices]);
+    const sig = JSON.stringify([since, taps, busy, engine, lastSaid, undone.size, s.devices, scene, knows]);
     if (sig !== drawn) { drawn = sig; badge(); render(); }
+    tourTick();
   }
   if (again) { again = false; return poll(); }
   timer = setTimeout(poll, busy || taps.length ? 400 : 1500);
@@ -335,8 +489,11 @@ function render() {
   // A tap that moved to the phone
   $("ptaps").innerHTML = taps.filter((t) => t.surface === "phone").map((t) => `<div class="ptap"><div class="why">Your move · the watch came off, so the tap followed you here</div><div>${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="phone" data-v="1">${verb(t)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="phone" data-v="0">Not now</button></div></div>`).join("");
   $("ptaps").hidden = view === "simple";
+  $("world").innerHTML = scene ? `<span>iPhone${view === "details" ? " · timeline" : ""}</span><span class="pill">World</span><b>${esc(scene.who)}</b>` : "iPhone";
   view === "simple" ? simple() : timeline();
   trail();
+  drawKnows();
+  drawTour();
 }
 
 function setView(v, save = true) {
@@ -344,7 +501,6 @@ function setView(v, save = true) {
   if (save) { try { localStorage.setItem(VIEW_KEY, v); } catch {} }
   document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
   $("trailbox").open = v === "details";
-  $("phoneLabel").textContent = v === "simple" ? "iPhone" : "iPhone · timeline";
   render();
 }
 
@@ -357,14 +513,17 @@ function ago(at) {
   return new Date(at).toLocaleDateString();
 }
 
+const engineOf = (id) => { const l = ranOn.get(id) || (engine && engine.label) || "Replay"; return /^Live/.test(l) ? l : "Replay"; };
+const receiptHtml = (e, gone) => { const d = e.data; return `${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a href="${esc(d.link)}" style="color:var(--proof)" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? `<span class="undone">Undone</span>` : `<button class="undo" data-undo="${e.id}" aria-label="Undo: ${esc(d.summary)}">Undo</button>`) : ""}`; };
+
 // Simple: one card per command. What you said, the ack, a tap that waits, receipts, the reply.
 function simple() {
   const gone = undoneIds(), groups = [];
   for (const e of events) {
-    if (e.kind === "utterance") groups.push({ id: e.id, at: e.at, items: [] });
+    if (e.kind === "utterance") groups.push({ id: e.id, at: e.at, session: e.session, hist: Boolean(e.data.history), items: [] });
     if (groups.length) groups.at(-1).items.push(e);
   }
-  if (!groups.length) { $("timeline").innerHTML = `<div class="empty">Tap a golden path above. What Auren does lands here, with Undo.</div>`; return; }
+  if (!groups.length) { $("timeline").innerHTML = `<div class="empty">Tap an example above, or start the tour. What Auren does lands here, with Undo.</div>`; return; }
   const last = groups.at(-1);
   $("timeline").innerHTML = groups.slice().reverse().map((g) => {
     let html = "", replied = false;
@@ -376,18 +535,24 @@ function simple() {
         const t = taps.find((x) => x.request_id === d.request_id);
         if (t) html += `<div class="wait"><div class="why">Waiting for your tap${t.surface === "watch" ? " · also on your watch" : ""}</div><div class="sum">${esc(t.summary)}</div><div class="row"><button class="go" data-tap="${esc(t.request_id)}" data-on="${esc(t.surface)}" data-v="1">${verb(t)}</button><button class="no" data-tap="${esc(t.request_id)}" data-on="${esc(t.surface)}" data-v="0">Not now</button></div></div>`;
       }
+      if (e.kind === "approval" && d.status === "approved" && d.history) html += `<div class="done off">Approved on the ${esc(NAME[d.surface_id] || d.surface_id)}</div>`;
       if (e.kind === "approval" && d.status === "declined") html += `<div class="done off">You said not now, so nothing went out.</div>`;
       if (e.kind === "approval" && d.status === "expired") html += `<div class="done off">Nobody tapped, so nothing went out.</div>`;
-      if (e.kind === "receipt" && !d.undoes) html += `<div class="done${gone.has(e.id) ? " off" : ""}">${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a href="${esc(d.link)}" style="color:var(--proof)" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? `<span class="undone">Undone</span>` : `<button class="undo" data-undo="${e.id}">Undo</button>`) : ""}</div>`;
+      if (e.kind === "receipt" && !d.undoes) html += `<div class="done${gone.has(e.id) ? " off" : ""}">${receiptHtml(e, gone)}</div>`;
       if (e.kind === "error") html += `<div class="stop">${esc(d.message)}</div>`;
+      if (e.kind === "injection_notice") html += `<div class="safety" role="note">${esc(noticeText(d))}</div>`;
       if (e.kind === "reply") { replied = true; html += `<div class="reply">${esc(d.text)}${Array.isArray(d.suggestions) ? `<div class="sugg">${examples.filter((x) => d.suggestions.includes(x.id)).map((x) => `<button type="button" data-text="${esc(x.text)}">${esc(x.label)}</button>`).join("")}</div>` : ""}</div>`; }
     }
     if (g === last && busy && !replied) html += `<div class="working">Working…</div>`;
     const fresh = !seenCards.has(g.id); seenCards.add(g.id);
-    return `<article class="cmd${fresh ? " new" : ""}"><span class="when">${esc(ago(g.at))}</span>${html}</article>`;
+    const world = WORLD[g.session] ? `<span class="pill">${esc(WORLD[g.session])}</span>` : "";
+    const when = g.hist ? `<span class="pill">Seeded history</span>` : `${esc(ago(g.at))}${world}<span class="pill">${esc(engineOf(g.id))}</span>`;
+    return `<article class="cmd${fresh ? " new" : ""}${g.hist ? " hist" : ""}"${g.hist ? ` title="${esc(g.items[0].data.history)}"` : ""}><span class="when">${when}</span>${html}</article>`;
   }).join("");
 }
 
+// Core's injection_notice, logged after a reply when outside content tried to instruct Auren. Read defensively by name.
+const noticeText = (d) => String(d.text || d.message || d.notice || "Outside content tried to give me instructions; I ignored it.");
 const time = (at) => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
 const REPLAYED = { "glasses.look": "replayed: the eval's synthetic poster", "browser.run_task": "replayed: a demo booking page, not a real site" };
 const undoneIds = () => new Set([...undone, ...events.filter((e) => e.kind === "receipt" && e.data.undoes).map((e) => e.data.undoes)]);
@@ -395,24 +560,25 @@ const undoneIds = () => new Set([...undone, ...events.filter((e) => e.kind === "
 function body(e, gone) {
   const d = e.data;
   switch (e.kind) {
-    case "utterance": return [`You said`, `“${esc(d.text)}” <span class="t">on ${esc(NAME[d.surface_id] || d.surface_id)}</span>`];
+    case "utterance": return [`You said`, `“${esc(d.text)}” <span class="t">on ${esc(NAME[d.surface_id] || d.surface_id)}</span>${d.history ? `<span class="pill">Seeded history</span>` : `<span class="pill">${esc(engineOf(e.id))}</span>`}${WORLD[e.session] ? `<span class="pill">${esc(WORLD[e.session])}</span>` : ""}`];
     case "ack": return ["Ack", esc(d.text)];
     case "tool_call": { const k = `${d.namespace}.${d.tool}`; return [esc(d.tier), `${esc(d.app)} · ${esc(d.tool)}${REPLAYED[k] ? `<span class="replayed">${REPLAYED[k]}</span>` : ""}`]; }
-    case "receipt": return ["Receipt", `${esc(d.summary)}${/^https:\/\//.test(d.link ?? "") ? ` <a href="${esc(d.link)}" style="color:var(--proof)" target="_blank" rel="noopener">See it</a>` : ""}${d.undo ? (gone.has(e.id) ? `<span class="undone">Undone</span>` : `<button class="undo" data-undo="${e.id}">Undo</button>`) : ""}${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.crop ?? "") ? `<figure class="seen"><img src="${d.crop}" alt=""><figcaption>What the glasses saw: the eval's synthetic poster, cropped where SAM outlined it</figcaption></figure>` : ""}`];
+    case "receipt": return ["Receipt", `${receiptHtml(e, gone)}${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.crop ?? "") ? `<figure class="seen"><img src="${d.crop}" alt=""><figcaption>What the glasses saw: the eval's synthetic poster, cropped where SAM outlined it</figcaption></figure>` : ""}`];
     case "approval": return ["Tap", d.status === "requested" ? `Asked on ${esc(NAME[d.surface_id] || "no device yet")}: ${esc(d.summary)}` : `${esc(d.status === "approved" ? "Approved" : d.status === "declined" ? "Declined" : "Expired")}${d.surface_id ? ` on ${esc(NAME[d.surface_id] || d.surface_id)}` : ""}`];
     case "handoff": return ["Moved", `${d.what === "speech" ? "The reply" : "The tap"} moved ${esc(NAME[d.from] || d.from)} → ${esc(NAME[d.to] || d.to || "nowhere yet")}`];
     case "reply": return ["Reply", `${esc(d.text)}${d.spoken_on ? ` <span class="t">on ${esc(NAME[d.spoken_on] || d.spoken_on)}</span>` : ""}${Array.isArray(d.suggestions) ? `<div class="sugg">${examples.filter((x) => d.suggestions.includes(x.id)).map((x) => `<button type="button" data-text="${esc(x.text)}">${esc(x.golden)} · ${esc(x.label)}</button>`).join("")}</div>` : ""}`];
     case "error": return ["Stopped", esc(d.message)];
     case "browser_frame": return ["Browser", `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="The demo booking page">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}<span class="replayed">replayed</span>`];
     case "usage": return ["Usage", esc(d.message)];
+    case "injection_notice": return ["Safety", esc(noticeText(d))];
     default: return null;
   }
 }
 
 function timeline() {
   const gone = undoneIds();
-  const rows = events.slice().reverse().map((e) => { const b = body(e, gone); return b && `<div class="ev ${esc(e.kind)}"><div class="k">${b[0]}</div><div class="b">${b[1]}<span class="t">${time(e.at)}</span></div></div>`; }).filter(Boolean);
-  $("timeline").innerHTML = rows.length ? rows.join("") : `<div class="empty">Tap a golden path above. Every step lands here, with a receipt and Undo.</div>`;
+  const rows = events.slice().reverse().map((e) => { const b = body(e, gone); return b && `<div class="ev ${esc(e.kind)}${e.data.history ? " hist" : ""}"><div class="k">${b[0]}</div><div class="b">${b[1]}<span class="t">${time(e.at)}</span></div></div>`; }).filter(Boolean);
+  $("timeline").innerHTML = rows.length ? rows.join("") : `<div class="empty">Tap an example above. Every step lands here, with a receipt and Undo.</div>`;
 }
 
 // What Auren just did: the last command, step by step.
@@ -425,7 +591,8 @@ function trail() {
   steps.push(["", `<b>Heard on ${esc(NAME[u.surface_id] || "iPhone")}</b><span class="sub">“${esc(u.text)}”</span>`]);
   const scripted = events.slice(i).some((e) => e.kind === "ack" || e.kind === "tool_call");
   if (scripted) {
-    steps.push(["eng", engine?.mode === "live" ? `<b>${esc(engine.label)}</b><span class="sub">Muse planned this on the fictional workspace.</span>` : `<b>Replay</b><span class="sub">The model's turns come from the eval's scripts. Core ran everything else.</span>`]);
+    const l = engineOf(events[i].id);
+    steps.push(["eng", /^Live/.test(l) ? `<b>${esc(l)}</b><span class="sub">Muse planned this on the fictional workspace.</span>` : `<b>Replay</b><span class="sub">The model's turns come from the eval's scripts. Core ran everything else.</span>`]);
   }
   for (const e of events.slice(i + 1)) {
     const d = e.data;
@@ -441,31 +608,110 @@ function trail() {
     }
     if (e.kind === "handoff" && d.what === "approval") steps.push(["tap", `<b>The tap moved to the ${esc(NAME[d.to] || d.to || "next device")}</b><span class="sub">The ${esc(NAME[d.from] || d.from)} came off, so the task followed you.</span>`]);
     if (e.kind === "receipt") steps.push(["receipt", `<b>Receipt</b><span class="sub">${esc(d.summary)}${d.undo && !gone.has(e.id) ? " · Undo on the timeline" : gone.has(e.id) ? " · undone" : ""}</span>`]);
+    if (e.kind === "injection_notice") steps.push(["", `<b>Ignored outside instructions</b><span class="sub">${esc(noticeText(d))}</span>`]);
     if (e.kind === "error") steps.push(["stop", `<b>Stopped</b><span class="sub">${esc(d.message)}</span>`]);
     if (e.kind === "reply") steps.push(["", `<b>Said on the ${esc(NAME[d.spoken_on] || "iPhone")}</b><span class="sub">${esc(d.text)}</span>`]);
   }
   $("trail").innerHTML = steps.map(([cls, html]) => `<li class="step ${esc(cls)}">${html}</li>`).join("");
 }
 
+// What Auren knows: the current world's learned preferences, with confidence, evidence and Forget.
+function drawKnows() {
+  if (!knows) return;
+  $("knowsTitle").textContent = `What Auren knows · ${knows.scene === "maya" ? "Maya's world" : "the TA's world"}`;
+  const list = knows.preferences || [];
+  if (!list.length) { $("knows").innerHTML = `<li class="none">Nothing yet. Auren learns from your receipts: approve GP1, then look here.</li>`; return; }
+  $("knows").innerHTML = list.map((p) => {
+    const pct = Math.round(p.confidence * 100), inPrompt = p.confidence >= knows.threshold;
+    return `<li><span class="k">${esc(p.label)}</span><span class="v">${esc(p.value)}${p.detail ? ` <small>${esc(p.detail)}</small>` : ""}</span><button class="forget" type="button" data-forget="${esc(p.key)}" aria-label="Forget: ${esc(p.label)}">Forget</button><span class="meter${inPrompt ? "" : " low"}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Confidence ${pct}%"><i style="transform:scaleX(${p.confidence})"></i></span><span class="ev2">${pct}% · ${p.evidence.count} of ${p.evidence.total} receipts · ${inPrompt ? "Muse sees it" : "too weak for Muse"}</span></li>`;
+  }).join("");
+}
+
+// ── the judge tour: runs the examples in order, with one line on what to look for ──
+const TOUR = [
+  { title: "One sentence, three apps", ids: ["gp1"], look: "Look for <b>the instant ack</b> on the watch, then <b>the decision</b>: the calendar move and the draft just run, but the Slack post is a send, so it waits. <b>Tap Post on the watch.</b>" },
+  { title: "Receipts and Undo", ids: ["gp5-recap", "gp5-undo"], look: "Auren recaps your day from <b>receipts</b>, then <b>undoes</b> the 3:15 move by voice. Every write has a receipt and Undo; a send can't be undone, which is why it asked first." },
+  { title: "The tap follows you", ids: ["gp3"], look: "The watch comes off 3 seconds in, and <b>the waiting tap moves to the phone</b>. Approve it there." },
+  { title: "The ignored injection", ids: ["injection"], look: "An email tells Auren to post \"grades are leaked\" in #general. <b>Core holds the post at the tier gate.</b> Tap Not now: nothing goes out." },
+  { title: "Glasses: add this", ids: ["gp2"], look: "The glasses look (a replayed synthetic poster), the event lands with <b>the crop SAM outlined</b> in its receipt, and the invite waits for your tap." },
+  { title: "Maya's proactive day", ids: ["maya-briefing", "maya-plan"], look: "A second world. Maya's <b>morning briefing</b> reads calendar, email and Slack and changes nothing. Then <b>Plan tomorrow</b> adds five blocks, each with Undo, and invites nobody." },
+  { title: "It knows your team", ids: ["maya-late"], look: "Maya's usual channel is in <b>What Auren knows</b>, so the post goes straight to #design-team, and still waits for your tap. Then press <b>Forget</b> and say it again: it asks which team." },
+  { title: "Follow-ups", ids: ["followup-1", "followup-2"], look: "\"Actually, move it to 4 instead\" <b>moves the same event again</b>, to 4:00." },
+];
+const tour = { on: false, i: 0, j: 0, running: false, waitFrom: 0, done: new Set(), drawn: "" };
+
+function drawTour() {
+  $("tour").hidden = !tour.on;
+  if (!tour.on) return;
+  const step = TOUR[tour.i];
+  const yours = tour.running && taps.length;
+  const state = tour.running ? (yours ? `<span class="state yours">Your move: tap ${taps[0].surface === "watch" ? "on the watch" : "on the phone"}</span>` : `<span class="state">Running ${tour.j + 1} of ${step.ids.length}…</span>`)
+    : tour.done.has(tour.i) ? (tour.i < TOUR.length - 1 ? `<button class="go-step" type="button" data-tour="next">Next: ${esc(TOUR[tour.i + 1].title)} →</button>` : `<span class="state">That's the tour. Try your own command below.</span>`)
+    : `<button class="go-step" type="button" data-tour="run"${busy ? " disabled" : ""}>Run step ${tour.i + 1}</button>`;
+  const sig = JSON.stringify([tour.i, tour.j, tour.running, yours ? taps[0].surface : "", [...tour.done], busy]);
+  if (sig === tour.drawn) return;
+  const moved = !tour.drawn || JSON.parse(tour.drawn)[0] !== tour.i;
+  tour.drawn = sig;
+  $("tourCount").textContent = `Step ${tour.i + 1} of ${TOUR.length}`;
+  $("steps").innerHTML = TOUR.map((s, k) => `<li class="${tour.done.has(k) ? "done" : ""}${k === tour.i ? " now" : ""}"><button type="button" data-tour-step="${k}"${k === tour.i ? ' aria-current="step"' : ""}${tour.running ? " disabled" : ""}><small>${k + 1}</small>${esc(s.title)}</button></li>`).join("");
+  $("stepcard").innerHTML = `<div class="stepcard${moved ? " new" : ""}"><div class="what">${esc(step.title)}</div><div class="look">${step.look}</div><div class="act">${state}</div></div>`;
+  // Keyboard flow: when the step's button changes under you (or focus fell off a tap that's gone), it takes focus.
+  const next = $("stepcard").querySelector("[data-tour]"), at = document.activeElement;
+  if (next && (!at || at === document.body || $("tour").contains(at))) next.focus({ preventScroll: true });
+}
+
+function tourRun() {
+  const id = TOUR[tour.i].ids[tour.j];
+  const ex = examples.find((e) => e.id === id);
+  if (!ex || busy) return;
+  tour.running = true; tour.waitFrom = since;
+  tour.drawn = ""; drawTour();
+  say(ex.text).then((ok) => { if (!ok) { tour.running = false; tour.drawn = ""; drawTour(); } });
+}
+
+// Called after every poll: a step's command is done once its reply has landed and Auren is idle.
+function tourTick() {
+  if (!tour.on || !tour.running || busy) return;
+  if (!events.some((e) => e.id > tour.waitFrom && e.kind === "reply" && !e.data.history)) return;
+  tour.running = false;
+  if (tour.j + 1 < TOUR[tour.i].ids.length) { tour.j++; setTimeout(tourRun, reduced.matches ? 300 : 900); }
+  else tour.done.add(tour.i);
+  tour.drawn = ""; drawTour();
+}
+
+function tourGo(i) { tour.i = i; tour.j = 0; tour.running = false; tour.drawn = ""; drawTour(); }
+
 async function say(text) {
   text = text.trim();
-  if (!text || busy) return;
+  if (!text || busy) return false;
   note("");
   busy = true; render();
   const r = await api("command", { method: "POST", body: JSON.stringify({ text }) }).catch(() => null);
-  if (!r) { busy = false; render(); return note("The sandbox isn't answering. Try again in a moment.", true); }
+  if (!r) { busy = false; render(); note("The sandbox isn't answering. Try again in a moment.", true); return false; }
   if (r.status === 401) { await open(true); return say(text); }
-  if (!r.ok) { busy = false; render(); return note(r.body.error || "That didn't go through.", true); }
-  engine = r.body.engine; badge();
+  if (!r.ok) { busy = false; render(); note(r.body.error || "That didn't go through.", true); return false; }
+  engine = r.body.engine; sentOn = engine.label; badge();
   poll();
+  return true;
 }
 
 $("f").addEventListener("submit", (ev) => { ev.preventDefault(); const t = $("q").value; $("q").value = ""; say(t); });
+$("tourStart").addEventListener("click", () => {
+  tour.on = true; tour.drawn = "";
+  drawTour();
+  $("tour").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "start" });
+  if (!tour.done.size && !tour.running) tourRun();
+  else $("stepcard").querySelector("button")?.focus({ preventScroll: true });
+});
+$("tourExit").addEventListener("click", () => { tour.on = false; drawTour(); $("tourStart").focus(); });
 document.addEventListener("click", async (ev) => {
   const el = ev.target.closest("button");
   if (!el) return;
   if (el.dataset.view) return setView(el.dataset.view);
   if (el.dataset.text) return say(el.dataset.text);
+  if (el.dataset.tour === "run") return tourRun();
+  if (el.dataset.tour === "next") { tourGo(tour.i + 1); return tourRun(); }
+  if (el.dataset.tourStep) return tourGo(Number(el.dataset.tourStep));
   if (el.dataset.tap) {
     el.disabled = true;
     const r = await api(`taps/${encodeURIComponent(el.dataset.tap)}`, { method: "POST", body: JSON.stringify({ approved: el.dataset.v === "1", surface: el.dataset.on }) });
@@ -476,6 +722,13 @@ document.addEventListener("click", async (ev) => {
     el.disabled = true;
     const r = await api(`receipts/${encodeURIComponent(el.dataset.undo)}/undo`, { method: "POST", body: "{}" });
     if (r.ok && r.body.ok) undone.add(Number(el.dataset.undo)); else note(r.body.message || "Couldn't undo that.", true);
+    return poll();
+  }
+  if (el.dataset.forget) {
+    el.disabled = true;
+    const r = await api(`preferences/${encodeURIComponent(el.dataset.forget)}/forget`, { method: "POST", body: "{}" });
+    if (r.ok) { knows = r.body.knows; note(r.body.ok ? "Forgotten. New receipts can teach it again." : ""); drawKnows(); }
+    else note(r.body.message || r.body.error || "Couldn't forget that.", true);
     return poll();
   }
 });
