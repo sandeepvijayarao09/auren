@@ -92,7 +92,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
 
 ## Not verified yet
-- **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, Spark reading a real poster photo, SAM 3.1 outlining it, and Muse Voice Transcribe. **What didn't:** live computer-use clicks and real-device runs (watch, iPhone, glasses).
+- **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, Spark reading a real poster photo, SAM 3.1 outlining it, and Muse Voice Transcribe. and Muse Spark computer use on a local demo bistro page (paused before the confirm click, booked only after the tap). **What didn't:** real-device runs (watch, iPhone, glasses) and a real booking site.
 - The judges' sandbox runs live Muse when a key is set, and replays the golden paths otherwise.
 - No run on a real Apple Watch or iPhone. Both apps build for the Simulator only.
 - The Ray-Ban Meta glasses toolkit isn't available here, so the glasses camera is a stub; the iPhone camera stands in.

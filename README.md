@@ -101,7 +101,8 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 ## Demo honesty and known limits
 - **Ran live on Muse:** Wonder planning and acting (eval and the day demo); Spark decisions and spoken acks; Spark reading a real poster photo.
 - **Live on Nov 4:** Muse Voice Transcribe turned a recorded GP1 command into the right transcript 161 ms after the audio ended, and Core ran it across Slack, Calendar and Gmail. SAM 3.1 outlined a real poster in 0.86 s.
-- **Not live yet:** computer-use clicks (a scripted model drove the eval), and any run on a real Apple Watch, iPhone or glasses.
+- **Computer use, live:** Muse Spark drove a real Chromium on a local demo bistro page in 2 steps (25.7 s of browsing). The driver paused before "Complete reservation", the tap was asked, and only after it did the click land and a receipt appear. (Muse Wonder 1.0 rejects the computer tool, so `AUREN_COMPUTER_MODEL` defaults to Spark.)
+- **Not live yet:** any run on a real Apple Watch, iPhone or glasses, and a real booking site.
 - **Also new on Nov 4:** a Simple view (a consumer timeline by default, Details on demand), HTTPS and WSS for LAN devices (`make cert`), tool arguments checked against each tool's schema before it runs, and short approval lines on the watch.
 - **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
 - **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
