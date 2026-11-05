@@ -1,5 +1,5 @@
 Build for Your World. Auren is one agent on Muse, one live session across your Apple Watch, Ray-Ban Meta glasses, iPhone and Mac, that turns one sentence into a finished task across your apps.
-Uses Muse models from Meta: Muse Wonder (`muse-wonder-1.0`) and Muse Spark (`muse-spark-1.3`) run live; Muse Voice Transcribe, SAM 3.1 and Muse Spark Open (Baseten) are integrated and tested against fakes, not yet run live; the Muse Glimmer decision model is code ready, not trained.
+Uses Muse models from Meta: Muse Wonder (`muse-wonder-1.0`) and Muse Spark (`muse-spark-1.3`, including reading a real poster photo) run live; SAM 3.1 was called live but returned no regions yet; Muse Voice Transcribe and Muse Spark Open (Baseten) are integrated and tested against fakes, not yet run live; the Muse Glimmer decision model is code ready, not trained.
 
 # Auren: submission
 
@@ -20,7 +20,7 @@ Muse is the future Meta is building. For it to arrive, Muse has to be a natural 
 | **Muse Wonder** (`muse-wonder-1.0`), Responses API | Plans and acts: one command fans out into parallel tool calls across namespaces, with `tool_search` over the devices and apps online | **Yes.** Live eval (11 cases) and the day demo |
 | **Muse Spark** (`muse-spark-1.3`) | Muse decisions per command (apps, risk tier, reply device, look first) within 2.5 s, advisory only; the fast spoken ack | **Yes**, for decisions and acks. In the day demo Spark answered inside the budget on 3 of 7 commands; rules decided the other 4 |
 | **Muse Spark**, vision | Reads the poster in a glasses or phone frame | **No.** The eval and the day use a fixture poster reader (`core/src/eval/world.ts`) |
-| **SAM 3.1** (point prompt) | Outlines "this" in the frame for the receipt crop | **No.** Fixture segmenter in the eval and the day |
+| **SAM 3.1** (point prompt) | Outlines "this" in the frame for the receipt crop | **Partly.** Called live on a real photo: the API processed the image but returned no regions, and refused our point-prompt syntax. The eval and the day use a fixture segmenter |
 | **Muse Wonder computer use** | Drives Chromium on the Mac; the commit guard pauses before any confirm click | **No.** The eval and the day use a scripted computer-use model and a fake driver; the guard itself is tested on real Chromium |
 | **Muse Voice Transcribe** (realtime, keyword biasing) | Ears on every surface: iPhone hold-to-talk, signed watch clips | **No.** Built and tested against a fake transcriber |
 | **Muse Spark Open** (Baseten, `meta-models/muse-spark-open-1026`) | Auren Memory: recap and recall over receipts | **No.** `BASETEN_API_KEY` was not set, so the local fallback answered in the eval and the day |
@@ -94,7 +94,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 ## Not verified yet
 - No run on a real Apple Watch or iPhone. Both apps build for the Simulator only.
 - The Ray-Ban Meta glasses toolkit isn't available here, so the glasses camera is a stub; the iPhone camera stands in.
-- Live vision (Muse Spark reading the frame, SAM 3.1 outlining it) has not run; the eval and the day use fixtures.
+- Live vision: Muse Spark read a real poster photo correctly in 2.5 s (title, time and room). SAM 3.1 returned no regions yet, so live receipts have no crop. The eval and the day still use fixtures for both.
 - Live Muse Voice Transcribe has not run.
 - Live Muse computer use has not run; the eval uses a scripted model and a fake driver.
 - Auren Memory has not run on Spark Open; the local fallback answered.
