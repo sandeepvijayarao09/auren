@@ -10,16 +10,69 @@ export const EVENING_OFFER = { title: "Tomorrow", body: "Want me to plan tomorro
 
 const NOON = 12 * 60;
 
+// One spoken sentence is at most this long; the full briefing is on the card.
+const SPOKEN_MAX = 160;
+// Abbreviations whose period doesn't end a sentence ("Prof. Lee is waiting").
+const ABBREV = /\b(prof|dr|mr|mrs|ms|st|vs|etc|e\.g|i\.e|approx|no|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\.$/i;
+
+/** A markdown line as plain words: no heading marks, bullets, emphasis, code ticks or link targets. */
+function plain(line: string): string {
+  return line
+    .replace(/^\s*(#{1,6}\s+|>\s*|[-*•+]\s+|\d+[.)]\s+)/, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/(\*\*|__|\*|`)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
- * Runs the briefing now. The reply is spoken on the best active voice device
- * (runCommand's speak); with no voice device online, or when it runs to several lines, it goes on the phone as a card.
+ * The briefing's first sentence, for speaking: the model's reply is often a markdown
+ * list, which is long to hear. Deterministic, so it doesn't depend on the model
+ * following a format. Headings and lead-ins ("Here's your day:") are skipped, and a
+ * long sentence is cut at a word. Empty when there's nothing to say.
+ */
+export function spokenLine(reply: string): string {
+  for (const raw of reply.split("\n")) {
+    const line = plain(raw);
+    // A heading or a lead-in to a list has no sentence of its own.
+    if (!line || /:$/.test(line) || (!/[.!?]$/.test(line) && line.split(" ").length < 4)) continue;
+    let end = line.length;
+    for (const m of line.matchAll(/[.!?](?=\s+["“(]?[A-Z0-9]|$)/g)) {
+      if (m[0] === "." && ABBREV.test(line.slice(0, m.index + 1))) continue;
+      end = m.index + 1;
+      break;
+    }
+    let sentence = line.slice(0, end).trim();
+    if (sentence.length > SPOKEN_MAX) {
+      const cut = sentence.slice(0, SPOKEN_MAX);
+      sentence = `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)).replace(/[,;:\s—-]+$/, "")}…`;
+    }
+    return sentence;
+  }
+  return "";
+}
+
+const words = (s: string) => s.replace(/[^a-z0-9]+/gi, " ").trim().toLowerCase();
+
+/**
+ * Runs the briefing now. One short sentence is spoken on the best active voice device
+ * (runCommand's speak); the full briefing goes on the phone as a card whenever there's
+ * more to it than that sentence, or when no voice device is online.
  */
 export async function runBriefing(deps: AgentDeps, session: string, by: "schedule" | "button" | "test" = "schedule") {
   deps.log.append(session, "proactive", { job: "briefing", by, status: "started" });
-  const { reply, spokenOn } = await runCommand(deps, { session, text: BRIEFING_COMMAND, system: "briefing" });
+  let more = false;
+  const speak = (full: string) => {
+    const line = spokenLine(full) || "Your briefing is ready.";
+    more = words(line.replace(/…$/, "")) !== words(full);
+    const screen = deps.surfaces.online().filter((m) => m.outputs.includes("screen"));
+    if (!more || !screen.length) return line;
+    return `${line} The rest is on your ${screen.some((m) => m.kind === "phone") ? "phone" : "screen"}.`;
+  };
+  const { reply, spokenOn } = await runCommand(deps, { session, text: BRIEFING_COMMAND, system: "briefing", speak });
   const voice = deps.surfaces.online().some((m) => m.id === spokenOn && m.outputs.includes("voice"));
-  // A briefing with several lines also goes on the phone, where it can be read back.
-  const shownOn = voice && !reply.includes("\n") ? null : deps.surfaces.showCard("Morning briefing", reply);
+  // The card carries the whole briefing, where it can be read back.
+  const shownOn = voice && !more ? null : deps.surfaces.showCard("Morning briefing", reply);
   deps.log.append(session, "proactive", { job: "briefing", by, status: "done", spoken_on: voice ? spokenOn : null, shown_on: shownOn });
   return { reply, spokenOn: voice ? spokenOn : null, shownOn };
 }

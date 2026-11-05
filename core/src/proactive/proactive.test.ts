@@ -13,7 +13,7 @@ import type { Manifest, ServerMessage } from "../protocol.ts";
 import { SurfaceRegistry } from "../surfaces.ts";
 import { createDemoWorld } from "../tools/demo-world.ts";
 import { ToolRegistry } from "../tools/registry.ts";
-import { BRIEFING_COMMAND, createProactive, PLAN_COMMAND, runBriefing } from "./day.ts";
+import { BRIEFING_COMMAND, createProactive, PLAN_COMMAND, runBriefing, spokenLine } from "./day.ts";
 import { createPlanner, freeGaps } from "./planner.ts";
 import { DailyScheduler, localClock, parseAt } from "./scheduler.ts";
 
@@ -156,6 +156,38 @@ test("with no voice device the briefing goes on the phone as a card", async () =
   assert.equal(res.shownOn, "phone");
   const card = inbox.find((m) => m.type === "show_card");
   assert.ok(card && card.type === "show_card" && card.title === "Morning briefing" && card.body === "Quiet day.");
+});
+
+test("spokenLine takes the briefing's first sentence and leaves the markdown behind", () => {
+  assert.equal(spokenLine("Two events today; Prof. Lee is waiting on HW3 grades."), "Two events today; Prof. Lee is waiting on HW3 grades.");
+  assert.equal(
+    spokenLine("## Morning briefing\n\nHere's your day:\n\n**Your flight clashes with the 3 PM review.** Everything else is quiet.\n- 9:00 Standup\n- 15:00 Review"),
+    "Your flight clashes with the 3 PM review.",
+  );
+  assert.equal(spokenLine("- **9:00** Standup with the [team](https://x.example).\n- 15:00 Review"), "9:00 Standup with the team.");
+  assert.equal(spokenLine("Busy day ahead"), "", "a short heading isn't a sentence");
+  const long = spokenLine(`You have ${"a very long list of things, ".repeat(10)}today.`);
+  assert.ok(long.length <= 161 && long.endsWith("…"), long);
+});
+
+test("a long markdown briefing: one short sentence is spoken, and the whole briefing goes on the phone", async () => {
+  const log = new EventLog();
+  const surfaces = new SurfaceRegistry();
+  const inbox: Record<string, ServerMessage[]> = { phone: [], glasses: [] };
+  surfaces.join(phone, (m) => inbox.phone.push(m));
+  surfaces.join(glasses, (m) => inbox.glasses.push(m));
+  const full = "**Your 9 AM standup moved to 9:30.** Three things need you today.\n\n## Calendar\n- 9:30 Standup\n- 14:00 Design review\n\n## Needs an answer\n- Prof. Lee: HW3 grades\n- Sam: redlines by Thursday";
+  const { muse } = scripted([{ say: full }]);
+  const res = await runBriefing({ muse, tools: new ToolRegistry(), surfaces, log, agentModel: "m", timeZone: TZ }, "s", "test");
+  const said = inbox.glasses.filter((m) => m.type === "speak").map((m) => (m.type === "speak" ? m.text : "")).join(" ");
+  assert.equal(said, "Your 9 AM standup moved to 9:30. The rest is on your phone.");
+  assert.equal(res.spokenOn, "glasses");
+  assert.equal(res.shownOn, "phone");
+  const card = inbox.phone.find((m) => m.type === "show_card");
+  assert.ok(card && card.type === "show_card" && card.body === full, "the card has every line");
+  const reply = log.since("s").find((e) => e.kind === "reply");
+  assert.equal(reply?.data.text, full, "the log keeps the full reply");
+  assert.equal(reply?.data.spoken, "Your 9 AM standup moved to 9:30. The rest is on your phone.");
 });
 
 test("the evening job offers an approval-free card whose tap says Plan tomorrow", async () => {
