@@ -158,6 +158,12 @@ test("`channel` for `channel_id` maps to the declared key, is logged, and still 
   assert.deepEqual(logged?.data.args, { channel_id: "C01", text: "Running late." });
 });
 
+// With full-history turns, a request's input holds the whole conversation; take the tool's output from it.
+const outputOf = (req: { input?: unknown }) => {
+  const item = (req.input as Array<{ type?: string; output?: string }>).find((i) => i.type === "function_call_output");
+  return JSON.parse(item!.output!);
+};
+
 test("bad arguments go back to the model naming the expected keys; the tool doesn't run or ask", async () => {
   const turns = [
     { output: [call("c1", "slack", "post_message", { room: "C01", body: "Running late." })] },
@@ -166,7 +172,7 @@ test("bad arguments go back to the model naming the expected keys; the tool does
   ];
   const { deps, world, requests, watchInbox } = setup(turns, true);
   await runCommand(deps, { session: "s", text: "…", originSurfaceId: "watch" });
-  const first = JSON.parse((requests[1].input as Array<{ output: string }>)[0].output);
+  const first = outputOf(requests[1]);
   assert.equal(first.error, "invalid_arguments");
   assert.deepEqual(first.expected.required, ["channel_id", "text"]);
   assert.match(first.message, /Expected keys: channel_id, text/);
@@ -179,7 +185,7 @@ test("a declined send with mapped arguments still doesn't post", async () => {
   const { deps, world, requests } = setup(turns, false);
   await runCommand(deps, { session: "s", text: "…", originSurfaceId: "watch" });
   assert.equal(world.state.posts.length, 0);
-  assert.deepEqual(JSON.parse((requests[1].input as Array<{ output: string }>)[0].output), { error: "user_declined" });
+  assert.deepEqual(outputOf(requests[1]), { error: "user_declined" });
 });
 
 test("function tools don't set strict: optional keys and MCP schemas aren't strict-compatible", () => {
