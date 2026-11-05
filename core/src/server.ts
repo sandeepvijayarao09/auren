@@ -43,7 +43,7 @@ export interface ServerOptions {
   google?: GoogleAuth;
   ledger?: Ledger;
   /** Camera frames for glasses.look, and the receipt crops it keeps. Without it, /v1/frames answers 503. */
-  vision?: { frames: CaptureBroker; crops: CropStore };
+  vision?: { frames: CaptureBroker; crops: CropStore; /** Muse Image invite cards, when AUREN_INVITE_CARDS is on. */ cards?: CropStore };
   keys?: { source: KeySource; note?: string };
   /** Trusted devices. With it, any surface not on this Mac must be paired and sign its approvals. */
   devices?: DeviceRegistry;
@@ -251,6 +251,12 @@ export function createServer(deps: AgentDeps, opts: ServerOptions) {
   // The receipt's crop: the outline SAM drew, never the whole frame.
   app.get("/v1/crops/:id", (c) => {
     const jpeg = opts.vision?.crops.get(c.req.param("id"));
+    if (!jpeg) return c.json({ error: "not found" }, 404);
+    return c.body(new Uint8Array(jpeg), 200, { "content-type": "image/jpeg", "cache-control": "private, max-age=3600" });
+  });
+  // The invite receipt's card, drawn by Muse Image. Same pattern as the crops.
+  app.get("/v1/cards/:id", (c) => {
+    const jpeg = opts.vision?.cards?.get(c.req.param("id"));
     if (!jpeg) return c.json({ error: "not found" }, 404);
     return c.body(new Uint8Array(jpeg), 200, { "content-type": "image/jpeg", "cache-control": "private, max-age=3600" });
   });

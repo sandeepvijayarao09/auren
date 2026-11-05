@@ -4,7 +4,7 @@ import { EventLog } from "./eventlog.ts";
 import { createServer, SESSION } from "./server.ts";
 import { SurfaceRegistry } from "./surfaces.ts";
 import { GoogleAuth } from "./connectors/google/auth.ts";
-import { createGoogleCalendar } from "./connectors/google/calendar.ts";
+import { createGoogleCalendar, toLocal } from "./connectors/google/calendar.ts";
 import { createGmail } from "./connectors/google/gmail.ts";
 import { createSlack } from "./connectors/slack.ts";
 import { SecretStore } from "./connectors/secrets.ts";
@@ -17,6 +17,7 @@ import { museAsr } from "./voice/asr.ts";
 import { voiceKeywords } from "./voice/wake.ts";
 import { CaptureBroker } from "./vision/capture.ts";
 import { CropStore } from "./vision/crops.ts";
+import { createInviteCards } from "./vision/cards.ts";
 import { createGlasses } from "./vision/look.ts";
 import { samSegmenter, sparkReader } from "./vision/models.ts";
 import { ToolRegistry } from "./tools/registry.ts";
@@ -121,6 +122,23 @@ const router = createRouter({
   ledger,
   ops,
 });
+// Optional Muse Image invite cards beside calendar.invite (AUREN_INVITE_CARDS=true). Off by default.
+const cardStore = config.inviteCards ? new CropStore(config.dbPath, derive(master.key, "cards"), Date.now, "card") : undefined;
+const cards = cardStore
+  ? createInviteCards({
+      client: new OpenAI({ baseURL: config.museBaseUrl, apiKey: config.museApiKey || "missing", maxRetries: 0 }),
+      store: cardStore,
+      model: config.imageModel,
+      waitMs: config.inviteCardWaitMs,
+      ops,
+      describe: google
+        ? async (id) => {
+            const e = await google.json<{ summary?: string; location?: string; start?: { dateTime?: string } }>(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`);
+            return { title: e.summary, location: e.location, start: e.start?.dateTime ? toLocal(e.start, config.timeZone) : undefined };
+          }
+        : undefined,
+    })
+  : undefined;
 const r9 = { router, prefetchFrame: (purpose: string) => void frames.prefetch(purpose) };
 
 const core = createServer(
@@ -136,6 +154,7 @@ const core = createServer(
     approvalTimeoutMs: config.approvalTimeoutMs,
     ops,
     ...r9,
+    cards,
   },
   { token: config.token, museReady: Boolean(config.museApiKey), google,
     ledger,
@@ -145,7 +164,7 @@ const core = createServer(
       asr: config.museApiKey ? museAsr({ apiKey: config.museApiKey, metadataOnlyLogging: config.asrMetadataOnly }) : undefined,
       keywords: () => voiceKeywords(config.asrKeywords),
     },
-    vision: { frames, crops },
+    vision: { frames, crops, cards: cardStore },
     driver,
     mcp, // R11: MCP bridge
     spend, // R13

@@ -50,6 +50,10 @@ export const config = {
   tokenAlarm: count(process.env.AUREN_TOKEN_ALARM, 0),
   tokenLimit: count(process.env.AUREN_TOKEN_LIMIT, 0),
   // R13: the public sandbox. Serves only /try on a fictional demo world, never live connectors or devices.
+  // Muse Image invite cards next to calendar.invite. Off unless set; never part of the tier gate.
+  inviteCards: process.env.AUREN_INVITE_CARDS === "true",
+  imageModel: process.env.AUREN_IMAGE_MODEL || "muse-image-1.0",
+  inviteCardWaitMs: count(process.env.AUREN_INVITE_CARD_WAIT_MS, 9000),
   sandbox: process.env.AUREN_SANDBOX === "true",
   // AUREN_TOKEN means nothing to the sandbox, so it binds to 127.0.0.1 unless HOST says otherwise (a tunnel or a Node host).
   sandboxHost: process.env.HOST ?? "127.0.0.1",
