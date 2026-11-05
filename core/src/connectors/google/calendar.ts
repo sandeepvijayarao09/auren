@@ -3,7 +3,7 @@
 // Moves and new events never email anyone (sendUpdates=none); only `invite`
 // notifies people, which is why it is the one send-tier tool here.
 import type { Namespace, ToolSpec } from "../../tools/types.ts";
-import { params } from "../../tools/types.ts";
+import { inviteShort, params } from "../../tools/types.ts";
 import type { GoogleAuth } from "./auth.ts";
 
 export type GoogleApi = Pick<GoogleAuth, "json">;
@@ -162,6 +162,7 @@ export function createGoogleCalendar(google: GoogleApi, opts: { timeZone: string
           return { ok: true, invited: emails, link: updated.htmlLink };
         },
         summarize: (a: { emails: string[] }, r?: unknown) => (r ? `Invited ${a.emails.join(", ")}` : `Send an invite to ${a.emails.join(", ")}?`),
+        shortSummary: (a: { emails: string[] }) => inviteShort(a.emails),
         proof: (_a, r: { link?: string }) => r?.link,
       },
       {

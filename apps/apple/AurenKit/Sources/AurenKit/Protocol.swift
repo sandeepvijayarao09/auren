@@ -124,13 +124,26 @@ public struct ApprovalRequest: Sendable, Equatable, Identifiable {
     /// What the approve button does, such as "Post" or "Invite" (Surface Protocol v0.1). Display only:
     /// the signature covers the request, the decision and the summary, never the verb.
     public let verb: String?
+    /// A glanceable line of about 60 characters for small screens, such as "Post to #office-hours".
+    /// Display only: the signature always covers the full `summary`, which surfaces show when expanded.
+    public let short: String?
 
-    public init(id: String, summary: String, tier: Tier, verb: String? = nil) {
+    public init(id: String, summary: String, tier: Tier, verb: String? = nil, short: String? = nil) {
         self.id = id
         self.summary = summary
         self.tier = tier
         self.verb = verb
+        self.short = short
     }
+
+    /// The line to lead with on a small screen: the short summary Core sent, or the full one from an older Core.
+    public var headline: String {
+        let line = short?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return line.isEmpty ? summary : String(line.prefix(80))
+    }
+
+    /// True when the headline leaves something out, so the full summary is worth expanding.
+    public var hasMore: Bool { headline != summary }
 
     /// The approve button's word: the verb Core sent, or "Approve" from an older Core.
     public var actionLabel: String {
@@ -186,7 +199,7 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
     /// A message this build doesn't know yet. Newer Cores add messages; old surfaces ignore them.
     case unknown(type: String)
 
-    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason, verb }
+    private enum Keys: String, CodingKey { case type, nonce, session_id, surfaces, heartbeat_ms, event, text, reply_id, seq, final, title, body, request_id, summary, tier, reason, verb, short }
     private enum CaptureKeys: String, CodingKey { case request_id, purpose }
 
     public init(from decoder: Decoder) throws {
@@ -215,7 +228,8 @@ public enum ServerMessage: Decodable, Sendable, Equatable {
             self = .approvalRequest(ApprovalRequest(id: try c.decode(String.self, forKey: .request_id),
                                                     summary: try c.decode(String.self, forKey: .summary),
                                                     tier: try c.decode(Tier.self, forKey: .tier),
-                                                    verb: try c.decodeIfPresent(String.self, forKey: .verb)))
+                                                    verb: try c.decodeIfPresent(String.self, forKey: .verb),
+                                                    short: try c.decodeIfPresent(String.self, forKey: .short)))
         case "approval_cancel":
             self = .approvalCancel(requestID: try c.decode(String.self, forKey: .request_id), reason: try c.decode(String.self, forKey: .reason))
         default:

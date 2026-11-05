@@ -33,6 +33,20 @@ private func object(_ message: ClientMessage) throws -> [String: Any] {
         #expect(message == .approvalRequest(ApprovalRequest(id: "apr_1", summary: "Post in #office-hours", tier: .send)))
     }
 
+    @Test func decodesShortApprovalSummary() throws {
+        let long = "Post to #office-hours: Running about fifteen minutes late, start without me, I will catch up after."
+        let json = #"{"type":"approval_request","request_id":"apr_2","summary":"Post to #office-hours: Running about fifteen minutes late, start without me, I will catch up after.","tier":"send","verb":"Post","short":"Post to #office-hours"}"#
+        guard case .approvalRequest(let request) = try decode(json) else { Issue.record("expected an approval request"); return }
+        #expect(request.summary == long, "the full summary, which the watch signs, is unchanged")
+        #expect(request.short == "Post to #office-hours")
+        #expect(request.headline == "Post to #office-hours")
+        #expect(request.hasMore)
+        // An older Core sends no short line: the headline is the summary.
+        let old = ApprovalRequest(id: "apr_3", summary: "Invite priya@example.com", tier: .send)
+        #expect(old.headline == "Invite priya@example.com")
+        #expect(!old.hasMore)
+    }
+
     @Test func decodesReceiptEvent() throws {
         let message = try decode(#"{"type":"event","event":{"id":7,"session":"default","at":1793000000000,"kind":"receipt","data":{"summary":"Moved Office hours to 3:15 PM","undo":true}}}"#)
         guard case .event(let event) = message else { Issue.record("expected an event"); return }

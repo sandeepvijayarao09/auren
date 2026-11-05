@@ -127,3 +127,55 @@ test("a send tool's verb reaches the approval: the Slack post asks to Post", asy
   const sends = world.namespaces.flatMap((ns) => ns.tools.filter((t) => t.tier === "send").map((t) => [`${ns.name}.${t.name}`, t.verb]));
   assert.deepEqual(Object.fromEntries(sends), { "calendar.invite": "Invite", "slack.post_message": "Post" });
 });
+
+// Tool arguments are checked against the schema before the tool runs or asks for a tap.
+test("`channel` for `channel_id` maps to the declared key, is logged, and still waits for the tap", async () => {
+  const turns = [
+    { output: [call("c1", "slack", "post_message", { channel: "C01", text: "Running late." })] },
+    { output: [], output_text: "Posted." },
+  ];
+  const { deps, log, world, watchInbox } = setup(turns, true);
+  const lines: string[] = [];
+  const { OpsLog } = await import("../obs/opslog.ts");
+  await runCommand({ ...deps, ops: new OpsLog({ write: (l) => lines.push(l) }) }, { session: "s", text: "…", originSurfaceId: "watch" });
+  const asked = watchInbox.find((m) => m.type === "approval_request");
+  assert.ok(asked?.type === "approval_request");
+  assert.equal(asked.summary, 'Post to #office-hours: "Running late."', "summary from the validated arguments");
+  assert.equal(asked.short, "Post to #office-hours");
+  assert.deepEqual(world.state.posts.map((p) => p.channel_id), ["C01"]);
+  const mapped = lines.map((l) => JSON.parse(l)).find((l) => l.event === "tool.args_mapped");
+  assert.deepEqual([mapped?.from, mapped?.to, mapped?.tool], ["channel", "channel_id", "slack.post_message"]);
+  const logged = log.since("s").find((e) => e.kind === "tool_call");
+  assert.deepEqual(logged?.data.args, { channel_id: "C01", text: "Running late." });
+});
+
+test("bad arguments go back to the model naming the expected keys; the tool doesn't run or ask", async () => {
+  const turns = [
+    { output: [call("c1", "slack", "post_message", { room: "C01", body: "Running late." })] },
+    { output: [call("c2", "slack", "post_message", { channel_id: "C01", text: "Running late." })] },
+    { output: [], output_text: "Posted." },
+  ];
+  const { deps, world, requests, watchInbox } = setup(turns, true);
+  await runCommand(deps, { session: "s", text: "…", originSurfaceId: "watch" });
+  const first = JSON.parse((requests[1].input as Array<{ output: string }>)[0].output);
+  assert.equal(first.error, "invalid_arguments");
+  assert.deepEqual(first.expected.required, ["channel_id", "text"]);
+  assert.match(first.message, /Expected keys: channel_id, text/);
+  assert.equal(watchInbox.filter((m) => m.type === "approval_request").length, 1, "only the retry asks for a tap");
+  assert.equal(world.state.posts.length, 1, "only the retry posts");
+});
+
+test("a declined send with mapped arguments still doesn't post", async () => {
+  const turns = [{ output: [call("c1", "slack", "post_message", { channel: "C01", text: "x" })] }, { output: [], output_text: "OK." }];
+  const { deps, world, requests } = setup(turns, false);
+  await runCommand(deps, { session: "s", text: "…", originSurfaceId: "watch" });
+  assert.equal(world.state.posts.length, 0);
+  assert.deepEqual(JSON.parse((requests[1].input as Array<{ output: string }>)[0].output), { error: "user_declined" });
+});
+
+test("function tools don't set strict: optional keys and MCP schemas aren't strict-compatible", () => {
+  const { deps } = setup(GP1, true);
+  const fns = (deps.tools.toResponsesTools({ session: "s", surfaces: deps.surfaces }) as Array<{ tools?: Array<Record<string, unknown>> }>).flatMap((t) => t.tools ?? []);
+  assert.ok(fns.length > 0);
+  assert.equal(fns.some((f) => "strict" in f), false);
+});

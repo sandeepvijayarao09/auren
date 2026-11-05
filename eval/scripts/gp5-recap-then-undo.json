@@ -5,7 +5,7 @@
     {
       "ack": "Pulling up today.",
       "turns": [
-        { "calls": [ { "tool": "memory.recap", "args": { "period": "today" } } ] },
+        { "calls": [ { "tool": "memory.recap", "args": {} } ] },
         { "say": "You posted to office hours, moved office hours to 3:15 and drafted a reply to Prof. Lee." }
       ]
     },

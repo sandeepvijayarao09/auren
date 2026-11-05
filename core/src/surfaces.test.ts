@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Manifest, ServerMessage } from "./protocol.ts";
-import { SurfaceRegistry } from "./surfaces.ts";
+import { SHORT_MAX, shortFor, SurfaceRegistry } from "./surfaces.ts";
 
 const watch: Manifest = { id: "watch", kind: "watch", name: "Watch", inputs: ["voice", "touch"], outputs: ["voice", "haptic", "screen"] };
 const phone: Manifest = { id: "phone", kind: "phone", name: "Phone", inputs: ["voice", "touch", "camera"], outputs: ["voice", "screen"] };
@@ -160,4 +160,22 @@ test("approval_request carries the tool's verb, and leaves it out when there is 
   reg.answer(String(withVerb.request_id), true, "phone");
   reg.answer(String(without.request_id), false, "phone");
   assert.deepEqual([await post, await plain], [true, false]);
+});
+
+test("approval_request carries a short line for small screens; the full summary is unchanged", async () => {
+  const { reg, inbox, join } = setup();
+  join(watch);
+  const long = `Post to #office-hours: "${"Running about fifteen minutes late, start without me. ".repeat(4).trim()}"`;
+  const given = reg.requestApproval(long, "send", 10_000, "Post", "Post to #office-hours");
+  const clipped = reg.requestApproval(long, "send", 10_000);
+  const [a, b] = inbox.watch.filter((m) => m.type === "approval_request") as Array<Record<string, unknown>>;
+  assert.equal(a.summary, long, "the signed summary goes out in full");
+  assert.equal(a.short, "Post to #office-hours");
+  assert.equal(b.summary, long);
+  assert.ok(String(b.short).length <= SHORT_MAX && String(b.short).endsWith("…"), String(b.short));
+  assert.equal(reg.approvalFor(String(a.request_id))?.summary, long, "signatures are checked against the full summary");
+  assert.equal(shortFor("Invite priya@example.com"), "Invite priya@example.com");
+  reg.answer(String(a.request_id), true, "watch");
+  reg.answer(String(b.request_id), false, "watch");
+  assert.deepEqual([await given, await clipped], [true, false]);
 });

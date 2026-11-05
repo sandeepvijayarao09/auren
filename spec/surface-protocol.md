@@ -46,7 +46,7 @@ Sent once, in `hello`.
 | `event` | `event` | A timeline entry: `utterance`, `ack`, `tool_call`, `receipt`, `approval`, `handoff`, `reply`, `error`, and from v0.1 `browser_frame` (see [Timeline media](#timeline-media-v01)) |
 | `speak` | `text` | Say this out loud |
 | `show_card` | `title`, `body` | Show this on a screen |
-| `approval_request` | `request_id`, `summary`, `tier`, `verb?` | Ask for a yes/no tap. `verb` (v0.1) is the approve button's word, such as "Post" (see [Approval verbs](#approval-verbs-v01)) |
+| `approval_request` | `request_id`, `summary`, `tier`, `verb?`, `short?` | Ask for a yes/no tap. `verb` (v0.1) is the approve button's word, such as "Post" (see [Approval verbs](#approval-verbs-v01)). `short` (v0.1) is a glanceable line of at most 60 characters, such as "Post to #office-hours", for small screens |
 | `approval_cancel` | `request_id`, `reason` | The request moved to another surface, or expired |
 | `capture_request` | `request_id`, `purpose` | Take one photo for a "this" command (v0.1, see [Camera](#camera-v01)) |
 
@@ -72,6 +72,8 @@ The exact bytes are defined in `core/src/security/devices.ts` and `apps/apple/Au
 A tap button says what it does. `approval_request` may carry `verb`, the word for the approve button: "Post" for a Slack message, "Invite" for calendar invitations, "Confirm" for the commit in computer use. A surface shows it on the button and falls back to **Approve** when it's missing, so a v0 surface still works. The decline button stays "Not now".
 
 The verb is **display only**. Core takes it from the tool's spec (`verb` in `ToolSpec`), never from the model or a page, and the signed approval is unchanged: a paired device still signs `auren-approve\n<request_id>\n<1|0>\n<sha256 hex of summary>`, with no verb in it. The summary is what carries the meaning, and it's what the signature covers.
+
+`short` is display only too. A small screen such as the watch leads with it and shows the full `summary` when expanded; the signature still covers the full summary, never `short`. A surface that ignores it shows the summary as before.
 
 ## Continuity (v0.1)
 - **Heartbeats.** `welcome` carries `heartbeat_ms`: 500 for glasses, 1000 for everything else. Glasses count as gone after 1.5 s of silence; others after 3 s.
