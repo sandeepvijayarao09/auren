@@ -208,5 +208,7 @@ export async function mayaWorld(deps: WorldDeps) {
   const mcp = new McpBridge({ servers });
   mcp.start();
   await mcp.ready();
+  // The planner reads Maya's open tasks (tasks.list_tasks) through the world's own registry.
+  world.registry.add(...mcp.namespaces);
   return { ...world, journal, tasks, counts, slackMessages, namespaces: [...world.namespaces, ...mcp.namespaces], close: () => mcp.close() };
 }

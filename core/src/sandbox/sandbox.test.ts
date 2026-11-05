@@ -33,6 +33,8 @@ interface Seen {
   devices: Array<{ id: string; online: boolean }>;
   busy: boolean;
   engine: { mode: string; label: string; reason: string | null };
+  scene?: { id: string; session: string; who: string };
+  knows?: { scene: string; threshold: number; preferences: Array<{ key: string; value: string; detail?: string; confidence: number; evidence: { count: number; total: number } }> };
 }
 
 async function boot(opts: Partial<SandboxOptions> = {}, clock?: { t: number }) {
@@ -76,7 +78,7 @@ async function boot(opts: Partial<SandboxOptions> = {}, clock?: { t: number }) {
       seen.outputs.push(...r.body.outputs);
       since = seen.events.at(-1)?.id ?? since;
       outputs = r.body.outputs.at(-1)?.id ?? outputs;
-      Object.assign(seen, { taps: r.body.taps, devices: r.body.devices, busy: r.body.busy, engine: r.body.engine });
+      Object.assign(seen, { taps: r.body.taps, devices: r.body.devices, busy: r.body.busy, engine: r.body.engine, scene: r.body.scene, knows: r.body.knows });
       if (done(seen)) return seen;
       if (Date.now() > end) throw new Error(`timed out; saw ${seen.events.map((e) => e.kind).join(",")}`);
       await new Promise((r) => setTimeout(r, 25));
@@ -89,6 +91,10 @@ async function boot(opts: Partial<SandboxOptions> = {}, clock?: { t: number }) {
 }
 
 const kinds = (s: Seen, kind: string) => s.events.filter((e) => e.kind === kind);
+/** What the visitor did, without Maya's seeded history. */
+const mine = (s: Seen, kind: string) => kinds(s, kind).filter((e) => !e.data.history);
+const answered = (n = 1) => (s: Seen) => !s.busy && mine(s, "reply").length >= n;
+const pref = (s: Seen, key: string) => s.knows?.preferences.find((p) => p.key === key);
 
 // ── isolation and refused routes ──────────────────────────────────────────
 
@@ -254,6 +260,190 @@ test("GP3 replays the watch coming off: the tap moves to the phone, and the watc
   const s = await sb.until(v, sb.replied());
   assert.equal(sb.sandbox.get(v)!.world.state.posts.length, 1);
   assert.ok(s.devices.every((d) => d.online), "every device is back on");
+});
+
+// ── Maya's world, what Auren knows, and the follow-up ─────────────────────
+
+test("Maya's morning briefing reads her day and changes nothing; Plan tomorrow adds five blocks, each with Undo, and invites nobody", async () => {
+  const sb = await boot();
+  const v = await sb.join();
+  let s = await sb.until(v, () => true);
+  assert.deepEqual([s.scene!.id, s.knows!.scene], ["demo", "demo"], "a visitor starts in the golden paths' world");
+
+  assert.equal((await sb.say(v, text("maya-briefing"))).status, 202);
+  s = await sb.until(v, answered(1));
+  assert.equal(s.scene!.id, "maya", "Maya's example moved the visitor into her world");
+  assert.ok(mine(s, "utterance").every((e) => e.session === "sandbox-maya"));
+  assert.deepEqual(mine(s, "tool_call").map((e) => `${e.data.namespace}.${e.data.tool}`), ["calendar.list_events", "gmail.search_threads", "slack.read_channel"]);
+  assert.deepEqual([mine(s, "receipt").length, s.taps.length, mine(s, "approval").length], [0, 0, 0], "reads only: no receipt, no tap");
+  assert.match(String(mine(s, "reply")[0].data.text), /Lumen IT gave me orders; I ignored it/);
+  const maya = sb.sandbox.get(v)!.scenes.get("maya")!.world.state;
+  assert.equal(maya.posts.length, 0, "the planted Lumen IT email posted nothing");
+
+  // Plan tomorrow: one planner call, five receipts (one per block), each undoable, no tap and no invite.
+  const before = maya.events.size;
+  await sb.say(v, text("maya-plan"));
+  s = await sb.until(v, answered(2));
+  assert.deepEqual(mine(s, "tool_call").slice(3).map((e) => `${e.data.namespace}.${e.data.tool}`), ["planner.plan_tomorrow"]);
+  const blocks = mine(s, "receipt");
+  assert.equal(blocks.length, 5);
+  assert.ok(blocks.every((r) => r.data.by === "planner.plan_tomorrow" && (r.data.undo as { tool: string }).tool === "delete_event"));
+  assert.deepEqual(blocks.map((r) => String(r.data.summary).match(/(\d\d:\d\d)–/)![1]), ["09:00", "09:30", "13:00", "15:30", "16:00"], "around tomorrow's workshop and Priya's call");
+  assert.equal(maya.events.size, before + 5);
+  const planned = [...maya.events.values()].filter((e) => e.title === "Focus block" || e.title.startsWith("Task: "));
+  assert.equal(planned.length, 5);
+  assert.ok(planned.every((e) => !e.invitees?.length), "nobody invited");
+  assert.equal(s.taps.length, 0);
+
+  // A follow-up in the other world, then the Undo button on one of Maya's blocks: it's undone in her world.
+  await sb.say(v, text("followup-1"));
+  s = await sb.until(v, answered(3));
+  assert.equal(s.scene!.id, "demo");
+  const focus = blocks.find((r) => String(r.data.summary).includes("Focus block"))!;
+  const undo = await sb.call(`/try/api/receipts/${focus.id}/undo`, { visitor: v, body: {} });
+  assert.deepEqual([undo.status, undo.body.ok], [200, true], JSON.stringify(undo.body));
+  assert.ok(![...maya.events.values()].some((e) => e.title === "Focus block"));
+  assert.equal(maya.events.size, before + 4);
+  const demo = sb.sandbox.get(v)!.scenes.get("demo")!.world.state;
+  assert.equal(demo.events.get("evt_1")!.start.slice(11), "15:30", "the demo world's calendar only has the follow-up's move");
+  s = await sb.until(v, () => true);
+  const undid = kinds(s, "receipt").find((e) => e.data.undoes === focus.id)!;
+  assert.equal(undid.session, "sandbox-maya", "the undo's receipt lands in Maya's session");
+});
+
+test("What Auren knows: learned per world from the visitor's receipts, used by 'tell the team', and forgotten with Forget", async () => {
+  const sb = await boot();
+  const v = await sb.join();
+  const w = await sb.join("198.51.100.2");
+
+  // The golden paths' world learns from GP1: a status post to #office-hours, approved on the watch.
+  await sb.say(v, text("gp1"));
+  await sb.tap(v, await sb.until(v, sb.tapOn("watch")), "watch");
+  let s = await sb.until(v, answered(1));
+  assert.equal(pref(s, "status_channel")?.value, "#office-hours");
+  assert.equal(pref(s, "approval_device")?.value, "watch");
+
+  // Maya's world has its own: her seeded yesterday says #design-team, so "tell the team" posts there in one call, and still asks.
+  await sb.say(v, text("maya-late"));
+  const asked = await sb.until(v, sb.tapOn("watch"));
+  assert.equal(asked.taps[0].summary, 'Post to #design-team: "Hi team, I\'m running 10 minutes late."');
+  assert.equal(asked.knows!.scene, "maya");
+  assert.equal(pref(asked, "status_channel")?.value, "#design-team");
+  assert.ok(pref(asked, "status_channel")!.confidence >= asked.knows!.threshold);
+  assert.ok(kinds(asked, "receipt").some((e) => e.data.history), "the seeded history is on the timeline, marked as such");
+  await sb.tap(v, asked, "watch");
+  s = await sb.until(v, answered(2));
+  assert.deepEqual(mine(s, "tool_call").slice(-1).map((e) => `${e.data.namespace}.${e.data.tool}`), ["slack.post_message"]);
+  assert.equal(mine(s, "tool_call").filter((e) => e.session === "sandbox-maya").length, 1, "no channel lookup: it knew");
+  const maya = sb.sandbox.get(v)!.scenes.get("maya")!.world.state;
+  assert.deepEqual(maya.posts.map((p) => [p.channel_id, p.text]), [["CM1", "Hi team, I'm running 10 minutes late."]]);
+  const post = mine(s, "receipt").at(-1)!;
+  assert.equal(pref(s, "status_channel")!.evidence.count, 2, "the new post is more evidence");
+  const sent = await sb.call(`/try/api/receipts/${post.id}/undo`, { visitor: v, body: {} });
+  assert.deepEqual([sent.status, sent.body.ok], [409, false]);
+  assert.match(sent.body.message, /sends can't be undone/);
+  const yesterday = kinds(s, "receipt").find((e) => e.data.history)!;
+  assert.equal((await sb.call(`/try/api/receipts/${yesterday.id}/undo`, { visitor: v, body: {} })).status, 409, "seeded history can't be undone either");
+
+  // Forget: only this visitor's, only this world's, and the next "tell the team" asks instead of posting.
+  assert.equal((await sb.call("/try/api/preferences/status_channel/forget", { visitor: w, body: {} })).body.ok, false, "another visitor has nothing to forget");
+  const forgot = await sb.call("/try/api/preferences/status_channel/forget", { visitor: v, body: {} });
+  assert.deepEqual([forgot.status, forgot.body.ok], [200, true]);
+  assert.ok(!forgot.body.knows.preferences.some((p: { key: string }) => p.key === "status_channel"));
+  assert.equal((await sb.call("/try/api/preferences/status_channel/forget", { visitor: v, body: {} })).body.ok, false, "already forgotten");
+  assert.equal((await sb.call("/try/api/preferences/not_a_key/forget", { visitor: v, body: {} })).status, 404);
+  assert.equal((await sb.call("/try/api/preferences/status_channel/forget", { body: {} })).status, 401);
+  await sb.say(v, text("maya-late"));
+  s = await sb.until(v, answered(3));
+  assert.equal(mine(s, "reply").at(-1)!.data.text, "Which team should I tell, design-team or checkout-squad?");
+  assert.deepEqual(mine(s, "tool_call").slice(-1).map((e) => `${e.data.namespace}.${e.data.tool}`), ["slack.list_channels"]);
+  assert.equal(maya.posts.length, 1, "nothing new was posted");
+  assert.equal(s.taps.length, 0);
+
+  // The demo world still knows #office-hours: forgetting was Maya's world only.
+  await sb.say(v, text("followup-1"));
+  s = await sb.until(v, answered(4));
+  assert.deepEqual([s.knows!.scene, pref(s, "status_channel")?.value], ["demo", "#office-hours"]);
+  // And the other visitor learned nothing from any of it.
+  const other = await sb.until(w, () => true);
+  assert.deepEqual(other.knows!.preferences, []);
+});
+
+test("the follow-up pair: \"Actually, move it to 4 instead\" moves the same event to 16:00, and waits for its first half", async () => {
+  const sb = await boot();
+  const v = await sb.join();
+  await sb.say(v, text("followup-2"));
+  let s = await sb.until(v, answered(1));
+  assert.match(String(mine(s, "reply")[0].data.text), /follow-up\. Tap "Push office hours" first/);
+  assert.equal(mine(s, "tool_call").length, 0);
+
+  const world = sb.sandbox.get(v)!.world.state;
+  const count = world.events.size;
+  await sb.say(v, text("followup-1"));
+  s = await sb.until(v, answered(2));
+  assert.equal(world.events.get("evt_1")!.start.slice(11), "15:30");
+  await sb.say(v, text("followup-2"));
+  s = await sb.until(v, answered(3));
+  assert.equal(world.events.get("evt_1")!.start.slice(11), "16:00", "the same event moved again");
+  assert.equal(mine(s, "reply").at(-1)!.data.text, "Moved office hours to 4 instead.");
+  const moves = mine(s, "receipt").filter((e) => e.data.tool === "move_event");
+  assert.equal(moves.length, 2);
+  assert.ok(moves.every((m) => m.data.undo));
+  assert.equal(world.events.size, count, "no event was created on the way");
+  // Undo the second move: back to 3:30, not to the original 3.
+  assert.equal((await sb.call(`/try/api/receipts/${moves[1].id}/undo`, { visitor: v, body: {} })).body.ok, true);
+  assert.equal(world.events.get("evt_1")!.start.slice(11), "15:30");
+});
+
+test("the Forget route stays inside the hostile-visitor model: body limit, rate limit, POST only", async () => {
+  const sb = await boot({ requestsPerMinute: 6 });
+  const v = await sb.join("203.0.113.40");
+  const big = await sb.call("/try/api/preferences/status_channel/forget", { visitor: v, ip: "203.0.113.40", body: { pad: "x".repeat(5000) } });
+  assert.equal(big.status, 413);
+  // The session and the oversized body count too: six requests a minute, then 429.
+  for (let i = 0; i < 4; i++) await sb.call("/try/api/preferences/contacts/forget", { visitor: v, ip: "203.0.113.40", body: {} });
+  const limited = await sb.call("/try/api/preferences/contacts/forget", { visitor: v, ip: "203.0.113.40", body: {} });
+  assert.equal(limited.status, 429);
+  assert.ok(Number(limited.headers.get("retry-after")) > 0);
+  // No GET or DELETE shortcut.
+  const other = await sb.join("203.0.113.41");
+  assert.equal((await sb.call("/try/api/preferences/contacts/forget", { visitor: other, ip: "203.0.113.41", method: "DELETE" })).status, 404);
+});
+
+test("the page carries link-preview tags with its own origin, a nonce on its one script, and serves the preview image", async () => {
+  const sb = await boot();
+  const res = await fetch(`${sb.base}/try`);
+  const html = await res.text();
+  const nonce = res.headers.get("content-security-policy")!.match(/'nonce-([^']+)'/)![1];
+  assert.equal((html.match(/<script/g) ?? []).length, 1);
+  assert.ok(html.includes(`<script nonce="${nonce}">`));
+  assert.ok(!html.includes("{{origin}}"));
+  assert.ok(html.includes(`<meta property="og:image" content="${sb.base}/brand/og.png">`), "an absolute image URL");
+  assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
+  // Nothing loads from another host: the only outside URLs are plain links to the repo and the video.
+  const hosts = new Set([...html.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1]));
+  for (const h of hosts) assert.ok(["127.0.0.1", "github.com", "youtu.be", "www.w3.org"].includes(h), `unexpected host ${h}`);
+  assert.ok(!/<(link|img|iframe)[^>]+(src|href)="https?:\/\/(?!127\.0\.0\.1)/i.test(html), "no outside stylesheet, image or frame");
+  // The Host header is the visitor's: anything but a plain host[:port] becomes localhost, and markup never comes back.
+  const { request } = await import("node:http");
+  const withHost = (host: string) => new Promise<{ status: number; body: string }>((resolve, reject) => {
+    const req = request({ host: "127.0.0.1", port: new URL(sb.base).port, path: "/try", headers: { host } }, (r) => {
+      let body = "";
+      r.on("data", (b) => (body += b));
+      r.on("end", () => resolve({ status: r.statusCode ?? 0, body }));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+  const odd = await withHost("evil_example.test");
+  assert.equal(odd.status, 200);
+  assert.ok(odd.body.includes('<meta property="og:image" content="http://localhost/brand/og.png">'));
+  assert.ok(!odd.body.includes("evil_example"));
+  const markup = await withHost('evil.example"><b>x</b>');
+  assert.ok(!markup.body.includes("<b>x</b>"), `status ${markup.status}`);
+  const og = await fetch(`${sb.base}/brand/og.png`);
+  assert.deepEqual([og.status, og.headers.get("content-type")], [200, "image/png"]);
+  assert.deepEqual([...new Uint8Array(await og.arrayBuffer()).slice(1, 4)], [0x50, 0x4e, 0x47]);
 });
 
 test("free text without a key gets a friendly answer and the examples to tap", async () => {

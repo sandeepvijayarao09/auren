@@ -1,13 +1,15 @@
 // The public sandbox: isolated visitors, limits, expiry and the two engines.
 //   live    with MODEL_API_KEY: Muse plans on the visitor's demo world, under a token budget
-//   replay  without a key, or once the budget is spent: the golden paths play from eval/scripts
+//   replay  without a key, or once the budget is spent: the examples play from eval/scripts
 //           through the real loop with the scripted model, so the page always works
-// Either way Core is real: the tier gate, the tap on the simulated watch, receipts and Undo.
+// Either way Core is real: the tier gate, the tap on the simulated watch, receipts, Undo and
+// the preferences learned from the visitor's own receipts (in memory, per scene, with Forget).
 // Vision and computer use are always replayed: the synthetic poster and the demo booking page.
 import { runCommand, undoReceipt, type AgentDeps, type MuseLike } from "../agent/loop.ts";
 import { latestReceipt, receiptRefs, ScriptedMuse } from "../eval/scripted.ts";
 import { applyFixtures } from "../eval/world.ts";
 import { receiptsIn, sessionEvents } from "../memory/history.ts";
+import { PREF_KEYS, PROMPT_THRESHOLD } from "../memory/preferences.ts";
 import { whyNot } from "../memory/receipts.ts";
 import { silentOps, type OpsLog } from "../obs/opslog.ts";
 import type { SpendGuard } from "../obs/spend.ts";
@@ -15,7 +17,8 @@ import type { AurenEvent } from "../protocol.ts";
 import type { Ledger } from "../security/ledger.ts";
 import { examples, loadCatalog, match, type Example, type ReplayEntry } from "./catalog.ts";
 import { Limiter, rateKey } from "./limits.ts";
-import { DEVICES, SESSION, Visitor, type DeviceId } from "./visitor.ts";
+import { SCENES, type Scene } from "./scenes.ts";
+import { DEVICES, Visitor, type DeviceId } from "./visitor.ts";
 
 export interface LiveEngine {
   muse: MuseLike;
@@ -228,29 +231,42 @@ export class Sandbox {
     return v.surfaces.answer(requestId, approved, surface) ? { status: 200, body: { ok: true } } : { status: 404, body: { error: "That tap isn't waiting any more." } };
   }
 
-  /** The Undo button: the same path as the console, with the same checks as "undo that". */
+  /** The Undo button: the same path as the console, with the same checks as "undo that", in the world the receipt came from. */
   async undo(v: Visitor, receiptId: number): Promise<Answer> {
-    const r = receiptsIn(sessionEvents(v.log, SESSION)).find((x) => x.id === receiptId);
-    if (!r) return { status: 404, body: { ok: false, message: "No such receipt." } };
-    const why = whyNot(r, v.tools);
+    const scene = v.sceneOf(v.log.get(receiptId)?.session ?? "");
+    const r = scene && receiptsIn(sessionEvents(v.log, scene.session)).find((x) => x.id === receiptId);
+    if (!scene || !r) return { status: 404, body: { ok: false, message: "No such receipt." } };
+    if (v.busy) return { status: 409, body: { ok: false, message: "Auren is still on your last command. Undo once it's done." } };
+    const why = whyNot(r, scene.tools);
     if (why) return { status: 409, body: { ok: false, message: `Can't undo: ${why}.` } };
     v.lastActive = this.#now();
     try {
-      return { status: 200, body: await undoReceipt({ log: v.log, tools: v.tools, surfaces: v.surfaces }, receiptId, SESSION) };
+      return { status: 200, body: await undoReceipt({ log: v.log, tools: scene.tools, surfaces: v.surfaces }, receiptId, scene.session) };
     } catch (err) {
       return { status: 409, body: { ok: false, message: err instanceof Error ? err.message : String(err) } };
     }
   }
 
+  /** Forgets one learned preference in the current scene, as the console's Forget does. New receipts can teach it again. */
+  forget(v: Visitor, key: string): Answer {
+    if (!(PREF_KEYS as readonly string[]).includes(key)) return { status: 404, body: { ok: false, message: "No such preference." } };
+    v.lastActive = this.#now();
+    return { status: 200, body: { ok: v.prefs.forget(key), knows: knows(v) } };
+  }
+
   /** Everything the page shows, since the last poll. Polling isn't activity, so an open tab still expires. */
   state(v: Visitor, since: number, outputsSince: number) {
+    // Every scene's session, in log order: one timeline, each event naming its session.
+    const events = [...v.scenes.values()].flatMap((s) => v.log.since(s.session, since, 200)).sort((a, b) => a.id - b.id).slice(0, 200);
     return {
-      events: v.log.since(SESSION, since, 200).map((e) => present(v, e)),
+      events: events.map((e) => present(v, e)),
       outputs: v.outputs.filter((o) => o.id > outputsSince),
       taps: [...v.taps.values()],
       devices: DEVICES.map((d) => ({ id: d.id, kind: d.kind, name: d.name, online: v.isUp(d.id) })),
       busy: v.busy,
       engine: this.engine(),
+      scene: { id: v.scene.id, session: v.scene.session, who: SCENES[v.scene.id].who },
+      knows: knows(v),
       expires_in_s: Math.max(0, Math.round((v.lastActive + this.#o.idleMs - this.#now()) / 1000)),
     };
   }
@@ -260,6 +276,8 @@ export class Sandbox {
   async run(v: Visitor, text: string, engine: Engine = this.engine()): Promise<void> {
     const entry = match(this.catalog, text);
     const origin: DeviceId = entry?.where ?? "phone";
+    // An example plays in its own world; free text runs in whichever world the visitor is in.
+    if (entry) v.enter(entry.scene);
     v.busy = true;
     v.declined = false;
     this.running++;
@@ -274,9 +292,12 @@ export class Sandbox {
       if (engine.mode === "live") await this.#live(v, text, origin);
       else if (entry) await this.#replay(v, text, entry, origin);
       else this.#say(v, text, origin, `${WHY_REPLAY[engine.reason ?? "no_key"]}, so this sandbox replays the golden paths. Try one of these.`, engine.reason);
-      if (entry) v.played.add(entry.case.id);
+      if (entry) {
+        v.played.add(entry.case.id);
+        v.played.add(entry.id);
+      }
     } catch (err) {
-      v.log.append(SESSION, "error", { message: err instanceof Error ? err.message : String(err) });
+      v.log.append(v.session, "error", { message: err instanceof Error ? err.message : String(err) });
     } finally {
       for (const t of timers) v.cancel(t);
       v.restore();
@@ -288,7 +309,7 @@ export class Sandbox {
 
   async #live(v: Visitor, text: string, origin: DeviceId): Promise<void> {
     const live = this.#o.live!;
-    const { reply } = await runCommand(this.#deps(v, live.muse, live.agentModel, live.fastModel), { session: SESSION, text, originSurfaceId: origin });
+    const { reply } = await runCommand(this.#deps(v, live.muse, live.agentModel, live.fastModel), { session: v.session, text, originSurfaceId: origin });
     // Two failures in a row (a bad key, the credits gone): replay for five minutes, so the page keeps working.
     if (reply.startsWith("error:")) {
       if (++this.#liveFailures >= 2) {
@@ -302,10 +323,13 @@ export class Sandbox {
   async #replay(v: Visitor, text: string, entry: ReplayEntry, origin: DeviceId): Promise<void> {
     const blocked = this.#blocked(v, entry);
     if (blocked) return this.#say(v, text, origin, blocked, "needs_first");
+    // A replay that leans on a learned preference plays the recorded run that matches what the visitor's Auren knows now.
+    const knowsIt = !entry.prefers || v.prefs.list().some((p) => p.key === entry.prefers!.key && p.value === entry.prefers!.value && p.confidence >= PROMPT_THRESHOLD);
+    const played = knowsIt ? entry : { ...entry, ...entry.prefers!.otherwise };
     const scripted = new ScriptedMuse(v, REPLAY_ACK);
-    scripted.load(entry.command);
+    scripted.load(played.command);
     // The script's last line assumes the person approved. If they didn't, Auren says so instead.
-    const expectsTap = entry.case.expect.approvals.length > 0;
+    const expectsTap = played.case.expect.approvals.length > 0;
     const muse: MuseLike = {
       responses: {
         create: async (params) => {
@@ -315,17 +339,19 @@ export class Sandbox {
         },
       },
     };
-    await runCommand(this.#deps(v, muse, "replay", REPLAY_ACK), { session: SESSION, text, originSurfaceId: origin });
+    await runCommand(this.#deps(v, muse, "replay", REPLAY_ACK), { session: v.session, text, originSurfaceId: origin });
   }
 
-  /** Why an example can't replay yet: GP5 recaps and undoes what GP1 did, so GP1 comes first. */
+  /** Why an example can't replay yet: GP5 recaps and undoes what GP1 did, so GP1 comes first; a follow-up needs its first half. */
   #blocked(v: Visitor, entry: ReplayEntry): string | null {
+    const before = entry.after ? this.catalog.find((e) => e.id === entry.after) : undefined;
+    if (before && !v.played.has(before.id)) return `Replay plays "${entry.text}" as a follow-up. Tap "${before.label}" first, so there's something to follow up on.`;
     const after = typeof entry.case.fixtures.after === "string" ? entry.case.fixtures.after : null;
     const first = this.catalog.find((e) => e.case.id === after)?.golden ?? "GP1";
     if (after && !v.played.has(after)) return `Replay plays ${entry.golden} after ${first}. Tap ${first} first, so there's something to ${entry.index ? "undo" : "recap"}.`;
     for (const [ns, tool] of receiptRefs(entry.command)) {
       const r = latestReceipt(v, ns, tool);
-      const all = r ? receiptsIn(sessionEvents(v.log, SESSION)) : [];
+      const all = r ? receiptsIn(sessionEvents(v.log, v.session)) : [];
       const target = all.find((x) => x.id === r?.id);
       if (!target || target.undoes !== undefined || target.undoneBy !== undefined || !target.undo) {
         return `There's nothing left to undo from ${first}. Tap ${first} again to make a new change.`;
@@ -336,8 +362,8 @@ export class Sandbox {
 
   /** A reply without the agent loop: what the visitor said, and Auren's answer with examples to tap. */
   #say(v: Visitor, text: string, origin: DeviceId, reply: string, reason: string | null): void {
-    v.log.append(SESSION, "utterance", { text, surface_id: origin });
-    v.log.append(SESSION, "reply", { text: reply, spoken_on: v.surfaces.speak(reply, origin), sandbox: reason, suggestions: this.catalog.map((e) => e.id) });
+    v.log.append(v.session, "utterance", { text, surface_id: origin });
+    v.log.append(v.session, "reply", { text: reply, spoken_on: v.surfaces.speak(reply, origin), sandbox: reason, suggestions: this.catalog.map((e) => e.id) });
   }
 
   #deps(v: Visitor, muse: MuseLike, agentModel: string, fastModel?: string): AgentDeps {
@@ -346,6 +372,8 @@ export class Sandbox {
       tools: v.tools,
       surfaces: v.surfaces,
       log: v.log,
+      // Live, Muse sees the confident ones, as on the Mac; a scripted replay ignores them.
+      preferences: v.prefs,
       agentModel,
       fastModel,
       timeZone: this.#o.timeZone,
@@ -358,6 +386,12 @@ export class Sandbox {
 
 /** Receipts that followed glasses.look carry the crop SAM outlined, inline, since the page has no other way to fetch it. */
 function present(v: Visitor, e: AurenEvent): AurenEvent {
-  const crop = e.kind === "receipt" && typeof e.data.crop_id === "string" ? v.world.crops.get(e.data.crop_id) : undefined;
+  const crop = e.kind === "receipt" && typeof e.data.crop_id === "string" ? v.sceneOf(e.session)?.world.crops.get(e.data.crop_id) : undefined;
   return crop ? { ...e, data: { ...e.data, crop: `data:image/jpeg;base64,${crop.toString("base64")}` } } : e;
+}
+
+/** "What Auren knows" for the current scene: each learned preference with its confidence and evidence. */
+function knows(v: Visitor) {
+  const scene: Scene = v.scene;
+  return { scene: scene.id, threshold: PROMPT_THRESHOLD, preferences: scene.prefs.list() };
 }

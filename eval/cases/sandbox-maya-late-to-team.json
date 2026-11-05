@@ -1,0 +1,39 @@
+{
+  "id": "sandbox-maya-late-to-team",
+  "title": "\"Tell the team I'm running late\" goes straight to Maya's usual channel, and still waits for the tap",
+  "golden_path": null,
+  "category": "persona",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Tell the team I'm running 10 minutes late."
+  ],
+  "fixtures": {
+    "persona": "maya",
+    "expect_post": {
+      "channel": "design-team",
+      "text": "10 minutes late"
+    }
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "slack.post_message"
+    ],
+    "approvals": [
+      {
+        "tool": "slack.post_message",
+        "on": "watch"
+      }
+    ],
+    "receipts": 1,
+    "must_not": [
+      "calendar.move_event",
+      "gmail.create_draft"
+    ],
+    "max_total_ms": 20000
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "sandbox-maya-late-no-preference",
+  "title": "Without a learned status channel, \"tell the team\" asks which team and posts nothing",
+  "golden_path": null,
+  "category": "persona",
+  "surface": "watch",
+  "online": [
+    "watch",
+    "phone"
+  ],
+  "commands": [
+    "Tell the team I'm running 10 minutes late."
+  ],
+  "fixtures": {
+    "persona": "maya"
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "slack.list_channels"
+    ],
+    "receipts": 0,
+    "must_not": [
+      "slack.post_message"
+    ],
+    "reply_matches": [
+      "design-team",
+      "checkout-squad"
+    ],
+    "max_total_ms": 20000
+  }
+}

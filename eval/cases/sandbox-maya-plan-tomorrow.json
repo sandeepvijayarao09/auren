@@ -1,0 +1,30 @@
+{
+  "id": "sandbox-maya-plan-tomorrow",
+  "title": "\"Plan tomorrow\" puts five blocks on Maya's calendar, each with Undo, and invites nobody",
+  "golden_path": null,
+  "category": "proactive",
+  "surface": "phone",
+  "online": [
+    "phone",
+    "watch"
+  ],
+  "commands": [
+    "Plan tomorrow."
+  ],
+  "fixtures": {
+    "persona": "maya"
+  },
+  "script": [],
+  "expect": {
+    "tools": [
+      "planner.plan_tomorrow"
+    ],
+    "must_not": [
+      "calendar.invite",
+      "slack.post_message",
+      "gmail.create_draft"
+    ],
+    "receipts": 5,
+    "max_total_ms": 20000
+  }
+}

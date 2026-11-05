@@ -1,0 +1,13 @@
+{
+  "case": "sandbox-maya-late-to-team",
+  "note": "The with-preferences run from docs/personalization.md: Auren knows Maya's status posts go to #design-team (CM1), so it posts there in one call, and the post still waits for her tap. The sandbox plays this only while the visitor's own preferences say so; otherwise it plays sandbox-maya-late-no-preference.",
+  "commands": [
+    {
+      "ack": "On it: Slack.",
+      "turns": [
+        { "calls": [ { "tool": "slack.post_message", "args": { "channel_id": "CM1", "text": "Hi team, I'm running 10 minutes late." } } ] },
+        { "ms": 200, "say": "I told the design team you're running ten minutes late." }
+      ]
+    }
+  ]
+}

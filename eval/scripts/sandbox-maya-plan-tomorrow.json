@@ -1,0 +1,13 @@
+{
+  "case": "sandbox-maya-plan-tomorrow",
+  "note": "The evening card's \"Plan tomorrow\" (docs/proactive.md), as the live run on Nov 4 2026 played it: one call to planner.plan_tomorrow, which writes one receipt per block. Used by the public sandbox.",
+  "commands": [
+    {
+      "ack": "On it: planning tomorrow.",
+      "turns": [
+        { "calls": [ { "tool": "planner.plan_tomorrow", "args": {} } ] },
+        { "ms": 200, "say": "Tomorrow planned: personas and plant notes in the morning, a 1 to 3 focus block, then the gift and the health plan. Nobody was invited." }
+      ]
+    }
+  ]
+}
