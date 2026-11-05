@@ -9,17 +9,17 @@ Meta Global AI Developer Hackathon · Indie track · Theme: *Build for Your Worl
 Muse is the future Meta is building. For it to arrive, Muse has to be a natural extension of everyday life, not one more app you open. Auren is that extension: a layer between you and the digital world.
 
 - **Any app.** Native Calendar, Gmail and Slack connectors, any MCP server you already use, and Muse Wonder computer use for apps with no API.
-- **Any device.** The iPhone and the Mac run Auren's own apps (timeline, receipts, approvals). The glasses, the Apple Watch and AirPods are Muse's eyes, ears and voice.
-- **More personal with every message.** Every action becomes a receipt in your encrypted log, and Auren Memory recaps and recalls from it. That learning stays on your Mac.
+- **Your devices.** The iPhone and the Mac run Auren's own apps (timeline, receipts, approvals). The glasses, the Apple Watch and AirPods are Muse's eyes, ears and voice. Each device pairs once, each account connects once. Core runs on your Mac, so Auren works while the Mac is awake and reachable (on the LAN, or through a tunnel with `AUREN_TOKEN`); hosting Core elsewhere isn't built.
+- **It remembers what you did.** Every action becomes a receipt in your encrypted log, and Auren Memory recaps and recalls over the receipts and the log. Nothing is trained on your data, and it stays on your Mac.
 - **One command or one tap, end to end.** Say it once; the task runs across apps and follows you between devices. Nothing is sent without your tap.
-- **iCloud-level security.** Modelled on Apple's Advanced Data Protection (our comparison, not Apple's). There is no Auren cloud.
+- **Keys stay on your devices.** Modeled on that principle of Apple's Advanced Data Protection (our comparison, not Apple's): Secure Enclave key custody, an encrypted hash-chained log, device-signed taps, an outbound ledger, and no Auren cloud. Commands and content are processed by Meta's Model API and are not end-to-end encrypted to Meta.
 
 ## How it uses Muse
 | Model | What it does in Auren | Verified live |
 |---|---|---|
 | **Muse Wonder** (`muse-wonder-1.0`), Responses API | Plans and acts: one command fans out into parallel tool calls across namespaces, with `tool_search` over the devices and apps online | **Yes.** Live eval (11 cases) and the day demo |
 | **Muse Spark** (`muse-spark-1.3`) | Muse decisions per command (apps, risk tier, reply device, look first) within 2.5 s, advisory only; the fast spoken ack | **Yes**, for decisions and acks. In the day demo Spark answered inside the budget on 3 of 7 commands; rules decided the other 4 |
-| **Muse Spark**, vision | Reads the poster in a glasses or phone frame | **No.** The eval and the day use a fixture poster reader (`core/src/eval/world.ts`) |
+| **Muse Spark**, vision | Reads the poster in a glasses or phone frame | **Partly.** Read a real poster photo live (title, time, room, 2.5 s). The eval and the day use a fixture poster reader (`core/src/eval/world.ts`) |
 | **SAM 3.1** (point prompt) | Outlines "this" in the frame for the receipt crop | **Partly.** Called live on a real photo: the API processed the image but returned no regions, and refused our point-prompt syntax. The eval and the day use a fixture segmenter |
 | **Muse Wonder computer use** | Drives Chromium on the Mac; the commit guard pauses before any confirm click | **No.** The eval and the day use a scripted computer-use model and a fake driver; the guard itself is tested on real Chromium |
 | **Muse Voice Transcribe** (realtime, keyword biasing) | Ears on every surface: iPhone hold-to-talk, signed watch clips | **No.** Built and tested against a fake transcriber |
@@ -54,7 +54,7 @@ Backed by [SECURITY.md](SECURITY.md).
 - **Outside content is data.** Email, chat, calendar, web and MCP results reach the model wrapped as untrusted data; MCP names and descriptions are cleaned and capped.
 - **Every crossing on the record.** The outbound ledger lists each call that leaves the Mac (service, bytes, time, tokens, never contents). The ops log is redacted. Token alarm and hard limit guard the credits. The public sandbox creates no log, keys, connectors or devices.
 
-The limit, plainly: commands go to Meta's Model API, and on free hackathon credits Meta's terms say content may be used for product improvement. Memory and personalization stay on the Mac.
+The limits, plainly: commands and the content Auren works on are processed by Meta's Model API and are not end-to-end encrypted to Meta; on free hackathon credits they may be used for product improvement (check Meta's terms). Auren Memory and the log stay on the Mac. On the LAN Core speaks plain HTTP with a bearer token, and API keys sit unencrypted in `.env`.
 
 ## Built during the hackathon
 Everything was written after the Oct 26 kickoff; the commit history is the record.
@@ -92,6 +92,8 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
 
 ## Not verified yet
+- **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, and Spark reading a real poster photo. **What didn't:** SAM regions, live computer-use clicks, live ASR, and real-device runs (watch, iPhone, glasses).
+- The judges' sandbox runs live Muse when a key is set, and replays the golden paths otherwise.
 - No run on a real Apple Watch or iPhone. Both apps build for the Simulator only.
 - The Ray-Ban Meta glasses toolkit isn't available here, so the glasses camera is a stub; the iPhone camera stands in.
 - Live vision: Muse Spark read a real poster photo correctly in 2.5 s (title, time and room). SAM 3.1 returned no regions yet, so live receipts have no crop. The eval and the day still use fixtures for both.
@@ -100,7 +102,10 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - Auren Memory has not run on Spark Open; the local fallback answered.
 - The sandbox isn't hosted.
 - Glimmer isn't trained.
-- Live latency misses the golden-path budgets on GP1 and GP2.
+- Live latency is p50 13 s and p95 41 s end to end ([eval/results.md](eval/results.md)); GP2 and the MCP case miss their budgets. The plan: preloaded tools, a faster decision model, streaming replies.
+
+## Open questions
+- The wake phrase "Hey Muse" uses Meta's model brand. Confirm it against the partner rules; "Hey Auren" is the fallback.
 
 ## Bonus prize angles
 | Prize | What exists |
