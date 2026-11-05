@@ -58,14 +58,14 @@ export function parseFields(reply: string): PosterFields {
   return PosterFields.parse(raw);
 }
 
-export function sparkReader(muse: MuseLike, model = "muse-spark-1.3"): PosterReader {
+export function sparkReader(muse: MuseLike, model = "muse-spark-1.3", opts: { effort?: string; maxTokens?: number } = {}): PosterReader {
   return {
     async read(jpeg, { question, today }) {
       const resp = await muse.responses.create({
         model,
         instructions: `${READ}\nToday is ${today}; use it for a date with no year.`,
-        reasoning: { effort: "low" },
-        max_output_tokens: 800, // Spark's reasoning counts against the cap; 300 nearly ran out live
+        reasoning: { effort: opts.effort ?? "minimal" }, // minimal read poster.jpg right 4/4 at ~2.7 s vs ~5 s at low
+        max_output_tokens: opts.maxTokens ?? 800, // Spark's reasoning counts against the cap; 300 nearly ran out live
         input: [{ role: "user", content: [{ type: "input_text", text: question }, { type: "input_image", image_url: dataUrl(jpeg) }] }],
       });
       return parseFields(outputText(resp));

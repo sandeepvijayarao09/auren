@@ -62,3 +62,51 @@ export function cropJpeg(frame: Uint8Array, box: Box, maxSide = 640, quality = 8
   }
   return jpeg.encode({ width: ow, height: oh, data: out }, quality).data;
 }
+
+/**
+ * Shrinks a frame to at most `maxSide` pixels on its long side for the models:
+ * fewer image tokens for Spark and less upload for both. `scale` maps a box
+ * from the small frame back to the full one (full = small * scale). A frame
+ * already small enough comes back as is, with scale 1.
+ */
+export function downscaleJpeg(frame: Uint8Array, maxSide = 1024, quality = 85): { jpeg: Buffer; scale: number; width: number; height: number } {
+  const size = jpegSize(frame);
+  if (size && Math.max(size.width, size.height) <= maxSide) return { jpeg: Buffer.from(frame), scale: 1, ...size };
+  const img = jpeg.decode(frame, { useTArray: true, formatAsRGBA: true, maxResolutionInMP: 24, maxMemoryUsageInMB: 256 });
+  const k = maxSide / Math.max(img.width, img.height);
+  if (k >= 1) return { jpeg: Buffer.from(frame), scale: 1, width: img.width, height: img.height };
+  const ow = Math.max(1, Math.round(img.width * k));
+  const oh = Math.max(1, Math.round(img.height * k));
+  const out = Buffer.alloc(ow * oh * 4);
+  // Box filter: average the source pixels under each output pixel, so text stays legible.
+  const sx = img.width / ow;
+  const sy = img.height / oh;
+  for (let y = 0; y < oh; y++) {
+    const y0 = Math.floor(y * sy);
+    const y1 = Math.max(y0 + 1, Math.min(img.height, Math.floor((y + 1) * sy)));
+    for (let x = 0; x < ow; x++) {
+      const x0 = Math.floor(x * sx);
+      const x1 = Math.max(x0 + 1, Math.min(img.width, Math.floor((x + 1) * sx)));
+      let r = 0, g = 0, b = 0;
+      for (let yy = y0; yy < y1; yy++) {
+        let i = (yy * img.width + x0) * 4;
+        for (let xx = x0; xx < x1; xx++, i += 4) {
+          r += img.data[i];
+          g += img.data[i + 1];
+          b += img.data[i + 2];
+        }
+      }
+      const n = (y1 - y0) * (x1 - x0);
+      const o = (y * ow + x) * 4;
+      out[o] = r / n;
+      out[o + 1] = g / n;
+      out[o + 2] = b / n;
+      out[o + 3] = 255;
+    }
+  }
+  return { jpeg: jpeg.encode({ width: ow, height: oh, data: out }, quality).data, scale: img.width / ow, width: ow, height: oh };
+}
+
+/** A box on a downscaled frame, back in full-frame pixels. */
+export const scaleBox = (b: Box, scale: number): Box =>
+  scale === 1 ? b : { x1: Math.round(b.x1 * scale), y1: Math.round(b.y1 * scale), x2: Math.round(b.x2 * scale), y2: Math.round(b.y2 * scale) };

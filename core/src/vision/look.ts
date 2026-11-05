@@ -7,7 +7,7 @@ import type { Namespace } from "../tools/types.ts";
 import { params } from "../tools/types.ts";
 import type { CaptureBroker } from "./capture.ts";
 import type { CropStore } from "./crops.ts";
-import { cropJpeg, jpegSize } from "./jpeg.ts";
+import { cropJpeg, downscaleJpeg, jpegSize, scaleBox } from "./jpeg.ts";
 import type { PosterReader, Segmenter } from "./models.ts";
 
 export interface VisionDeps {
@@ -49,15 +49,17 @@ export function createGlasses(deps: VisionDeps): Namespace {
           const t0 = performance.now();
           const frame = await deps.broker.request(question.slice(0, 120));
           ops.info("vision.capture", { trace: ctx.trace, surface: frame.surfaceId, kind: frame.kind, bytes: frame.jpeg.length, ms: Math.round(performance.now() - t0) });
-          const size = jpegSize(frame.jpeg);
-          if (!size) throw new Error(`The ${frame.kind} sent an image Auren couldn't read.`);
+          if (!jpegSize(frame.jpeg)) throw new Error(`The ${frame.kind} sent an image Auren couldn't read.`);
+          // Both models see the frame at 1024 px on its long side: Spark reads a poster just as
+          // well, in far fewer image tokens. The receipt crop still comes from the full frame.
+          const small = downscaleJpeg(frame.jpeg, 1024);
           // The camera points where your head points, so "this" is what's under the centre.
-          const centre = { x: size.width / 2, y: size.height / 2 };
+          const centre = { x: small.width / 2, y: small.height / 2 };
           const today = new Intl.DateTimeFormat("en-CA", { timeZone: deps.timeZone }).format(deps.now?.() ?? new Date());
 
           const t1 = performance.now();
           const [fields, box] = await Promise.all([
-            deps.reader.read(frame.jpeg, { question, today }).then(
+            deps.reader.read(small.jpeg, { question, today }).then(
               (fields) => {
                 ops.info("vision.read", { trace: ctx.trace, ms: Math.round(performance.now() - t1), ok: true });
                 return fields;
@@ -68,8 +70,9 @@ export function createGlasses(deps: VisionDeps): Namespace {
               },
             ),
             // The outline is for the receipt. Without it the fields still stand.
-            deps.segmenter.segment(frame.jpeg, centre).then(
-              (b) => {
+            deps.segmenter.segment(small.jpeg, centre).then(
+              (found) => {
+                const b = found && scaleBox(found, small.scale);
                 ops.info("vision.segment", { trace: ctx.trace, ms: Math.round(performance.now() - t1), found: Boolean(b) });
                 return b;
               },

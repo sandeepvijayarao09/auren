@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import jpeg from "jpeg-js";
-import { cropJpeg, isJpeg, jpegSize } from "./jpeg.ts";
+import { cropJpeg, downscaleJpeg, isJpeg, jpegSize, scaleBox } from "./jpeg.ts";
 import { posterJpeg } from "./test-frames.ts";
 
 test("reads a JPEG's size from its header and rejects other bytes", () => {
@@ -24,4 +24,13 @@ test("the crop is just the box, scaled down, and decodes as a JPEG", () => {
 test("a box that runs off the frame is clamped to it", () => {
   const crop = cropJpeg(posterJpeg(96, 64), { x1: -40, y1: 50, x2: 500, y2: 900 });
   assert.deepEqual(jpegSize(crop), { width: 96, height: 14 });
+});
+
+test("downscales a frame to 1024 px on its long side and maps boxes back", () => {
+  const small = downscaleJpeg(posterJpeg(1600, 1200), 1024);
+  assert.deepEqual(jpegSize(small.jpeg), { width: 1024, height: 768 });
+  assert.equal(small.scale, 1600 / 1024);
+  assert.deepEqual(scaleBox({ x1: 256, y1: 192, x2: 768, y2: 576 }, small.scale), { x1: 400, y1: 300, x2: 1200, y2: 900 });
+  const tiny = posterJpeg(96, 64);
+  assert.equal(downscaleJpeg(tiny, 1024).scale, 1);
 });
