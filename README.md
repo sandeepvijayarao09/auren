@@ -19,14 +19,14 @@ Auren is one agent built on Muse, and one live session across your **Apple Watch
 **Auren is that extension: a layer between you and the digital world, built on Muse.**
 - **Across any app.** Native connectors for Calendar, Gmail and Slack; any MCP server you already use; and Muse Wonder computer use for apps with no API at all.
 - **Across your devices.** The iPhone and the Mac run Auren's own apps: the live timeline, receipts and approvals. The glasses, the Apple Watch and AirPods (as the iPhone's mic and speakers) are Muse's eyes, ears and voice: they carry what you see and say in, and Muse's answer out. A new device joins with a one-message manifest ([Surface Protocol](spec/surface-protocol.md)), [about 20 lines](spec/examples/minimal-surface.html).
-- **More personal with every message.** Every email, message and action in or out becomes a receipt in your encrypted log, and Auren Memory recaps and recalls from it ("what did I promise Prof. Lee?"). That learning stays on your Mac; your mail never trains anyone's model.
-- **One login, any device, any time.** Connect your accounts and pair each device once; after that, Auren works from whichever device you have on you.
+- **It remembers what you did.** Every email, message and action in or out becomes a receipt in your encrypted log, and Auren Memory recaps and recalls over those receipts and the log ("what did I promise Prof. Lee?"). Nothing is trained on your data, and it stays on your Mac.
+- **Pair once, connect once.** Each device pairs once and each account connects once. Core runs on your Mac today, so Auren works whenever the Mac is awake and reachable: on your network, or through a tunnel with `AUREN_TOKEN`. Hosting Core elsewhere (roaming) isn't built yet.
 - **End to end, from one command.** Say it once on the glasses, or tap once on the watch, and the whole task runs across apps and follows you between devices. If a device drops, its pending approval moves to the next best one. Nothing is sent without your tap.
 
 **Muse decides, Core enforces.** As a command arrives, **Muse Spark** decides which apps it needs, how risky it is (read, write or send), which device should answer, and whether to look through the camera first. It gets 2.5 s; if it doesn't answer in time, simple rules decide. Each decision lands on the timeline ("Muse decided: slack, calendar, gmail · send · reply on watch"). Decisions are advisory: they preload tools, start the camera early and shape the spoken ack, and never change a tool's tier.
 
-## Your data stays yours: iCloud-level security
-Auren follows the model of Apple's Advanced Data Protection, adapted to an agent (the comparison is ours, not Apple's). **There is no Auren cloud.** Core runs on your Mac.
+## Your data stays yours: keys on your devices
+Auren is modeled on one principle of Apple's Advanced Data Protection: **the keys stay on your devices** (the comparison is ours, not Apple's). **There is no Auren cloud.** Core runs on your Mac.
 
 - **Keys on your hardware.** Core's master key is sealed to your Mac's Secure Enclave by `auren-keyd`; each job gets its own derived key.
 - **Encrypted, tamper-evident log.** Every event is AES-256-GCM encrypted and HMAC hash-chained, so an edit or deletion shows at `/v1/audit/verify`. Receipt crops and connector tokens are encrypted at rest too.
@@ -37,7 +37,7 @@ Auren follows the model of Apple's Advanced Data Protection, adapted to an agent
 - **The camera looks only for "this".** It runs only when a command needs it, and people are blurred on the iPhone before a frame leaves it.
 - **The public sandbox holds nothing real.** No log, keys, connectors or devices; each visitor gets a fictional world.
 
-**The limits, plainly.** Commands go to Meta's Model API to be processed. While Auren runs on free hackathon credits, Meta's billing page says content may be used for product improvement; check Meta's terms. Learning and personalization (Auren Memory over your receipts) stay on your Mac. Full details: [SECURITY.md](SECURITY.md).
+**What this does not cover.** Your commands, and the email, chat and calendar content Auren works on, are processed by Meta's Model API. They are **not end-to-end encrypted to Meta**: Meta sees them to answer. While Auren runs on free hackathon credits, that content may be used for product improvement; check Meta's terms. Auren Memory and the log stay on your Mac. On your network Core speaks plain HTTP with a bearer token, and API keys sit unencrypted in `.env`. Full details and limits: [SECURITY.md](SECURITY.md).
 
 ## The Golden Path
 Five commands are the whole product. Each one has an eval case, and [docs/golden-paths.md](docs/golden-paths.md) has the pass criteria.
@@ -77,7 +77,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Piece | State |
 |---|---|
 | Core: event log, Surface Protocol, presence, device picker, approval handoff | ✅ working, tested |
-| Agent loop: Muse Wonder, parallel tool calls, namespaces + `tool_search`, tier gate, receipts, undo | ✅ working against scripted turns; live Muse run pending an API key |
+| Agent loop: Muse Wonder, parallel tool calls, namespaces + `tool_search`, tier gate, receipts, undo | ✅ working, scripted in CI and live on Muse Wonder (eval and the day demo) |
 | Demo world: Calendar, Slack, Gmail (in memory, fictional people) | ✅ |
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
 | iPhone and Apple Watch apps: timeline with receipt crops and live computer-use frames, approvals that name the action (Post, Invite, Confirm), speech, hold to talk on the watch | ✅ build for the Simulator; untested on real devices |
@@ -92,11 +92,17 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone; the watch uploads signed hold-to-talk clips to `/v1/voice/clip`, relayed through the iPhone when needed | ✅ built and tested against a fake transcriber; live run needs the API key, and the watch mic a real watch |
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
 | Glasses (Wearables toolkit) | ⏳ the toolkit isn't available here, so the glasses camera is a stub; the iPhone's camera answers GP2 today |
-| Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models; live run needs the API key and a real iPhone |
+| Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models · Muse Spark read a real poster photo live; SAM 3.1 returned no regions live; no run on a real iPhone |
 | Muse decisions: as each command arrives, Muse Spark decides the apps, risk, reply device and camera for each command (2.5 s budget), logged as a `decision` event on the timeline; advisory only, never changes a tier ([router](router/README.md)) | ✅ Spark decides live, rules as the instant fallback · Glimmer distillation code ready, ⏳ not trained (no training credits) |
 | MCP bridge: any MCP server in `mcp.json` becomes a Muse tool namespace; every tool asks for a tap unless you trust that server's read-only hints; never a write ([setup](docs/mcp-setup.md)) | ✅ built and tested with a demo Journal server; live Muse run pending |
 | Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses; isolated visitors and rate limits; live Muse with a key, golden-path replays without one | ✅ built and tested; not deployed |
 | Token usage and spend limits: every Muse call's tokens in the outbound ledger and `/v1/trust`; `AUREN_TOKEN_ALARM` warns, `AUREN_TOKEN_LIMIT` refuses new commands | ✅ built and tested |
+
+## Demo honesty and known limits
+- **Ran live on Muse:** Wonder planning and acting (eval and the day demo); Spark decisions and spoken acks; Spark reading a real poster photo.
+- **Not live yet:** SAM 3.1 regions (called live, returned none), computer-use clicks (a scripted model drove the eval), Voice Transcribe ASR, and any run on a real Apple Watch, iPhone or glasses.
+- **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
+- **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
 
 **Tests:** 370 across five suites (Core 256, AurenKit 54, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
 

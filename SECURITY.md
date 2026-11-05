@@ -1,6 +1,6 @@
 # Security
 
-Auren acts for you across your apps and devices, so it is built to earn that trust. The model is Apple's Advanced Data Protection, adapted to an agent. **There is no Auren cloud.** Your keys stay on your devices, everything Auren stores is encrypted, and every action is in a log that proves it hasn't been edited.
+Auren acts for you across your apps and devices, so it is built to earn that trust. It is modeled on one principle of Apple's Advanced Data Protection: the keys stay on your devices. **There is no Auren cloud.** Everything Auren stores is encrypted, and every action is in a log that proves it hasn't been edited. What Auren sends to Meta's Model API is a different matter; see [Limits](#limits).
 
 ## How it compares to iCloud
 Apple describes Advanced Data Protection like this: your trusted devices "retain sole access to the encryption keys"; recovery needs a recovery contact or key; and Mail, Contacts, Calendars and metadata stay outside end-to-end encryption because they have to interoperate ([Apple](https://support.apple.com/en-us/102651)).
@@ -78,10 +78,17 @@ You can connect MCP servers you already use ([docs/mcp-setup.md](docs/mcp-setup.
 | Someone tunnels into Core and claims to be the Mac | Forwarded traffic is treated as remote and must pair |
 | A secret leaks into logs | Redaction by name and by shape; long strings are cut |
 | A connected MCP server lies about its tools, or hides instructions in them | Its read-only hints count only if you trusted that server; anything else asks for a tap. Names, descriptions and schemas are cleaned and capped, and results arrive as untrusted data |
-| Model provider retention | Out of Auren's control. The ledger shows exactly what was sent and when. |
+| Model provider retention | Out of Auren's control: content sent to Meta isn't end-to-end encrypted. The ledger shows what was sent and when. |
 | A runaway loop or a leaked key burns the credits | Token counts in the ledger; `AUREN_TOKEN_ALARM` warns and `AUREN_TOKEN_LIMIT` stops new commands |
 | A sandbox visitor tries to reach the real Core | Sandbox mode never creates it: no log, keys, connectors, devices, camera or driver, and every other route is a 404 |
 | One visitor sees or changes another's world | A world per visitor, named only by a 128-bit secret; taps and undo resolve within it |
 | A visitor floods the sandbox or forges their address | Per-address and global limits; `X-Forwarded-For` trusted only through `AUREN_TRUST_PROXY` hops; a visitor cap that one address can't fill |
+
+## Limits
+- **Meta sees what it processes.** Commands, and the email, chat, calendar and web content Auren works on, are processed by Meta's Model API. They are not end-to-end encrypted to Meta. While Auren runs on free hackathon credits, that content may be used for product improvement; check Meta's terms.
+- **Plain HTTP on the LAN.** On your network Core speaks plain HTTP, protected by a bearer token (`AUREN_TOKEN`) and device signatures. Off the LAN, reach it only through a TLS tunnel.
+- **API keys in `.env`.** `MODEL_API_KEY` and other API keys sit unencrypted in `.env` on the Mac (gitignored, and blocked from commits by the secret scan).
+- **Rotate exposed keys.** Rotate any key that was ever pasted anywhere: a chat, an issue, a screenshot or a log.
+- **Core lives on your Mac.** Auren works only while the Mac is awake and reachable; there is no hosted Core.
 
 Found a problem? Open a private security advisory on the repository.
