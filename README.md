@@ -92,7 +92,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Voice: `/v1/voice` relays the mic to Muse Voice Transcribe (keyword biasing, metadata-only logging), wake phrase removed, hold-to-talk on iPhone; the watch uploads signed hold-to-talk clips to `/v1/voice/clip`, relayed through the iPhone when needed | ✅ built and tested against a fake transcriber; live run needs the API key, and the watch mic a real watch |
 | Continuity: replies in sentences that move to the next device mid-reply, glasses drop after 1.5 s, the watch relays through the iPhone and still signs | ✅ built and tested (GP3 in under 2 s); relay untested on a real watch |
 | Glasses (Wearables toolkit) | ⏳ the toolkit isn't available here, so the glasses camera is a stub; the iPhone's camera answers GP2 today |
-| Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models · Muse Spark read a real poster photo live; SAM 3.1 returned no regions live; no run on a real iPhone |
+| Vision (GP2): `glasses.look` asks a camera for one frame, with people blurred on the iPhone first (Apple Vision); Muse Spark reads the poster, SAM 3.1 outlines it, and only an encrypted crop is kept for the receipt | ✅ built and tested against fake models · Muse Spark read a real poster photo live and SAM 3.1 outlined it live (0.86 s); no run on a real iPhone |
 | Muse decisions: as each command arrives, Muse Spark decides the apps, risk, reply device and camera for each command (2.5 s budget), logged as a `decision` event on the timeline; advisory only, never changes a tier ([router](router/README.md)) | ✅ Spark decides live, rules as the instant fallback · Glimmer distillation code ready, ⏳ not trained (no training credits) |
 | MCP bridge: any MCP server in `mcp.json` becomes a Muse tool namespace; every tool asks for a tap unless you trust that server's read-only hints; never a write ([setup](docs/mcp-setup.md)) | ✅ built and tested with a demo Journal server; live Muse run pending |
 | Judges' sandbox: `make sandbox` serves `/try`, a fictional workspace with a simulated phone, watch and glasses; isolated visitors and rate limits; live Muse with a key, golden-path replays without one | ✅ built and tested; not deployed |
@@ -100,7 +100,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 
 ## Demo honesty and known limits
 - **Ran live on Muse:** Wonder planning and acting (eval and the day demo); Spark decisions and spoken acks; Spark reading a real poster photo.
-- **Not live yet:** SAM 3.1 regions (called live, returned none), computer-use clicks (a scripted model drove the eval), Voice Transcribe ASR, and any run on a real Apple Watch, iPhone or glasses.
+- **Not live yet:** computer-use clicks (a scripted model drove the eval), Voice Transcribe ASR, and any run on a real Apple Watch, iPhone or glasses.
 - **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
 - **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
 
