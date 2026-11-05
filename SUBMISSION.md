@@ -87,7 +87,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 ## Links
 - Repo: https://github.com/sandeepvijayarao09/auren
 - A day with Auren (Apple edition): https://claude.ai/artifact/65ycJFhiE1tidNqk12fzP6 (share publicly before submitting)
-- Video: TODO (paste the YouTube link for `film/auren-demo-v10.mp4`, 2:45)
+- Video (2:45): https://youtu.be/dmmQTRM8Ci8
 - X post: not posted
 - Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
 

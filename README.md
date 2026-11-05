@@ -10,6 +10,8 @@ Auren is one agent built on Muse, and one live session across your **Apple Watch
 
 **Why "Auren".** From *aura*, the field around a person, and *aurum*, gold: the golden layer around you, which every app and device speaks through.
 
+> ▶ **Watch the 2:45 demo:** https://youtu.be/dmmQTRM8Ci8
+>
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 to Nov 4, 2026) · Indie track · Theme: *Build for Your World*
 > Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Voice Transcribe · SAM 3.1** (a smaller Muse Glimmer decision model is written, not yet trained). Every use is listed in [MUSE.md](MUSE.md).
 
