@@ -4,7 +4,7 @@ import { silentOps, type OpsLog } from "../obs/opslog.ts";
 import type { SurfaceRegistry } from "../surfaces.ts";
 import type { ToolRegistry } from "../tools/registry.ts";
 import type { ToolContext, UndoStep } from "../tools/types.ts";
-import { contextOf, liveDevices, RouteContext, rulesRoute, startHints, type RouterLike } from "../router/router.ts";
+import { ackFor, contextOf, liveDevices, RouteContext, rulesRoute, startHints, type RouterLike } from "../router/router.ts";
 
 /** The slice of the OpenAI-compatible client Auren uses (Meta Model API is drop-in). */
 export interface MuseLike {
@@ -79,7 +79,16 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
   const hints = deps.router
     ? startHints({ ...deps, router: deps.router }, cmd.text, contextOf(devices, cmd.originSurfaceId), { trace, late: () => done || planned, record: (r) => deps.log.append(cmd.session, "decision", { by: r.source, ms: Math.round(r.ms), ...r.route }) })
     : undefined;
-  const ack = deps.fastModel || hints ? fastAck(deps, cmd, () => done, hints?.ack) : Promise.resolve();
+  // The spoken ack can't wait for Spark (about 2 s): when the instant rules name the apps, they shape it.
+  let quickAck: string | null = null;
+  if (deps.router) {
+    try {
+      quickAck = ackFor(rulesRoute(cmd.text, RouteContext.parse(contextOf(devices, cmd.originSurfaceId)), deps.tools.names()), Boolean(surfaces.camera()));
+    } catch {
+      // No quick ack; the decision or Spark shapes it.
+    }
+  }
+  const ack = deps.fastModel || hints ? fastAck(deps, cmd, () => done, quickAck ? Promise.resolve(quickAck) : hints?.ack) : Promise.resolve();
 
   try {
     const base = {
