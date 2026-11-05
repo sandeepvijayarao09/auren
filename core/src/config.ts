@@ -6,6 +6,9 @@ export const config = {
   // your phone and watch reach it over the network.
   host: process.env.HOST ?? (token ? "0.0.0.0" : "127.0.0.1"),
   token,
+  // PEM paths. With both set, Core serves HTTPS and WSS on the same port (`make cert` makes a local CA and cert).
+  tlsCert: process.env.AUREN_TLS_CERT ?? "",
+  tlsKey: process.env.AUREN_TLS_KEY ?? "",
   museBaseUrl: process.env.MUSE_BASE_URL ?? "https://api.meta.ai/v1",
   museApiKey: process.env.MODEL_API_KEY ?? "",
   agentModel: process.env.AUREN_AGENT_MODEL ?? "muse-wonder-1.0",
