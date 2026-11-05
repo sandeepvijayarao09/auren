@@ -8,6 +8,9 @@ p50 / p95 latency and an estimated cost per 1K commands.
 
   uv run python -m auren_router.evaluate router/seed/seed.jsonl --fake     no network: checks the pipeline itself
 
+  (cd core && node src/router/rules-answers.ts < ../router/data/test.jsonl > ../router/data/rules.answers.jsonl)
+  uv run python -m auren_router.evaluate data/test.jsonl --answers rules=data/rules.answers.jsonl   Core's rules as the baseline
+
 Every endpoint gets the same prompt Core sends (prompt.messages). Prices are
 flags, never built in: --price is USD per 1M input,output tokens; --hourly is
 USD per GPU hour for a self-hosted endpoint, spread over the measured latency
@@ -212,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--price", action="append", default=[], metavar="NAME=IN,OUT", help="USD per 1M input and output tokens")
     ap.add_argument("--hourly", action="append", default=[], metavar="NAME=USD", help="USD per GPU hour, for a self-hosted endpoint")
     ap.add_argument("--concurrency", action="append", default=[], metavar="NAME=N", help="requests one GPU serves at once (default 1)")
+    ap.add_argument("--answers", action="append", default=[], metavar="NAME=FILE", help='precomputed answers, one {"prompt", "answer"} JSON line each (Core\'s rules: core/src/router/rules-answers.ts)')
     ap.add_argument("--fake", action="store_true", help="no network: a fake endpoint that answers with the gold label, wrong every 7th")
     ap.add_argument("--out", type=Path, help="also write the numbers as JSON")
     args = ap.parse_args(argv)
@@ -227,10 +231,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.fake:
         gold = {messages(e.text, e.context)[1]["content"]: e.label.to_json() for e in examples}
         clients["fake"] = FakeClient(gold, wrong_every=7)
+    for name, path in _pairs(args.answers, "answers").items():
+        rows = [json.loads(line) for line in Path(path).read_text(encoding="utf-8").splitlines() if line.strip()]
+        clients[name] = FakeClient({r["prompt"]: r["answer"] for r in rows}, tokens=(0, 0))
     for name, url, model in args.endpoint:
         clients[name] = HttpClient(url, model, apis.get(name, "chat"), os.environ.get(keys.get(name, ""), ""), efforts.get(name, "minimal"))
     if not clients:
-        sys.exit("give at least one --endpoint, or --fake")
+        sys.exit("give at least one --endpoint or --answers, or --fake")
 
     costs: dict[str, Cost] = {}
     for name, v in _pairs(args.price, "price").items():

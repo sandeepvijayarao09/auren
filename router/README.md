@@ -35,6 +35,8 @@ Every answer must pass the same schema (`schema.py` here, zod `Route` in Core); 
 | `auren_router/train.py` | Modal job: QLoRA, H100, 1–2 epochs, loss on the answer only | ✅ code · ⏳ not run (no Modal credits) |
 | `auren_router/serve.py` | vLLM with the LoRA on Modal, one container kept warm | ✅ code · ⏳ not deployed |
 | `auren_router/evaluate.py` | Router vs Wonder vs Spark: per-field accuracy, exact match, p50 / p95, cost per 1K from prices you pass | ✅ · `--fake` runs with no network |
+| `core/src/router/rules-answers.ts` | Core's `rulesRoute` over a JSONL, read in with `evaluate.py --answers rules=…`: the rules baseline | ✅ |
+| `results/synthetic-v0.md` | First live synthetic run: 300 examples, labels, rules baseline | ✅ |
 | `tests/` | Schema, prompt goldens, Core parity cases (`parity.json`), data, splits, synthetic loop, evaluate scoring, the Modal helpers | ✅ 34 tests |
 
 ```bash

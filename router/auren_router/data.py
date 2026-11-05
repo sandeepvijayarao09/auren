@@ -24,11 +24,13 @@ import os
 import random
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from collections import Counter
+import threading
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .prompt import Context, Device, parse_context, render_user, strip_fences
@@ -198,7 +200,8 @@ GEN_INSTRUCTIONS = """You write realistic voice commands a university student or
 def gen_input(spec: Spec, k: int) -> str:
     tier = {"read": "only look things up", "write": "change something that can be undone (move an event, make a draft)", "send": "reach another person or spend money (post, invite, email, book, pay)"}[spec.tier]
     apps = ", ".join(spec.apps)
-    camera = " They point at something in view, like a poster or sign, so the command says \"this\" or \"that\"." if "glasses" in spec.apps else ""
+    # Without the last sentence, v0 wrote "with my glasses" in 58 of 300 commands where only a phone had a camera.
+    camera = " They point at something in view, like a poster or sign, so the command says \"this\" or \"that\". Only mention a device that is online below." if "glasses" in spec.apps else ""
     return f"Write {k} different commands that need these apps: {apps}. At most, they {tier}.{camera}\nThe situation:\n{render_user('(the command)', spec.context)}"
 
 
@@ -211,19 +214,44 @@ def _meta_client():
     return OpenAI(base_url=os.environ.get("MUSE_BASE_URL", META_BASE_URL), api_key=key, max_retries=2)
 
 
-def label_with(client, model: str, text: str, ctx: Context) -> RouterOutput:
+@dataclass
+class Usage:
+    """Tokens per model and why things were dropped, so a run can report its own cost. Thread-safe."""
+
+    tokens: dict[str, list[int]] = field(default_factory=dict)  # model -> [calls, input, output]
+    drops: Counter = field(default_factory=Counter)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    def add(self, model: str, resp) -> None:
+        u = getattr(resp, "usage", None)
+        with self._lock:
+            t = self.tokens.setdefault(model, [0, 0, 0])
+            t[0] += 1
+            t[1] += getattr(u, "input_tokens", 0) or 0
+            t[2] += getattr(u, "output_tokens", 0) or 0
+
+    def drop(self, reason: str, n: int = 1) -> None:
+        with self._lock:
+            self.drops[reason] += n
+
+
+def label_with(client, model: str, text: str, ctx: Context, usage: Usage | None = None) -> RouterOutput:
     """Muse Wonder labels one command with the rubric, word for word. Off-schema answers raise."""
     resp = client.responses.create(model=model, instructions=RUBRIC.read_text(encoding="utf-8"), input=render_user(text, ctx), reasoning={"effort": "low"})
+    if usage:
+        usage.add(model, resp)
     return parse(strip_fences(resp.output_text or ""))
 
 
-def generate_with(client, model: str, spec: Spec, k: int) -> list[str]:
+def generate_with(client, model: str, spec: Spec, k: int, usage: Usage | None = None) -> list[str]:
     resp = client.responses.create(model=model, instructions=GEN_INSTRUCTIONS, input=gen_input(spec, k), reasoning={"effort": "minimal"})
+    if usage:
+        usage.add(model, resp)
     raw = json.loads(strip_fences(resp.output_text or ""))
     return [c.strip() for c in raw.get("commands", []) if isinstance(c, str) and 3 <= len(c.strip()) <= 300]
 
 
-def synthetic(client, n: int, out: Path, generator: str, labeler: str, per_call: int = 10, workers: int = 4, seed: int = 7) -> tuple[int, int]:
+def synthetic(client, n: int, out: Path, generator: str, labeler: str, per_call: int = 10, workers: int = 4, seed: int = 7, usage: Usage | None = None) -> tuple[int, int]:
     """Appends to `out`, skipping commands already there, so a stopped run resumes. Returns (kept, dropped)."""
     have = set()
     if out.exists():
@@ -235,17 +263,23 @@ def synthetic(client, n: int, out: Path, generator: str, labeler: str, per_call:
     # off-schema labels eat some of each batch).
     specs = plan(2 * -(-(n - len(have)) // per_call), seed)
     kept = dropped = 0
+    usage = usage if usage is not None else Usage()
 
     def one(spec: Spec) -> tuple[list[Example], int]:
         try:
-            texts = generate_with(client, generator, spec, per_call)
-        except Exception:
+            texts = generate_with(client, generator, spec, per_call, usage)
+        except Exception as e:
+            usage.drop(f"generate: {type(e).__name__}", per_call)
             return [], per_call
         got, lost = [], 0
         for text in texts:
             try:
-                got.append(Example(" ".join(text.split()), spec.context, label_with(client, labeler, text, spec.context), "synthetic"))
-            except Exception:
+                got.append(Example(" ".join(text.split()), spec.context, label_with(client, labeler, text, spec.context, usage), "synthetic"))
+            except ValueError as e:
+                usage.drop(f"label off-schema: {str(e)[:40]}")
+                lost += 1
+            except Exception as e:
+                usage.drop(f"label: {type(e).__name__}")
                 lost += 1
         return got, lost
 
@@ -256,7 +290,11 @@ def synthetic(client, n: int, out: Path, generator: str, labeler: str, per_call:
             for got, lost in pool.map(one, specs[i : i + workers]):
                 dropped += lost
                 for ex in got:
-                    if normalise(ex.text) in have or len(have) >= n:
+                    if len(have) >= n:
+                        usage.drop("over n (last wave)")
+                        continue
+                    if normalise(ex.text) in have:
+                        usage.drop("duplicate")
                         continue
                     have.add(normalise(ex.text))
                     f.write(json.dumps(ex.to_dict(), separators=(",", ":")) + "\n")
@@ -328,8 +366,14 @@ def main(argv: list[str] | None = None) -> int:
         _print_coverage(good)
     elif args.cmd == "synthetic":
         print("TODO before training: check the Meta model API terms on training with model outputs.", file=sys.stderr)
-        kept, dropped = synthetic(_meta_client(), args.n, DATA / "synthetic.jsonl", args.generator, args.labeler, workers=args.workers, seed=args.seed)
-        print(f"synthetic: {kept} new examples, {dropped} dropped (off-schema or failed calls)")
+        usage = Usage()
+        t0 = time.monotonic()
+        kept, dropped = synthetic(_meta_client(), args.n, DATA / "synthetic.jsonl", args.generator, args.labeler, workers=args.workers, seed=args.seed, usage=usage)
+        print(f"synthetic: {kept} new examples, {dropped} dropped (off-schema or failed calls) in {time.monotonic() - t0:.0f} s")
+        for model, (calls, tin, tout) in usage.tokens.items():
+            print(f"  {model}: {calls} calls, {tin} input tokens, {tout} output tokens")
+        for reason, count in usage.drops.most_common():
+            print(f"  dropped {count}: {reason}")
     elif args.cmd == "build":
         seed = _load(SEED, "seed")
         rows = seed + _load(DATA / "logged.jsonl", "logged") + _load(DATA / "synthetic.jsonl", "synthetic")
