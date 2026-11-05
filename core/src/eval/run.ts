@@ -570,7 +570,10 @@ async function runCase(c: Case, all: Map<string, Case>, opts: EvalOptions): Prom
       if (last !== c.expect.speak_on) result.failures.push(`the reply played on ${last ?? "no device"}, not ${c.expect.speak_on}`);
     }
     const want = c.fixtures.expect_event as { title?: string; place?: string } | undefined;
-    if (want && ![...bench.world.state.events.values()].some((e) => e.title === want.title && (want.place === undefined || e.location === want.place))) {
+    // Live, the model may write "Demo Night" or "Room 214, Building 3": match the words, not the casing.
+    const same = (a?: string, b?: string) => (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
+    const within = (place?: string, at?: string) => (at ?? "").toLowerCase().includes((place ?? "").toLowerCase());
+    if (want && ![...bench.world.state.events.values()].some((e) => same(e.title, want.title) && (want.place === undefined || within(want.place, e.location)))) {
       result.failures.push(`no event "${want.title}"${want.place ? ` in ${want.place}` : ""} on the calendar`);
     }
     if (c.expect.max_steps !== undefined) {
