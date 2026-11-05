@@ -17,6 +17,10 @@ COPY core/package.json core/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
 
 FROM ${NODE_IMAGE}
+# Links the published image (ghcr.io/sandeepvijayarao09/auren-sandbox) to the repo.
+LABEL org.opencontainers.image.source=https://github.com/sandeepvijayarao09/auren \
+      org.opencontainers.image.description="Try Auren: the public sandbox (/try) on a fictional workspace" \
+      org.opencontainers.image.licenses=MIT
 ENV NODE_ENV=production \
     AUREN_SANDBOX=true \
     HOST=0.0.0.0 \

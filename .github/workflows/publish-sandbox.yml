@@ -1,0 +1,36 @@
+# Publishes the sandbox image so anyone can try Auren on their own machine:
+#   docker run --rm -p 8080:8080 ghcr.io/sandeepvijayarao09/auren-sandbox
+# Built for amd64 and arm64 (Apple silicon). No key is in the image; see docs/deploy.md.
+name: Publish sandbox image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/sandeepvijayarao09/auren-sandbox:latest
+            ghcr.io/sandeepvijayarao09/auren-sandbox:${{ github.sha }}

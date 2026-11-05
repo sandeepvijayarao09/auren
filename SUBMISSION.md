@@ -89,7 +89,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - A day with Auren (Apple edition): https://claude.ai/artifact/65ycJFhiE1tidNqk12fzP6 (share publicly before submitting)
 - Video (2:45): https://youtu.be/dmmQTRM8Ci8
 - X post: not posted
-- Sandbox try-it: TODO (not hosted yet; runs locally with `make sandbox`)
+- Sandbox try-it: `docker run --rm -p 8080:8080 ghcr.io/sandeepvijayarao09/auren-sandbox`, then http://localhost:8080/try (or `./try.sh` from a clone, Node 24+)
 
 ## Not verified yet
 - **What ran live:** Muse Wonder (eval and the day), Muse Spark decisions and acks, Spark reading a real poster photo, SAM 3.1 outlining it, and Muse Voice Transcribe. and Muse Spark computer use on a local demo bistro page (paused before the confirm click, booked only after the tap). **What didn't:** real-device runs (watch, iPhone, glasses) and a real booking site.
@@ -100,7 +100,7 @@ Everything was written after the Oct 26 kickoff; the commit history is the recor
 - Live Muse Voice Transcribe has not run.
 - Live Muse computer use has not run; the eval uses a scripted model and a fake driver.
 - Auren Memory has not run on Spark Open; the local fallback answered.
-- The sandbox isn't hosted.
+- The sandbox isn't hosted; judges run it locally from the published image or `./try.sh`.
 - Glimmer isn't trained.
 - Live latency is p50 13 s and p95 41 s end to end ([eval/results.md](eval/results.md)); GP2 and the MCP case miss their budgets. The plan: preloaded tools, a faster decision model, streaming replies.
 

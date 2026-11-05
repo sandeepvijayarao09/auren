@@ -15,6 +15,19 @@ Auren is one agent built on Muse, and one live session across your **Apple Watch
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 to Nov 4, 2026) · Indie track · Theme: *Build for Your World*
 > Uses Muse models from Meta: **Muse Wonder · Muse Spark · Muse Spark Open · Muse Voice Transcribe · SAM 3.1** (a smaller Muse Glimmer decision model is written, not yet trained). Every use is listed in [MUSE.md](MUSE.md).
 
+## Try it in one minute
+Run Auren's sandbox on your own machine: a fictional workspace with a simulated iPhone, Apple Watch and glasses, a 3-minute judge tour, and real Core underneath (the tier gate, taps, receipts, Undo, follow-ups, what it learns). Nothing reaches a real account.
+
+**With Docker** (macOS, Linux, Windows; Apple silicon or Intel):
+```bash
+docker run --rm -p 8080:8080 ghcr.io/sandeepvijayarao09/auren-sandbox
+```
+**Without Docker** (Node 24+):
+```bash
+git clone https://github.com/sandeepvijayarao09/auren && cd auren && ./try.sh
+```
+Then open **http://localhost:8080/try** and press **Start the 3-minute judge tour**. Without a key every example replays from the eval's scripts through the real loop. To run live Muse on your own Meta key, add `-e MODEL_API_KEY=your_key` to the `docker run` line (or `MODEL_API_KEY=your_key ./try.sh`).
+
 ## The idea
 **Muse is the future Meta is building toward.** For that future to arrive, Muse has to live in everyday life as a natural extension of you, not as one more app you open.
 
