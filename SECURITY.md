@@ -86,7 +86,7 @@ You can connect MCP servers you already use ([docs/mcp-setup.md](docs/mcp-setup.
 
 ## Limits
 - **Meta sees what it processes.** Commands, and the email, chat, calendar and web content Auren works on, are processed by Meta's Model API. They are not end-to-end encrypted to Meta. While Auren runs on free hackathon credits, that content may be used for product improvement; check Meta's terms.
-- **Plain HTTP on the LAN.** On your network Core speaks plain HTTP, protected by a bearer token (`AUREN_TOKEN`) and device signatures. Off the LAN, reach it only through a TLS tunnel.
+- **TLS on the LAN is opt-in.** With `AUREN_TLS_CERT` and `AUREN_TLS_KEY` set (`make cert` makes a local CA and cert), Core serves HTTPS and WSS on its one port, so the bearer token (`AUREN_TOKEN`) and traffic are encrypted on the network. Without them Core speaks plain HTTP, and when `AUREN_TOKEN` is set it prints a warning at start-up. The CA is yours: its key sits unencrypted in `certs/` (gitignored, mode 0600), and anyone with it can mint certs your trusted devices accept, so keep it on the Mac and remove the profile from devices you retire. Device signatures still guard pairing and approvals either way. Off the LAN, reach Core only through a TLS tunnel.
 - **API keys in `.env`.** `MODEL_API_KEY` and other API keys sit unencrypted in `.env` on the Mac (gitignored, and blocked from commits by the secret scan).
 - **Rotate exposed keys.** Rotate any key that was ever pasted anywhere: a chat, an issue, a screenshot or a log.
 - **Core lives on your Mac.** Auren works only while the Mac is awake and reachable; there is no hosted Core.

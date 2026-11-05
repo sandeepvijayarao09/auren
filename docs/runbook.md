@@ -4,13 +4,14 @@ How to bring up every device for a live run or a shoot. Use the demo workspace o
 
 ## Before you start
 - [ ] `.env` has `MODEL_API_KEY` and an `AUREN_TOKEN` (any long random string: `openssl rand -hex 24`).
+- [ ] TLS is set up (once per Mac): see [TLS on the LAN](#tls-on-the-lan). Without it Core warns that the token crosses the LAN in plain HTTP.
 - [ ] The Mac, iPhone and Apple Watch are on the same Wi-Fi. A phone hotspot works when venue Wi-Fi blocks devices from seeing each other.
 - [ ] The glasses are paired in the Meta AI app, charged, and the toolkit permission is granted to Auren.
 - [ ] Do Not Disturb is on for every device, except Auren's notifications.
 - [ ] The demo browser profile is clean, with no saved passwords or cards.
 
 ## Bring-up, in order
-1. **Core.** Run `make dev`. Note the address it prints, such as `http://192.168.1.20:8787`. Check `/health`: `muse` should be `true`.
+1. **Core.** Run `make dev`. Note the address it prints, such as `https://192.168.1.20:8787` (`http://` without TLS). On the devices, use the Mac's `.local` name (`https://<name>.local:8787`): the cert names `localhost`, `127.0.0.1` and `<name>.local`, not the LAN IP. Check `/health`: `muse` should be `true`.
 2. **Console.** Open `http://<address>/?token=<AUREN_TOKEN>` on the Mac. This is the Mac surface and the debugger.
 3. **iPhone.** In Auren's settings, enter the address. On the Mac console choose **Pair a device**, then type the six-digit code under **Pair with your Mac**. The status dot turns green, and the timeline shows the phone paired with its key in the Secure Enclave.
 4. **Watch.** Open Auren on the watch and choose **Pair with your Mac** with a fresh code. From Day 4, the phone hands it the address and token. Until then the watch app only reaches Core from the Simulator, at `127.0.0.1`.
@@ -19,13 +20,22 @@ How to bring up every device for a live run or a shoot. Use the demo workspace o
 
 The console's device chips should now show `web`, `phone`, `watch` and `glasses`.
 
+## TLS on the LAN
+1. **Make the certs.** `make cert` writes a local CA (`certs/ca.pem`, `certs/ca.key`) and a server cert (`certs/server.pem`, `certs/server.key`) with SANs for `localhost`, `127.0.0.1` and this Mac's `.local` name (`scutil --get LocalHostName`; override with `AUREN_CERT_HOST`). Re-running it keeps the CA and reissues the server cert, so devices stay trusted. `certs/` is gitignored.
+2. **Point Core at them.** In `.env`: `AUREN_TLS_CERT=../certs/server.pem` and `AUREN_TLS_KEY=../certs/server.key` (relative to `core/`, or absolute). Core now prints `https://` and a `tls:` line; HTTPS and WSS share the port, and `/v1/surface`, `/v1/voice` and `/v1/driver` upgrade as before.
+3. **Trust the CA on the iPhone.** AirDrop or mail `certs/ca.pem` to the phone (never `ca.key`). Open it, then **Settings → General → VPN & Device Management → Auren Local CA → Install**. Then **Settings → General → About → Certificate Trust Settings** and turn on full trust for **Auren Local CA**. Check by opening `https://<name>.local:8787/health` in Safari: no warning.
+4. **Trust the CA on the Watch.** watchOS has no Settings path for this. Install it as a profile from the paired iPhone's **Watch** app (a `.mobileconfig` carrying `ca.pem`, opened on the phone, offers *Install on Apple Watch*), or use the Simulator, which trusts the Mac's keychain after `xcrun simctl keychain booted add-root-cert certs/ca.pem`. Until the watch trusts the CA, let it reach Core through the phone.
+5. **Enter `https://` in the apps.** AurenKit's `SurfaceClient.socketURL` already maps `https://` to `wss://` (and `http://` to `ws://`), and the voice channel follows it, so the iPhone and Watch need only the new address in Auren's settings. No app change.
+
+If a device says the certificate is invalid: the address isn't one of the SANs (use `<name>.local`, not the IP), or full trust wasn't turned on in step 3.
+
 ## Run the Golden Path
 Run [the five commands](golden-paths.md) in order, GP1 to GP5. GP5's undo reverts GP1's calendar move, so the run resets itself.
 
 ## When something goes wrong
 | Symptom | Fix |
 |---|---|
-| Phone dot stays grey | Wrong address or token. Check that `/health` opens in the phone's browser. |
+| Phone dot stays grey | Wrong address or token, or (with TLS) the CA isn't trusted or the address isn't `<name>.local`. Check that `/health` opens in the phone's browser. |
 | "MODEL_API_KEY is not set" in the timeline | Add the key to `.env` and restart Core. |
 | Approval never reaches the watch | The watch isn't connected or is asleep. Raise your wrist; the approval moves to the phone if the watch has dropped. |
 | Computer use stops at a CAPTCHA | Expected. Finish it by hand, or switch to the backup site on the allowlist. |

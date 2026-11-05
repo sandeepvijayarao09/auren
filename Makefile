@@ -1,6 +1,6 @@
 # One entry point for every part of Auren. Run `make` to list targets.
 .DEFAULT_GOAL := help
-.PHONY: help setup dev sandbox test check typecheck secrets keyd apple apple-build icon clean
+.PHONY: help setup dev sandbox test check typecheck secrets keyd apple apple-build icon cert clean
 
 APPLE_FLAGS = -project apps/apple/Auren.xcodeproj -derivedDataPath .build/apple CODE_SIGNING_ALLOWED=NO
 
@@ -49,6 +49,9 @@ apple-build: apple ## Build the iPhone and Apple Watch apps for the Simulator
 icon: ## Redraw the app icons from the mark
 	swift brand/make-icon.swift apps/apple/iOS/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 	cp apps/apple/iOS/Assets.xcassets/AppIcon.appiconset/icon-1024.png apps/apple/Watch/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+
+cert: ## Make a local CA and a TLS cert for Core in certs/ (see docs/runbook.md)
+	sh core/scripts/make-cert.sh
 
 clean: ## Remove build output (keeps .env and auren.db)
 	rm -rf .build apps/apple/Auren.xcodeproj

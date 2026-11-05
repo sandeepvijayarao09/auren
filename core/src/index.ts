@@ -1,4 +1,3 @@
-import { serve } from "@hono/node-server";
 import OpenAI from "openai";
 import { config } from "./config.ts";
 import { EventLog } from "./eventlog.ts";
@@ -31,6 +30,7 @@ import { DriverHub } from "./computer/hub.ts";
 import { loadMcpConfig, McpBridge } from "./connectors/mcp.ts";
 import { createRouter } from "./router/router.ts";
 import { SpendGuard } from "./obs/spend.ts"; // R13
+import { listen, tlsEnabled } from "./tls.ts";
 
 // R13: AUREN_SANDBOX=true serves only the public sandbox (core/src/sandbox/) until it's stopped, then
 // exits. Nothing below runs: no master key, no auren.db, no connectors, devices, camera or driver.
@@ -152,8 +152,11 @@ const core = createServer(
   },
 );
 
-const server = serve({ fetch: core.app.fetch, port: config.port, hostname: config.host }, (info) => {
-  console.log(`Auren Core on http://${config.host}:${info.port}  (agent ${config.agentModel}, fast ${config.fastModel})`);
+const tls = { cert: config.tlsCert, key: config.tlsKey };
+const secure = tlsEnabled(tls);
+if ((config.tlsCert || config.tlsKey) && !secure) console.warn("  ⚠ TLS: set both AUREN_TLS_CERT and AUREN_TLS_KEY. Serving plain HTTP.");
+const server = listen({ fetch: core.app.fetch, port: config.port, hostname: config.host, tls }, (info) => {
+  console.log(`Auren Core on ${secure ? "https" : "http"}://${config.host}:${info.port}  (agent ${config.agentModel}, fast ${config.fastModel})`);
   if (!config.museApiKey) console.warn("  ⚠ MODEL_API_KEY not set: surfaces connect, commands return an error.");
   const keyLine = {
     "secure-enclave": "keys: sealed to this Mac's Secure Enclave (auren-keyd)",
@@ -177,6 +180,8 @@ const server = serve({ fetch: core.app.fetch, port: config.port, hostname: confi
   console.log(`  mcp: ${servers.length ? `${servers.join(", ")}; connecting in the background, see /v1/connections` : mcpConfig.found ? "no servers in mcp.json" : "no mcp.json (see mcp.example.json)"}`);
   for (const e of mcpConfig.errors) console.warn(`  ⚠ mcp: ${e}`);
   console.log(`  router: ${config.routerUrl ? `Glimmer at ${new URL(config.routerUrl).host}, then Spark, then rules` : config.museApiKey ? "Muse Spark, then rules (set AUREN_ROUTER_URL for Glimmer)" : "rules"}`);
+  if (config.token && !secure) console.warn("  ⚠ TLS is off: AUREN_TOKEN exposes Core on the network over plain HTTP, so the token and traffic cross the LAN unencrypted. Run `make cert` and set AUREN_TLS_CERT and AUREN_TLS_KEY.");
+  if (secure) console.log(`  tls: HTTPS and WSS (${config.tlsCert})`);
   if (!config.token) console.log("  local only. Set AUREN_TOKEN to allow your phone and watch on the network.");
   // R13
   const used = ledger.totals().total;

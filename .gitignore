@@ -29,3 +29,5 @@ mcp.json
 journal.json
 # Rendered ad cuts and their audio (upload the MP4, don't commit it)
 film/
+# Local CA and Core TLS cert (make cert)
+certs/
