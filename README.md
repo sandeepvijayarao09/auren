@@ -84,7 +84,7 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 | Web console (acts as a phone, watch or glasses per tab) | ✅ on brand v1 |
 | iPhone and Apple Watch apps: timeline with receipt crops and live computer-use frames, approvals that name the action (Post, Invite, Confirm), speech, hold to talk on the watch | ✅ build for the Simulator; untested on real devices |
 | Computer use (GP4): `browser.run_task` runs a nested Muse Wonder loop that drives Chromium on the Mac through the Playwright driver; the commit guard pauses before any confirm click, so the only tap comes at the commit; a CAPTCHA stops the run | ✅ built and tested on real Chromium · live Wonder chose `browser.run_task` in the eval, but the clicks there came from a scripted computer-use model: a live computer-use run is still to do |
-| Eval runner: 11 golden-path, platform and safety cases, scripted in CI and live with a key ([results](eval/results.md)) | ✅ scripted: all 11 pass in CI · **live on Muse Wonder: 9 of 11 pass, 0 tier violations**; the 2 misses are speed budgets (GP2 vision 20–41 s of 10, MCP journal 21 s of 15) |
+| Eval runner: 21 cases covering the golden paths, safety, MCP, multi-turn, ambiguity, voice-only, persona, partial failure and the morning briefing, scripted in CI and live with a key ([results](eval/results.md), [findings](eval/FINDINGS.md)) | ✅ scripted: all 21 pass in CI · **live on Muse Wonder: 18 of 20 pass, 0 tier violations, p50 7.2 s**; misses: a follow-up ("move it to 4 instead") that needs the previous command, and GP2 at 12.5 s of 10 |
 | A day with Auren: seven moments of one fictional day, run on live Muse with synthetic data ([transcript](docs/day-with-auren.md)) | ✅ all seven done right; the planted "post that grades leaked" email was only summarized |
 | Auren Memory (recap and recall on Muse Spark Open, with a local fallback) and undo by voice | ✅ built and tested against a fake Baseten; live run needs `BASETEN_API_KEY` |
 | Google Calendar connector: sign-in, encrypted tokens, live `calendar` tools | ✅ built and tested; live run needs your OAuth client ([setup](docs/google-setup.md)) |
@@ -105,11 +105,14 @@ Devices are tools: on every turn, Core rebuilds the model's tool inventory from 
 - **Live on Nov 4:** Muse Voice Transcribe turned a recorded GP1 command into the right transcript 161 ms after the audio ended, and Core ran it across Slack, Calendar and Gmail. SAM 3.1 outlined a real poster in 0.86 s, and tracked it across a moving clip in video mode. Muse Image 1.0 made a clean invite card in about 7 s. A bake-off moved Muse decisions to Wonder (80% exact, p50 2.1 s, against Spark 1.3's 65% and 3.2 s). Spark 1.3-contributor and Wonder produced the decision model's first synthetic training set (300 commands).
 - **Computer use, live:** Muse Spark drove a real Chromium on a local demo bistro page in 2 steps (25.7 s of browsing). The driver paused before "Complete reservation", the tap was asked, and only after it did the click land and a receipt appear. (Muse Wonder 1.0 rejects the computer tool, so `AUREN_COMPUTER_MODEL` defaults to Spark.)
 - **Not live yet:** any run on a real Apple Watch, iPhone or glasses, and a real booking site.
+- **A proactive day:** a scheduled morning briefing (`AUREN_BRIEFING_AT`) and an evening "plan tomorrow" card that books focus blocks with Undo ([proactive](docs/proactive.md)).
+- **Personal, on your Mac:** Auren learns your habits from your own receipts (usual channel, contacts, meeting length, the device you approve on) and tells Muse, so "tell the team I'm running late" picks your usual channel without asking. Nothing is trained; see or forget it at `/v1/preferences` ([personalization](docs/personalization.md)).
+- **Faster vision:** frames go to Spark and SAM at 1024 px, so reading a real poster takes 2.4–3.1 s instead of 4–12.5 s.
 - **Also new on Nov 4:** a Simple view (a consumer timeline by default, Details on demand), HTTPS and WSS for LAN devices (`make cert`), tool arguments checked against each tool's schema before it runs, and short approval lines on the watch.
 - **Judges' sandbox:** runs live Muse when a key is set, and replays the golden paths otherwise.
 - **Latency:** live end to end is p50 13 s and p95 41 s ([eval/results.md](eval/results.md)), over the golden-path budgets on GP2 and the MCP case. The plan: preload tools, a faster decision model, streaming replies.
 
-**Tests:** 387 across five suites (Core 272, AurenKit 55, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
+**Tests:** 414 across five suites (Core 299, AurenKit 55, router 34, driver 20, keyd 6), plus the scripted eval in `npm run eval`. No API key or device needed.
 
 ## Run it
 Requires Node 24+. The Apple apps also need Xcode 27 and XcodeGen; the router needs uv.

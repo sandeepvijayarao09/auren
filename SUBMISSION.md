@@ -41,7 +41,7 @@ Full map of every capability and where it lives in the code: [MUSE.md](MUSE.md).
 
 **Scripted eval:** 11 of 11 in CI (`npm run eval`), no key needed.
 
-**Tests:** 387 across five suites: Core 272, AurenKit 55, router 34, driver 20, keyd 6.
+**Tests:** 414 across five suites: Core 299, AurenKit 55, router 34, driver 20, keyd 6.
 
 **A day with Auren** ([docs/day-with-auren.md](docs/day-with-auren.md)): one fictional person's day, 7 moments from 8:05 AM to 10:47 PM, played through the real Core on live Muse Wonder and Muse Spark with synthetic data. 88,394 model tokens (81,589 in, 6,805 out). Every send waited for a watch tap; every write left an undoable receipt; the planted instruction in an email was summarized, not obeyed. The poster reader, segmenter, browser and memory backend were the same fixtures and fallback as the eval.
 

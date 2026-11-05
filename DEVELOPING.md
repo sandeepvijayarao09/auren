@@ -46,7 +46,7 @@ Keys live only in `.env` on the machine running Core. Surfaces never hold a mode
 ## Tests
 | Suite | Command | Count |
 |---|---|---|
-| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, router, MCP bridge, sandbox, spend limits, Google, Slack, Gmail, tape, voice and watch clips, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 272 |
+| Core (scripted Muse, surfaces, eval cases and runner, memory, vision, computer use, router, MCP bridge, sandbox, spend limits, Google, Slack, Gmail, tape, voice and watch clips, encrypted log, keys, ledger, redaction, pairing, signed sockets) | `cd core && npm test` | 299 |
 | keyd (sealing, recovery codes) | `cd keyd && swift test` | 6 |
 | Driver (commit guard, CAPTCHA, the executor on real Chromium, the Core connection) | `cd driver && npm test` | 20 |
 | Router (schema, prompt, data, evaluate) | `cd router && uv run python -m unittest discover -s tests -t .` | 34 |

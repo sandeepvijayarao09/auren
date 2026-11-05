@@ -6,7 +6,7 @@ TypeScript running directly on Node 24+ (type stripping, no build step) · Hono 
 
 ```bash
 npm install
-npm test          # 272 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
+npm test          # 299 tests, no API key or accounts needed (scripted Muse, fake Google and Slack)
 npm run dev       # http://127.0.0.1:8787, reloads on save
 npm run typecheck
 ```
