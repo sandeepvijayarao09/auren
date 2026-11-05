@@ -108,6 +108,7 @@ function line(e) {
     surface: () => `${esc(d.kind)} ${esc(d.surface_id)} ${esc(d.status)}`,
     browser_frame: () => `${/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d.frame ?? "") ? `<img class="frame" src="${d.frame}" alt="">` : ""}${esc(d.host)} · step ${esc(d.step)}${d.status === "paused" ? " · waiting for your tap" : d.status === "stopped" ? " · stopped" : ""}`,
     usage: () => esc(d.message), // R13
+    decision: () => `${d.by === "rules" ? "Rules" : "Muse"} decided: ${esc((d.apps ?? []).join(", ") || "no apps")} · ${esc(d.risk_tier)}${d.reply_surface ? ` · reply on ${esc(d.reply_surface)}` : ""}${d.needs_vision ? " · look first" : ""} <span class=\"t\">${esc(d.ms)} ms</span>`,
   }[e.kind] || (() => esc(JSON.stringify(d)));
   if (e.kind === "usage") spendBanner(d); // R13
   if (e.kind === "surface") { d.status === "online" ? online.set(d.surface_id, { id: d.surface_id, kind: d.kind }) : online.delete(d.surface_id); chips(); }

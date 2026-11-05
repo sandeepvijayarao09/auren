@@ -77,7 +77,7 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
   // R9: route at the fast lane. Hints only: preload namespaces, an early camera frame, the ack.
   let planned = false;
   const hints = deps.router
-    ? startHints({ ...deps, router: deps.router }, cmd.text, contextOf(devices, cmd.originSurfaceId), { trace, late: () => done || planned })
+    ? startHints({ ...deps, router: deps.router }, cmd.text, contextOf(devices, cmd.originSurfaceId), { trace, late: () => done || planned, record: (r) => deps.log.append(cmd.session, "decision", { by: r.source, ms: Math.round(r.ms), ...r.route }) })
     : undefined;
   const ack = deps.fastModel || hints ? fastAck(deps, cmd, () => done, hints?.ack) : Promise.resolve();
 

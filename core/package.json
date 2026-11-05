@@ -13,7 +13,8 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "eval": "node --env-file-if-exists=../.env src/eval/run.ts",
     "sandbox": "AUREN_SANDBOX=true node --env-file-if-exists=../.env src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "day": "node --env-file-if-exists=../.env src/demo/day.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",

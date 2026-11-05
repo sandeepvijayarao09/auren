@@ -35,7 +35,9 @@ export type EventKind =
   // R7: a small JPEG of the browser after each computer-use step.
   | "browser_frame"
   // R13: the token alarm or limit was crossed (data: level, tokens, alarm, limit, message).
-  | "usage";
+  | "usage"
+  // Muse's decision for a command, before Wonder plans: apps, risk, reply device, whether to look.
+  | "decision";
 
 export interface AurenEvent {
   id: number;

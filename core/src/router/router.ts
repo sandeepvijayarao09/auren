@@ -69,7 +69,8 @@ export interface RouterDeps {
 }
 
 export const ROUTER_BUDGET_MS = 300;
-export const SPARK_BUDGET_MS = 1_000;
+// Long enough for Muse Spark to make the decision live (about 1.7 s measured); the rules answer only if it doesn't.
+export const SPARK_BUDGET_MS = 2_500;
 
 class RouteFailure extends Error {}
 
@@ -303,9 +304,11 @@ export function startHints(
   deps: { router: RouterLike; surfaces: SurfaceRegistry; prefetchFrame?: (purpose: string) => void; ops?: OpsLog },
   text: string,
   context: RouteContext,
-  opts: { trace?: string; late: () => boolean },
+  opts: { trace?: string; late: () => boolean; record?: (r: Routed) => void },
 ): RouteHints {
   const routed = deps.router.route(text, context, opts.trace).catch(() => null);
+  // The decision goes on the timeline, so you can see what Muse decided and why a tool was ready.
+  void routed.then((r) => r && opts.record?.(r));
   void routed.then((r) => {
     // The camera runs only for a command the route says needs it, and only while the frame can still be used.
     if (!r?.route.needs_vision || !deps.prefetchFrame || opts.late() || !deps.surfaces.camera()) return;
