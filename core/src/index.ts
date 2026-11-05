@@ -99,7 +99,7 @@ tools.add(createGlasses({ broker: frames, reader: sparkReader(muse, config.fastM
 
 // R7: computer use. The Playwright driver dials in on /v1/driver; browser.run_task drives it.
 const driver = new DriverHub({ ops });
-tools.add(createBrowser({ hub: driver, muse, model: config.agentModel, log, ops, ledger, approvalTimeoutMs: config.approvalTimeoutMs }));
+tools.add(createBrowser({ hub: driver, muse, model: config.computerModel, log, ops, ledger, approvalTimeoutMs: config.approvalTimeoutMs }));
 
 // R11: MCP bridge. Each server in mcp.json becomes a namespace while it's connected.
 // They connect in the background, so a slow or broken server never holds up Core.
