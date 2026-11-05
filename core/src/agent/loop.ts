@@ -112,7 +112,10 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
     // Later turns don't wait on the route: whatever it named by then, and every namespace the
     // model has already called, go in the inventory, so a write after a lookup skips a second tool_search.
     void hints?.apps.then((apps) => apps?.forEach((a) => loaded.add(a)));
-    let resp = await model(deps, ops, trace, turns, { ...base, input: cmd.text, tools: deps.tools.toResponsesTools(ctx, { preload: [...loaded] }) });
+    // Full history on every turn instead of previous_response_id: Muse doesn't have to load
+    // the stored conversation, which cut live GP1 from about 15 s to 8 s.
+    const history: unknown[] = [{ role: "user", content: cmd.text }];
+    let resp = await model(deps, ops, trace, turns, { ...base, input: [...history], tools: deps.tools.toResponsesTools(ctx, { preload: [...loaded] }) });
     planned = true;
 
     for (let turn = 0; turn < (deps.maxTurns ?? 8); turn++) {
@@ -123,10 +126,10 @@ export async function runCommand(deps: AgentDeps, cmd: Command): Promise<{ reply
         if (ns) loaded.add(ns);
       }
       const outputs = await Promise.all(calls.map((c) => executeCall(deps, ctx, c)));
+      history.push(...(resp.output ?? []), ...outputs);
       resp = await model(deps, ops, trace, ++turns, {
         ...base,
-        previous_response_id: resp.id,
-        input: outputs,
+        input: [...history],
         tools: deps.tools.toResponsesTools(ctx, { preload: [...loaded] }),
       });
     }

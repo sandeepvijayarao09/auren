@@ -105,7 +105,7 @@ function withWatch(namespaces: Namespace[], turns: Parameters<typeof scripted>[0
   return { deps: { muse, tools, surfaces, log, agentModel: "muse-wonder-1.0" }, log, inbox, requests };
 }
 
-const outputOf = (request: Record<string, any>, callId: string) => JSON.parse((request.input as any[]).find((o) => o.call_id === callId).output);
+const outputOf = (request: Record<string, any>, callId: string) => JSON.parse((request.input as any[]).find((o) => o.type === "function_call_output" && o.call_id === callId).output);
 
 // ── mcp.json ───────────────────────────────────────────────────────────────
 
