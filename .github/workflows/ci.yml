@@ -50,6 +50,24 @@ jobs:
       - run: uv run python -m unittest discover -s tests -t .
         working-directory: router
 
+  # The judges' sandbox image (Dockerfile): build it, start it without a key, and check it
+  # serves /health, /try and a session while refusing Core's real routes. Never pushed.
+  sandbox-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t auren-sandbox:ci .
+      - name: smoke test (replay mode)
+        run: |
+          docker run -d --name sbx --read-only --cap-drop ALL -p 127.0.0.1:8080:8080 auren-sandbox:ci
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:8080/health && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8080/health | grep -q '"sandbox":true'
+          curl -fsS -o /dev/null http://127.0.0.1:8080/try
+          curl -fsS -X POST http://127.0.0.1:8080/try/api/session | grep -q '"visitor"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/v1/events)" = 404
+      - if: failure()
+        run: docker logs sbx
+
   secrets:
     runs-on: ubuntu-latest
     steps:

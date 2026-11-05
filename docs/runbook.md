@@ -54,7 +54,7 @@ make sandbox      # http://127.0.0.1:8787/try
 - **Resetting.** Restart the process: every visitor's world, and the live engine's token count, are in memory.
 
 ### Hosting it (not deployed yet)
-Pick one. In every case the sandbox needs no inbound access to your Mac's real Core: run it as its own process, with its own `.env` holding at most `MODEL_API_KEY`.
+Scripted versions of both (a container image, `make tunnel`, and `make deploy-aws` to Lightsail) are in [deploy.md](deploy.md). Pick one. In every case the sandbox needs no inbound access to your Mac's real Core: run it as its own process, with its own `.env` holding at most `MODEL_API_KEY`.
 
 **Behind a tunnel from this Mac** (quickest for the judging window):
 ```bash
