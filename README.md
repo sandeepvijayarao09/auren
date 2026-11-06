@@ -26,7 +26,7 @@ docker run --rm -p 8080:8080 ghcr.io/sandeepvijayarao09/auren-sandbox
 ```bash
 git clone https://github.com/sandeepvijayarao09/auren && cd auren && ./try.sh
 ```
-Then open **http://localhost:8080/try** and press **Start the 3-minute judge tour**. Without a key every example replays from the eval's scripts through the real loop. To run live Muse on your own Meta key, add `-e MODEL_API_KEY=your_key` to the `docker run` line (or `MODEL_API_KEY=your_key ./try.sh`).
+Then open **http://localhost:8080/try** and press **Start the 3-minute judge tour**. Step-by-step guide, tour notes and troubleshooting: **[TRY.md](TRY.md)**. Without a key every example replays from the eval's scripts through the real loop. To run live Muse on your own Meta key, add `-e MODEL_API_KEY=your_key` to the `docker run` line (or `MODEL_API_KEY=your_key ./try.sh`).
 
 ## The idea
 **Muse is the future Meta is building toward.** For that future to arrive, Muse has to live in everyday life as a natural extension of you, not as one more app you open.
